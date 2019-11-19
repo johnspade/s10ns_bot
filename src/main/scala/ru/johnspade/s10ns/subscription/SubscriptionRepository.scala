@@ -11,4 +11,6 @@ trait SubscriptionRepository {
   def getByUserId(userId: UserId): ConnectionIO[List[Subscription]]
 
   def remove(id: SubscriptionId): ConnectionIO[Unit]
+
+  def update(s10n: Subscription): ConnectionIO[Option[Subscription]]
 }

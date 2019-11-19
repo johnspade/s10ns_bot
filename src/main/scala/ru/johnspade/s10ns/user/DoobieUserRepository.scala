@@ -11,7 +11,7 @@ import doobie.util.Meta
 import doobie.util.log.LogHandler
 import doobie.util.query.Query0
 import doobie.util.update.Update0
-import org.joda.money.CurrencyUnit
+import org.joda.money.{CurrencyUnit, Money}
 import org.postgresql.util.PGobject
 import ru.johnspade.s10ns.subscription._
 import ru.johnspade.s10ns.user.DoobieUserRepository.UserSql
@@ -48,15 +48,16 @@ object DoobieUserRepository {
     def create(user: User): Update0 =
       sql"""
         insert into users (id, first_name, last_name, username, chat_id, default_currency, dialog_type,
-        subscription_dialog_state, settings_dialog_state, subscription_draft)
+        subscription_dialog_state, settings_dialog_state, edit_s10n_name_dialog_state, subscription_draft,
+        existing_subscription_draft)
         values (${user.id.value}, ${user.firstName.value}, ${user.lastName.map(_.value)}, ${user.username.map(_.value)},
         ${user.chatId.map(_.value)}, ${user.defaultCurrency}, ${user.dialogType}, ${user.subscriptionDialogState},
-        ${user.settingsDialogState}, ${user.subscriptionDraft})
+        ${user.settingsDialogState}, ${user.editS10nNameDialogState}, ${user.subscriptionDraft}, ${user.existingS10nDraft})
       """.update
 
     def get(id: UserId): Query0[User] = sql"""
         select id, first_name, last_name, username, chat_id, default_currency, dialog_type, subscription_dialog_state,
-        settings_dialog_state, subscription_draft
+        settings_dialog_state, edit_s10n_name_dialog_state, subscription_draft, existing_subscription_draft
         from users
         where id = ${id.value}
       """.query[User]
@@ -72,63 +73,54 @@ object DoobieUserRepository {
         dialog_type = ${user.dialogType},
         subscription_dialog_state = ${user.subscriptionDialogState},
         settings_dialog_state = ${user.settingsDialogState},
-        subscription_draft = ${user.subscriptionDraft}
+        edit_s10n_name_dialog_state = ${user.editS10nNameDialogState},
+        subscription_draft = ${user.subscriptionDraft},
+        existing_subscription_draft = ${user.existingS10nDraft}
         where id = ${user.id.value}
       """.update
   }
 
   import io.circe.generic.auto._
   import io.circe.generic.extras.defaults._
-  import io.circe.generic.extras.semiauto._
   import io.circe.parser._
   import io.circe.syntax._
   import io.circe.{Decoder, Encoder}
-
-  private implicit val SubscriptionEncoder: Encoder[SubscriptionDraft] = deriveEncoder
-  private implicit val SubscriptionDecoder: Decoder[SubscriptionDraft] = deriveDecoder
-
-  private implicit val SubscriptionIdEncoder: Encoder[SubscriptionId] = deriveUnwrappedEncoder
-  private implicit val SubscriptionIdDecoder: Decoder[SubscriptionId] = deriveUnwrappedDecoder
-
-  private implicit val SubscriptionNameEncoder: Encoder[SubscriptionName] = deriveUnwrappedEncoder
-  private implicit val SubscriptionNameDecoder: Decoder[SubscriptionName] = deriveUnwrappedDecoder
-
-  private implicit val SubscriptionAmountEncoder: Encoder[SubscriptionAmount] = deriveUnwrappedEncoder
-  private implicit val SubscriptionAmountDecoder: Decoder[SubscriptionAmount] = deriveUnwrappedDecoder
 
   private implicit val CurrencyUnitEncoder: Encoder[CurrencyUnit] = Encoder.encodeString.contramap(_.getCode)
   private implicit val CurrencyUnitDecoder: Decoder[CurrencyUnit] = Decoder.decodeString.emap { str =>
     Either.catchNonFatal(CurrencyUnit.of(str)).leftMap(_ => "CurrencyUnit")
   }
 
-  private implicit val SubscriptionDescriptionEncoder: Encoder[SubscriptionDescription] = deriveUnwrappedEncoder
-  private implicit val SubscriptionDescriptionDecoder: Decoder[SubscriptionDescription] = deriveUnwrappedDecoder
-
-  private implicit val BillingPeriodDurationEncoder: Encoder[BillingPeriodDuration] = deriveUnwrappedEncoder
-  private implicit val BillingPeriodDurationDecoder: Decoder[BillingPeriodDuration] = deriveUnwrappedDecoder
-
   private implicit val ChronoUnitEncoder: Encoder[ChronoUnit] = Encoder.encodeString.contramap(_.name())
   private implicit val ChronoUnitDecoder: Decoder[ChronoUnit] = Decoder.decodeString.emap { str =>
     Either.catchNonFatal(ChronoUnit.valueOf(str)).leftMap(_ => "BillingPeriodUnit")
   }
 
-  private implicit val BillingPeriodUnitEncoder: Encoder[BillingPeriodUnit] = deriveUnwrappedEncoder
-  private implicit val BillingPeriodUnitDecoder: Decoder[BillingPeriodUnit] = deriveUnwrappedDecoder
+  private implicit val MoneyEncoder: Encoder[Money] = Encoder.encodeString.contramap(_.toString)
+  private implicit val MoneyDecoder: Decoder[Money] = Decoder.decodeString.emap { s =>
+    Either.catchNonFatal(Money.parse(s)).leftMap(_ => "Money")
+  }
 
-  private implicit val OneTimeSubscriptionEncoder: Encoder[OneTimeSubscription] = deriveUnwrappedEncoder
-  private implicit val OneTimeSubscriptionDecoder: Decoder[OneTimeSubscription] = deriveUnwrappedDecoder
-
-  private implicit val FirstPaymentDateEncoder: Encoder[FirstPaymentDate] = deriveUnwrappedEncoder
-  private implicit val FirstPaymentDateDecoder: Decoder[FirstPaymentDate] = deriveUnwrappedDecoder
-
-  private implicit val subscriptionJsonMeta: doobie.Meta[SubscriptionDraft] =
-    doobie.Meta.Advanced
+  private implicit val subscriptionJsonMeta: Meta[SubscriptionDraft] =
+    Meta.Advanced
       .other[PGobject]("jsonb")
       .imap[SubscriptionDraft](jsonStr => decode[SubscriptionDraft](jsonStr.getValue).leftMap(err => throw err).merge)(
         subscription => {
           val o = new PGobject
           o.setType("jsonb")
           o.setValue(subscription.asJson.noSpaces)
+          o
+        }
+      )
+
+  private implicit val existingS10nJsonMeta: Meta[Subscription] =
+    Meta.Advanced
+      .other[PGobject]("jsonb")
+      .imap[Subscription](jsonStr => decode[Subscription](jsonStr.getValue).leftMap(err => throw err).merge)(
+        s10n => {
+          val o = new PGobject
+          o.setType("jsonb")
+          o.setValue(s10n.asJson.noSpaces)
           o
         }
       )

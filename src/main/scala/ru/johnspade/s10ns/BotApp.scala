@@ -23,9 +23,9 @@ import ru.johnspade.s10ns.exchangerates.{ExchangeRatesCache, ExchangeRatesServic
 import ru.johnspade.s10ns.help.{StartController, StartService}
 import ru.johnspade.s10ns.money.{DoobieExchangeRatesRefreshTimestampRepository, DoobieExchangeRatesRepository, MoneyService}
 import ru.johnspade.s10ns.settings.{SettingsController, SettingsService}
-import ru.johnspade.s10ns.subscription.{CreateS10nDialogController, CreateS10nDialogFsmService, CreateS10nDialogService, DoobieSubscriptionRepository, S10nsListMessageService, SubscriptionListController, SubscriptionListService}
+import ru.johnspade.s10ns.subscription.{CreateS10nDialogController, CreateS10nDialogFsmService, CreateS10nDialogService, DoobieSubscriptionRepository, EditS10nDialogController, EditS10nDialogService, S10nsListMessageService, SubscriptionListController, SubscriptionListService}
 import ru.johnspade.s10ns.telegram.StateMessageService
-import ru.johnspade.s10ns.user.DoobieUserRepository
+import ru.johnspade.s10ns.user.{DoobieUserRepository, EditS10nDialogFsmService}
 import telegramium.bots.client.ApiHttp4sImp
 
 import scala.concurrent.ExecutionContext
@@ -77,6 +77,7 @@ object BotApp extends IOApp {
       token: String,
       s10nListController: SubscriptionListController[F],
       createS10nDialogController: CreateS10nDialogController[F],
+      editS10nDialogController: EditS10nDialogController[F],
       settingsController: SettingsController[F],
       calendarController: CalendarController[F],
       startController: StartController[F],
@@ -90,6 +91,7 @@ object BotApp extends IOApp {
           userRepo,
           s10nListController,
           createS10nDialogController,
+          editS10nDialogController,
           calendarController,
           settingsController,
           startController,
@@ -118,12 +120,15 @@ object BotApp extends IOApp {
         )
         moneyService = new MoneyService(exchangeRatesService)
         s10nsListService = new S10nsListMessageService[F](userRepo, s10nRepo, moneyService, xa)
+        editS10nDialogFsmService = new EditS10nDialogFsmService[F](s10nsListService, stateMessageService, userRepo, s10nRepo, xa)
+        editS10nDialogService = new EditS10nDialogService[F](editS10nDialogFsmService)
         s10nCbService = new SubscriptionListService[F](userRepo, s10nRepo, xa, s10nsListService)
         createS10nDialogService = new CreateS10nDialogService[F](userRepo, createS10nDialogFsmService, stateMessageService, xa)
         settingsService = new SettingsService[F](userRepo, xa)
         startService = new StartService[F](userRepo, xa)
         s10nListController = new SubscriptionListController[F](s10nCbService)
         createS10nDialogController = new CreateS10nDialogController[F](createS10nDialogService)
+        editS10nDialogController = new EditS10nDialogController[F](editS10nDialogService)
         settingsController = new SettingsController[F](settingsService)
         calendarController = new CalendarController[F](calendarService)
         startController = new StartController[F](startService)
@@ -132,6 +137,7 @@ object BotApp extends IOApp {
           conf.telegram.token,
           s10nListController,
           createS10nDialogController,
+          editS10nDialogController,
           settingsController,
           calendarController,
           startController,

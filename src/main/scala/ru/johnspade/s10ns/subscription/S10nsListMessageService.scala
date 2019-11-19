@@ -9,9 +9,9 @@ import doobie.implicits._
 import doobie.util.transactor.Transactor
 import org.joda.money.Money
 import org.joda.money.format.MoneyFormatterBuilder
-import ru.johnspade.s10ns.common.PageNumber
+import ru.johnspade.s10ns.common.{Errors, PageNumber}
 import ru.johnspade.s10ns.money.MoneyService
-import ru.johnspade.s10ns.telegram.{CallbackData, ReplyMessage}
+import ru.johnspade.s10ns.telegram.{CbData, ReplyMessage}
 import ru.johnspade.s10ns.user.{User, UserId, UserRepository}
 import telegramium.bots.{InlineKeyboardButton, InlineKeyboardMarkup, MarkupInlineKeyboard}
 
@@ -21,7 +21,6 @@ class S10nsListMessageService[F[_] : Sync](
   private val moneyService: MoneyService[F],
   private val xa: Transactor[F]
 ) {
-
   private val DefaultPageSize = 10
   private val MoneyFormatter =
     new MoneyFormatterBuilder()
@@ -49,7 +48,7 @@ class S10nsListMessageService[F[_] : Sync](
           case (s, i) =>
             InlineKeyboardButton(
               i.toString,
-              callbackData = CallbackData.subscription(s.id, page).some
+              callbackData = CbData.subscription(s.id, page).some
             )
         })
 
@@ -57,11 +56,11 @@ class S10nsListMessageService[F[_] : Sync](
       val pageLastElementNumber = DefaultPageSize * (page.value + 1)
       val leftButton = InlineKeyboardButton(
         "⬅",
-        callbackData = CallbackData.subscriptions(PageNumber(page.value - 1)).some
+        callbackData = CbData.subscriptions(PageNumber(page.value - 1)).some
       )
       val rightButton = InlineKeyboardButton(
         "➡",
-        callbackData = CallbackData.subscriptions(PageNumber(page.value + 1)).some
+        callbackData = CbData.subscriptions(PageNumber(page.value + 1)).some
       )
       List(
         (pageLastElementNumber > DefaultPageSize, leftButton),
@@ -117,17 +116,19 @@ class S10nsListMessageService[F[_] : Sync](
             val text = Seq(name.some, amount.some, amountStd, billingPeriod, nextPayment, firstPaymentDate, paidInTotal)
               .flatten
               .mkString("\n")
+            val editButton =
+              InlineKeyboardButton("Edit", callbackData = CbData.editS10n(subscriptionId, page).some)
             val removeButton =
-              InlineKeyboardButton("Remove", callbackData = CallbackData.removeSubscription(subscriptionId, page).some)
-            val backButton = InlineKeyboardButton("List", callbackData = CallbackData.subscriptions(page).some)
-            val buttonsList = List(List(removeButton), List(backButton))
+              InlineKeyboardButton("Remove", callbackData = CbData.removeSubscription(subscriptionId, page).some)
+            val backButton = InlineKeyboardButton("List", callbackData = CbData.subscriptions(page).some)
+            val buttonsList = List(List(editButton), List(removeButton), List(backButton))
             ReplyMessage(text, MarkupInlineKeyboard(InlineKeyboardMarkup(buttonsList)).some)
           }
         }
       }
 
     def checkUserAndGetMessage(subscription: Subscription) =
-      Either.cond(subscription.userId == userId, createReplyMessage(subscription), "Access denied")
+      Either.cond(subscription.userId == userId, createReplyMessage(subscription), Errors.accessDenied)
         .sequence
         .map(_.sequence)
 
@@ -135,7 +136,25 @@ class S10nsListMessageService[F[_] : Sync](
       .transact(xa)
       .flatMap {
         _.flatTraverse(checkUserAndGetMessage)
-          .map(_.toRight("Not found").flatten)
+          .map(_.toRight(Errors.notFound).flatten)
+      }
+  }
+
+  def createEditS10nMarkup(userId: UserId, subscriptionId: SubscriptionId, page: PageNumber): F[Either[String, InlineKeyboardMarkup]] = {
+    def createMarkup(subscription: Subscription) = {
+      val nameButton = InlineKeyboardButton("Edit name", callbackData = CbData.editS10nName(subscriptionId).some)
+      val backButton = InlineKeyboardButton("Back", callbackData = CbData.subscription(subscriptionId, page).some)
+      InlineKeyboardMarkup(List(List(nameButton), List(backButton)))
+    }
+
+    def checkUserAndGetMarkup(subscription: Subscription) =
+      Either.cond(subscription.userId == userId, createMarkup(subscription), Errors.accessDenied)
+
+    subscriptionRepo.getById(subscriptionId)
+      .transact(xa)
+      .map {
+        _.map(checkUserAndGetMarkup)
+          .toRight(Errors.notFound).flatten
       }
   }
 }

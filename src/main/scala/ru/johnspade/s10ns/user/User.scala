@@ -1,7 +1,7 @@
 package ru.johnspade.s10ns.user
 
 import org.joda.money.CurrencyUnit
-import ru.johnspade.s10ns.subscription.SubscriptionDraft
+import ru.johnspade.s10ns.subscription.{Subscription, SubscriptionDraft}
 
 final case class UserId(value: Long) extends AnyVal
 final case class FirstName(value: String) extends AnyVal
@@ -17,7 +17,9 @@ case class User(
   chatId: Option[ChatId],
   defaultCurrency: CurrencyUnit = CurrencyUnit.EUR,
   dialogType: Option[DialogType] = None,
-  subscriptionDialogState: Option[SubscriptionDialogState] = None,
+  subscriptionDialogState: Option[CreateS10nDialogState] = None,
   settingsDialogState: Option[SettingsDialogState] = None,
-  subscriptionDraft: Option[SubscriptionDraft] = None
+  editS10nNameDialogState: Option[EditS10nNameDialogState] = None,
+  subscriptionDraft: Option[SubscriptionDraft] = None,
+  existingS10nDraft: Option[Subscription] = None
 )

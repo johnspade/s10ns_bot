@@ -8,8 +8,8 @@ import io.chrisdavenport.log4cats.Logger
 import ru.johnspade.s10ns.calendar.CalendarController
 import ru.johnspade.s10ns.help.StartController
 import ru.johnspade.s10ns.settings.SettingsController
-import ru.johnspade.s10ns.subscription.{CreateS10nDialogController, SubscriptionListController}
-import ru.johnspade.s10ns.telegram.{CallbackDataType, ReplyMessage}
+import ru.johnspade.s10ns.subscription.{CreateS10nDialogController, EditS10nDialogController, SubscriptionListController}
+import ru.johnspade.s10ns.telegram.{CbDataType, ReplyMessage}
 import ru.johnspade.s10ns.telegram.TelegramOps.{TelegramUserOps, ackCb}
 import ru.johnspade.s10ns.user.{DialogType, User, UserRepository}
 import telegramium.bots.client.{Api, SendMessageReq}
@@ -21,6 +21,7 @@ class SubscriptionsBot[F[_] : Sync : Timer : Logger](
   private val userRepo: UserRepository,
   private val s10nListController: SubscriptionListController[F],
   private val createS10nDialogController: CreateS10nDialogController[F],
+  private val editS10nDialogController: EditS10nDialogController[F],
   private val calendarController: CalendarController[F],
   private val settingsController: SettingsController[F],
   private val startController: StartController[F],
@@ -32,24 +33,29 @@ class SubscriptionsBot[F[_] : Sync : Timer : Logger](
   override def onMessage(msg: Message): F[Unit] =
     msg.from.map { user =>
       routeMessage(msg.chat.id.toLong, user, msg)
-    } getOrElse Monad[F].unit
+    }
+      .getOrElse(Monad[F].unit)
+      .handleErrorWith(e => Logger[F].error(e)(e.getMessage))
 
   override def onCallbackQuery(query: CallbackQuery): F[Unit] = {
     query.data.map { data =>
       val tag = data.split('\u001D').head
       val cb = query.copy(data = query.data.map(_.replaceFirst("^.+?\\u001D", "")))
-      CallbackDataType.withValue(java.lang.Long.decode(tag).toInt) match {
-        case CallbackDataType.Ignore => ackCb(cb)
-        case CallbackDataType.Subscriptions => s10nListController.subscriptionsCb(cb)
-        case CallbackDataType.RemoveSubscription => s10nListController.removeSubscriptionCb(cb)
-        case CallbackDataType.Subscription => s10nListController.subscriptionCb(cb)
-        case CallbackDataType.BillingPeriodUnit => createS10nDialogController.billingPeriodUnitCb(cb)
-        case CallbackDataType.OneTime => createS10nDialogController.isOneTimeCb(cb)
-        case CallbackDataType.Calendar => calendarController.calendarCb(cb)
-        case CallbackDataType.FirstPaymentDate => createS10nDialogController.firstPaymentDateCb(cb)
-        case CallbackDataType.DefaultCurrency => settingsController.defaultCurrencyCb(cb)
+      CbDataType.withValue(Integer.parseInt(tag, 16)) match { // todo Try
+        case CbDataType.Ignore => ackCb(cb)
+        case CbDataType.Subscriptions => s10nListController.subscriptionsCb(cb)
+        case CbDataType.RemoveSubscription => s10nListController.removeSubscriptionCb(cb)
+        case CbDataType.Subscription => s10nListController.subscriptionCb(cb)
+        case CbDataType.BillingPeriodUnit => createS10nDialogController.billingPeriodUnitCb(cb)
+        case CbDataType.OneTime => createS10nDialogController.isOneTimeCb(cb)
+        case CbDataType.Calendar => calendarController.calendarCb(cb)
+        case CbDataType.FirstPaymentDate => createS10nDialogController.firstPaymentDateCb(cb)
+        case CbDataType.DefaultCurrency => settingsController.defaultCurrencyCb(cb)
+        case CbDataType.EditS10n => s10nListController.editS10nCb(cb)
       }
-    } getOrElse ackCb(query)
+    }
+      .getOrElse(ackCb(query))
+      .handleErrorWith(e => Logger[F].error(e)(e.getMessage))
   }
 
   private def routeMessage(chatId: Long, from: TgUser, message: Message): F[Unit] = {
@@ -71,13 +77,14 @@ class SubscriptionsBot[F[_] : Sync : Timer : Logger](
       dialogType match {
         case DialogType.CreateSubscription => createS10nDialogController.message(user, msg)
         case DialogType.Settings => settingsController.message(user, msg)
+        case DialogType.EditS10nName => editS10nDialogController.s10nNameMessage(user, msg)
       }
 
     def handleText(user: User, text: String) = {
       user.dialogType
         .map { dialogType =>
           if (text.startsWith("/")) {
-            if (importandCommands.exists(text.startsWith))
+            if (importantCommands.exists(text.startsWith))
               handleCommands(user, text)
             else
               Sync[F].pure(ReplyMessage("Cannot execute command. Use /reset to stop."))
@@ -120,5 +127,5 @@ class SubscriptionsBot[F[_] : Sync : Timer : Logger](
       }
   }
 
-  private val importandCommands = Seq("/start", "/reset")
+  private val importantCommands = Seq("/start", "/reset")
 }

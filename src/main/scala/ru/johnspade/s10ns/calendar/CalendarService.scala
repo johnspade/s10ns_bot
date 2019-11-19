@@ -5,7 +5,7 @@ import java.time.format.DateTimeFormatter
 
 import cats.effect.Sync
 import cats.implicits._
-import ru.johnspade.s10ns.telegram.CallbackData
+import ru.johnspade.s10ns.telegram.CbData
 import telegramium.bots.{InlineKeyboardButton, InlineKeyboardMarkup}
 
 class CalendarService[F[_]: Sync] {
@@ -14,7 +14,7 @@ class CalendarService[F[_]: Sync] {
   private val LengthOfWeek = 7
 
   private def createIgnoredButton(text: String): InlineKeyboardButton =
-    InlineKeyboardButton(text, callbackData = CallbackData.ignore.some)
+    InlineKeyboardButton(text, callbackData = CbData.ignore.some)
 
   def generateKeyboard(date: LocalDate): F[InlineKeyboardMarkup] = {
     def createPlaceholders(count: Int): List[InlineKeyboardButton] = List.fill(count)(createIgnoredButton(" "))
@@ -29,14 +29,14 @@ class CalendarService[F[_]: Sync] {
 
     val days = (1 to lengthOfMonth).map { n =>
       val day = firstDay.withDayOfMonth(n)
-      InlineKeyboardButton(n.toString, callbackData = CallbackData.dayOfMonth(day).some)
+      InlineKeyboardButton(n.toString, callbackData = CbData.dayOfMonth(day).some)
     }
     val calendarRows = (createPlaceholders(shiftStart) ++ days.toList ++ createPlaceholders(shiftEnd)).grouped(LengthOfWeek)
       .toList
 
     val controlsRow = List(
-      InlineKeyboardButton("⬅", callbackData = CallbackData.calendar(firstDay.minusMonths(1)).some),
-      InlineKeyboardButton("➡", callbackData = CallbackData.calendar(firstDay.plusMonths(1)).some)
+      InlineKeyboardButton("⬅", callbackData = CbData.calendar(firstDay.minusMonths(1)).some),
+      InlineKeyboardButton("➡", callbackData = CbData.calendar(firstDay.plusMonths(1)).some)
     )
 
     Sync[F].delay(InlineKeyboardMarkup((headerRow :: weekRow :: calendarRows) :+ controlsRow))

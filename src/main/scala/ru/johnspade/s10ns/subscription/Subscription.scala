@@ -3,8 +3,8 @@ package ru.johnspade.s10ns.subscription
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
 
-import org.joda.money.{CurrencyUnit, Money}
 import org.joda.money.CurrencyUnit.EUR
+import org.joda.money.{CurrencyUnit, Money}
 import ru.johnspade.s10ns.user.UserId
 
 final case class SubscriptionId(value: Long) extends AnyVal

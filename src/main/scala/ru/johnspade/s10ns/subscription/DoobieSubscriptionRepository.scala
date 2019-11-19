@@ -7,6 +7,8 @@ import doobie.implicits._
 import doobie.postgres.implicits._
 import doobie.util.{Meta, Read, Write}
 import doobie.util.log.LogHandler
+import cats.implicits._
+import doobie.free.connection
 import doobie.util.query.Query0
 import doobie.util.update.Update0
 import org.joda.money.{CurrencyUnit, Money}
@@ -31,6 +33,13 @@ class DoobieSubscriptionRepository extends SubscriptionRepository {
       .to[List]
 
   override def remove(id: SubscriptionId): ConnectionIO[Unit] = SubscriptionSql.remove(id).run.map(_ => ())
+
+  override def update(s10n: Subscription): ConnectionIO[Option[Subscription]] =
+    for {
+      oldS10n <- SubscriptionSql.get(s10n.id).option
+      newS10n = oldS10n.map(_ => s10n)
+      _ <- newS10n.fold(connection.unit)(SubscriptionSql.update(_).run.void)
+    } yield newS10n
 }
 
 object DoobieSubscriptionRepository {
@@ -61,6 +70,22 @@ object DoobieSubscriptionRepository {
       """.query[Subscription]
 
     def remove(id: SubscriptionId): Update0 = sql"delete from subscriptions where id = ${id.value}".update
+
+    def update(s10n: Subscription): Update0 = {
+      import s10n._
+
+      sql"""
+        update subscriptions set
+        user_id = ${userId.value},
+        name = ${name.value},
+        amount = ${amount.getAmountMinorLong},
+        currency = ${amount.getCurrencyUnit.getCode},
+        one_time = ${oneTime.value},
+        period_duration = ${billingPeriod.map(_.duration.value)}
+        period_unit = ${billingPeriod.map(_.unit.value)}
+        first_payment_date = $firstPaymentDate
+      """.update
+    }
   }
 
   private implicit val moneyRead: Read[Money] =
