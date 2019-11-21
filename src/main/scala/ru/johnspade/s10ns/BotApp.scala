@@ -121,7 +121,7 @@ object BotApp extends IOApp {
         moneyService = new MoneyService(exchangeRatesService)
         s10nsListService = new S10nsListMessageService[F](userRepo, s10nRepo, moneyService, xa)
         editS10nDialogFsmService = new EditS10nDialogFsmService[F](s10nsListService, stateMessageService, userRepo, s10nRepo, xa)
-        editS10nDialogService = new EditS10nDialogService[F](editS10nDialogFsmService)
+        editS10nDialogService = new EditS10nDialogService[F](userRepo, s10nRepo, xa, editS10nDialogFsmService, stateMessageService)
         s10nCbService = new SubscriptionListService[F](userRepo, s10nRepo, xa, s10nsListService)
         createS10nDialogService = new CreateS10nDialogService[F](userRepo, createS10nDialogFsmService, stateMessageService, xa)
         settingsService = new SettingsService[F](userRepo, xa)

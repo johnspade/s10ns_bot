@@ -81,8 +81,8 @@ object DoobieSubscriptionRepository {
         amount = ${amount.getAmountMinorLong},
         currency = ${amount.getCurrencyUnit.getCode},
         one_time = ${oneTime.value},
-        period_duration = ${billingPeriod.map(_.duration.value)}
-        period_unit = ${billingPeriod.map(_.unit.value)}
+        period_duration = ${billingPeriod.map(_.duration.value)},
+        period_unit = ${billingPeriod.map(_.unit.value)},
         first_payment_date = $firstPaymentDate
       """.update
     }

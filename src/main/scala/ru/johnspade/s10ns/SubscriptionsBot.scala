@@ -52,6 +52,7 @@ class SubscriptionsBot[F[_] : Sync : Timer : Logger](
         case CbDataType.FirstPaymentDate => createS10nDialogController.firstPaymentDateCb(cb)
         case CbDataType.DefaultCurrency => settingsController.defaultCurrencyCb(cb)
         case CbDataType.EditS10n => s10nListController.editS10nCb(cb)
+        case CbDataType.EditS10nName => editS10nDialogController.editS10nNameCb(cb)
       }
     }
       .getOrElse(ackCb(query))

@@ -4,7 +4,6 @@ import cats.Monad
 import cats.data.Validated.{Invalid, Valid}
 import cats.effect.Sync
 import cats.implicits._
-import io.chrisdavenport.log4cats.Logger
 import ru.johnspade.s10ns.common.ValidatorNec.ValidationResult
 import ru.johnspade.s10ns.subscription.SubscriptionDraft
 import ru.johnspade.s10ns.user._
@@ -25,10 +24,9 @@ object TelegramOps {
       )
   }
 
-  def sendReplyMessage[F[_] : Sync : Logger](msg: Message, reply: ReplyMessage)(implicit bot: Api[F]): F[Unit] =
+  def sendReplyMessage[F[_] : Sync](msg: Message, reply: ReplyMessage)(implicit bot: Api[F]): F[Unit] =
     bot.sendMessage(SendMessageReq(ChatIntId(msg.chat.id), reply.text, replyMarkup = reply.markup))
       .void
-      .handleErrorWith(e => Logger[F].error(e)(e.getMessage))
 
   def ackCb[F[_] : Sync : Monad](cb: CallbackQuery, text: Option[String] = None)(implicit bot: Api[F]): F[Unit] =
     bot.answerCallbackQuery(AnswerCallbackQueryReq(cb.id, text)).void
