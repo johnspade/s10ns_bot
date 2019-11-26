@@ -5,6 +5,7 @@ import java.time.format.DateTimeFormatter
 
 import cats.effect.Sync
 import cats.implicits._
+import ru.johnspade.s10ns.subscription.tags._
 import ru.johnspade.s10ns.telegram.CbData
 import telegramium.bots.{InlineKeyboardButton, InlineKeyboardMarkup}
 
@@ -29,7 +30,7 @@ class CalendarService[F[_]: Sync] {
 
     val days = (1 to lengthOfMonth).map { n =>
       val day = firstDay.withDayOfMonth(n)
-      InlineKeyboardButton(n.toString, callbackData = CbData.dayOfMonth(day).some)
+      InlineKeyboardButton(n.toString, callbackData = CbData.dayOfMonth(FirstPaymentDate(day)).some)
     }
     val calendarRows = (createPlaceholders(shiftStart) ++ days.toList ++ createPlaceholders(shiftEnd)).grouped(LengthOfWeek)
       .toList

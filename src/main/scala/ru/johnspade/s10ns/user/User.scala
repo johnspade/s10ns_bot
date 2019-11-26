@@ -2,12 +2,7 @@ package ru.johnspade.s10ns.user
 
 import org.joda.money.CurrencyUnit
 import ru.johnspade.s10ns.subscription.{Subscription, SubscriptionDraft}
-
-final case class UserId(value: Long) extends AnyVal
-final case class FirstName(value: String) extends AnyVal
-final case class LastName(value: String) extends AnyVal
-final case class Username(value: String) extends AnyVal
-final case class ChatId(value: Long) extends AnyVal
+import ru.johnspade.s10ns.user.tags._
 
 case class User(
   id: UserId,

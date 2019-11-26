@@ -3,7 +3,7 @@ package ru.johnspade.s10ns.common
 import cats.data.ValidatedNec
 import cats.implicits._
 import org.joda.money.CurrencyUnit
-import ru.johnspade.s10ns.subscription.{BillingPeriodDuration, SubscriptionName}
+import ru.johnspade.s10ns.subscription.tags._
 
 import scala.util.Try
 
@@ -14,7 +14,7 @@ class ValidatorNec {
     text.map(_.validNec).getOrElse(TextCannotBeEmpty.invalidNec)
 
   def validateNameLength(name: SubscriptionName): ValidationResult[SubscriptionName] =
-    if (name.value.length <= 256) name.validNec else NameTooLong.invalidNec
+    if (name.length <= 256) name.validNec else NameTooLong.invalidNec
 
   def validateCurrency(currency: String): ValidationResult[CurrencyUnit] =
     Try(CurrencyUnit.of(currency)).toEither.left.map(_ => UnknownCurrency).toValidatedNec
@@ -29,7 +29,7 @@ class ValidatorNec {
     Try(duration.toInt).toEither.left.map(_ => NotANumber).toValidatedNec
 
   def validateDuration(duration: BillingPeriodDuration): ValidationResult[BillingPeriodDuration] =
-    if (duration.value > 0) duration.validNec else NumberMustBePositive.invalidNec
+    if (duration > 0) duration.validNec else NumberMustBePositive.invalidNec
 }
 
 object ValidatorNec extends ValidatorNec

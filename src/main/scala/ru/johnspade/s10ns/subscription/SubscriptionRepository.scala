@@ -1,7 +1,8 @@
 package ru.johnspade.s10ns.subscription
 
 import doobie.free.connection.ConnectionIO
-import ru.johnspade.s10ns.user.UserId
+import ru.johnspade.s10ns.subscription.tags._
+import ru.johnspade.s10ns.user.tags._
 
 trait SubscriptionRepository {
   def create(draft: SubscriptionDraft): ConnectionIO[Subscription]

@@ -10,18 +10,14 @@ import telegramium.bots.{CallbackQuery, ChatIntId}
 class CalendarController[F[_] : Sync](
   private val calendarService: CalendarService[F]
 ) {
-  def calendarCb(cb: CallbackQuery)(implicit bot: Api[F]): F[Unit] =
+  def calendarCb(cb: CallbackQuery, data: CalendarCbData)(implicit bot: Api[F]): F[Unit] =
     ackCb(cb) *>
-      cb.data
-        .traverse { data =>
-          calendarService.generateKeyboard(CalendarCbData.fromString(data).date)
-        }
+      calendarService.generateKeyboard(data.date)
         .flatMap { kb =>
           bot.editMessageReplyMarkup(EditMessageReplyMarkupReq(
             chatId = cb.message.map(msg => ChatIntId(msg.chat.id)),
             messageId = cb.message.map(_.messageId),
-            replyMarkup = kb
+            replyMarkup = kb.some
           ))
         }.void
-
 }

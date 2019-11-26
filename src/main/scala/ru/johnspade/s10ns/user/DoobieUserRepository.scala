@@ -3,7 +3,6 @@ package ru.johnspade.s10ns.user
 import java.time.temporal.ChronoUnit
 
 import cats.data.OptionT
-import cats.implicits._
 import doobie.free.connection
 import doobie.free.connection.ConnectionIO
 import doobie.implicits._
@@ -15,6 +14,7 @@ import org.joda.money.{CurrencyUnit, Money}
 import org.postgresql.util.PGobject
 import ru.johnspade.s10ns.subscription._
 import ru.johnspade.s10ns.user.DoobieUserRepository.UserSql
+import ru.johnspade.s10ns.user.tags._
 
 class DoobieUserRepository extends UserRepository {
   override def create(user: User): ConnectionIO[User] =
@@ -32,7 +32,7 @@ class DoobieUserRepository extends UserRepository {
     for {
       oldUser <- UserSql.get(user.id).option
       newUser = oldUser.map(_ => user)
-      _ <- newUser.fold(connection.unit)(UserSql.update(_).run.void)
+      _ <- newUser.fold(connection.unit)(UserSql.update(_).run.map(_ => ()))
     } yield newUser
   }
 
@@ -50,8 +50,8 @@ object DoobieUserRepository {
         insert into users (id, first_name, last_name, username, chat_id, default_currency, dialog_type,
         subscription_dialog_state, settings_dialog_state, edit_s10n_name_dialog_state, subscription_draft,
         existing_subscription_draft)
-        values (${user.id.value}, ${user.firstName.value}, ${user.lastName.map(_.value)}, ${user.username.map(_.value)},
-        ${user.chatId.map(_.value)}, ${user.defaultCurrency}, ${user.dialogType}, ${user.subscriptionDialogState},
+        values (${user.id}, ${user.firstName}, ${user.lastName}, ${user.username},
+        ${user.chatId}, ${user.defaultCurrency}, ${user.dialogType}, ${user.subscriptionDialogState},
         ${user.settingsDialogState}, ${user.editS10nNameDialogState}, ${user.subscriptionDraft}, ${user.existingS10nDraft})
       """.update
 
@@ -59,16 +59,16 @@ object DoobieUserRepository {
         select id, first_name, last_name, username, chat_id, default_currency, dialog_type, subscription_dialog_state,
         settings_dialog_state, edit_s10n_name_dialog_state, subscription_draft, existing_subscription_draft
         from users
-        where id = ${id.value}
+        where id = $id
       """.query[User]
 
     def update(user: User): Update0 =
       sql"""
         update users set
-        first_name = ${user.firstName.value},
-        last_name = ${user.lastName.map(_.value)},
-        username = ${user.username.map(_.value)},
-        chat_id = ${user.chatId.map(_.value)},
+        first_name = ${user.firstName},
+        last_name = ${user.lastName},
+        username = ${user.username},
+        chat_id = ${user.chatId},
         default_currency = ${user.defaultCurrency},
         dialog_type = ${user.dialogType},
         subscription_dialog_state = ${user.subscriptionDialogState},
@@ -76,10 +76,11 @@ object DoobieUserRepository {
         edit_s10n_name_dialog_state = ${user.editS10nNameDialogState},
         subscription_draft = ${user.subscriptionDraft},
         existing_subscription_draft = ${user.existingS10nDraft}
-        where id = ${user.id.value}
+        where id = ${user.id}
       """.update
   }
 
+  import cats.syntax.either._
   import io.circe.generic.auto._
   import io.circe.generic.extras.defaults._
   import io.circe.parser._

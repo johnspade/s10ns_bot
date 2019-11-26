@@ -9,12 +9,14 @@ import ru.johnspade.s10ns.calendar.CalendarController
 import ru.johnspade.s10ns.help.StartController
 import ru.johnspade.s10ns.settings.SettingsController
 import ru.johnspade.s10ns.subscription.{CreateS10nDialogController, EditS10nDialogController, SubscriptionListController}
-import ru.johnspade.s10ns.telegram.{CbDataType, ReplyMessage}
-import ru.johnspade.s10ns.telegram.TelegramOps.{TelegramUserOps, ackCb}
+import ru.johnspade.s10ns.telegram.CbData._
+import ru.johnspade.s10ns.telegram.TelegramOps.TelegramUserOps
+import ru.johnspade.s10ns.telegram.{BillingPeriodUnitCbData, CalendarCbData, CbDataService, DefaultCurrencyCbData, EditS10nCbData, EditS10nNameCbData, FirstPaymentDateCbData, IgnoreCbData, IsOneTimeCbData, RemoveSubscriptionCbData, ReplyMessage, SubscriptionCbData, SubscriptionsCbData}
 import ru.johnspade.s10ns.user.{DialogType, User, UserRepository}
 import telegramium.bots.client.{Api, SendMessageReq}
 import telegramium.bots.high.LongPollBot
 import telegramium.bots.{CallbackQuery, ChatIntId, Message, User => TgUser}
+import ru.johnspade.s10ns.telegram.TelegramOps.ackCb
 
 class SubscriptionsBot[F[_] : Sync : Timer : Logger](
   private val bot: Api[F],
@@ -25,7 +27,8 @@ class SubscriptionsBot[F[_] : Sync : Timer : Logger](
   private val calendarController: CalendarController[F],
   private val settingsController: SettingsController[F],
   private val startController: StartController[F],
-  private val xa: Transactor[F]
+  private val xa: Transactor[F],
+  private val cbDataService: CbDataService[F]
 )
   extends LongPollBot[F](bot) {
   private implicit val api: Api[F] = bot
@@ -38,24 +41,44 @@ class SubscriptionsBot[F[_] : Sync : Timer : Logger](
       .handleErrorWith(e => Logger[F].error(e)(e.getMessage))
 
   override def onCallbackQuery(query: CallbackQuery): F[Unit] = {
-    query.data.map { data =>
-      val tag = data.split('\u001D').head
-      val cb = query.copy(data = query.data.map(_.replaceFirst("^.+?\\u001D", "")))
-      CbDataType.withValue(Integer.parseInt(tag, 16)) match { // todo Try
-        case CbDataType.Ignore => ackCb(cb)
-        case CbDataType.Subscriptions => s10nListController.subscriptionsCb(cb)
-        case CbDataType.RemoveSubscription => s10nListController.removeSubscriptionCb(cb)
-        case CbDataType.Subscription => s10nListController.subscriptionCb(cb)
-        case CbDataType.BillingPeriodUnit => createS10nDialogController.billingPeriodUnitCb(cb)
-        case CbDataType.OneTime => createS10nDialogController.isOneTimeCb(cb)
-        case CbDataType.Calendar => calendarController.calendarCb(cb)
-        case CbDataType.FirstPaymentDate => createS10nDialogController.firstPaymentDateCb(cb)
-        case CbDataType.DefaultCurrency => settingsController.defaultCurrencyCb(cb)
-        case CbDataType.EditS10n => s10nListController.editS10nCb(cb)
-        case CbDataType.EditS10nName => editS10nDialogController.editS10nNameCb(cb)
-      }
-    }
-      .getOrElse(ackCb(query))
+    def route(data: String) =
+      cbDataService.decode(data)
+        .flatMap {
+          case _: IgnoreCbData => ackCb(query)
+
+          case s10ns: SubscriptionsCbData =>
+            s10nListController.subscriptionsCb(query, s10ns)
+
+          case s10n: SubscriptionCbData =>
+            s10nListController.subscriptionCb(query, s10n)
+
+          case billingPeriod: BillingPeriodUnitCbData =>
+            createS10nDialogController.billingPeriodUnitCb(query, billingPeriod)
+
+          case oneTime: IsOneTimeCbData =>
+            createS10nDialogController.isOneTimeCb(query, oneTime)
+
+          case calendar: CalendarCbData =>
+            calendarController.calendarCb(query, calendar)
+
+          case firstPaymentDate: FirstPaymentDateCbData =>
+            createS10nDialogController.firstPaymentDateCb(query, firstPaymentDate)
+
+          case removeS10n: RemoveSubscriptionCbData =>
+            s10nListController.removeSubscriptionCb(query, removeS10n)
+
+          case editS10n: EditS10nCbData =>
+            s10nListController.editS10nCb(query, editS10n)
+
+          case editS10nName: EditS10nNameCbData =>
+            editS10nDialogController.editS10nNameCb(query, editS10nName)
+
+          case _: DefaultCurrencyCbData =>
+            settingsController.defaultCurrencyCb(query)
+        }
+
+    query.data.map(route)
+      .getOrElse(Monad[F].unit)
       .handleErrorWith(e => Logger[F].error(e)(e.getMessage))
   }
 

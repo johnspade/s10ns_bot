@@ -5,7 +5,7 @@ import cats.effect.Sync
 import cats.implicits._
 import io.chrisdavenport.log4cats.Logger
 import ru.johnspade.s10ns.common.Errors
-import ru.johnspade.s10ns.telegram.ReplyMessage
+import ru.johnspade.s10ns.telegram.{BillingPeriodUnitCbData, FirstPaymentDateCbData, IsOneTimeCbData, ReplyMessage}
 import ru.johnspade.s10ns.telegram.TelegramOps.{ackCb, sendReplyMessage, toReplyMessage}
 import ru.johnspade.s10ns.user.User
 import telegramium.bots.client.{Api, EditMessageReplyMarkupReq}
@@ -27,14 +27,14 @@ class CreateS10nDialogController[F[_] : Sync : Logger](
         Option.empty[F[ReplyMessage]]
     } getOrElse Sync[F].pure(ReplyMessage(Errors.default))
 
-  def billingPeriodUnitCb(cb: CallbackQuery)(implicit bot: Api[F]): F[Unit] =
-    clearMarkup(cb) *> handleCallback(cb, createS10nDialogService.onBillingPeriodUnitCb)
+  def billingPeriodUnitCb(cb: CallbackQuery, data: BillingPeriodUnitCbData)(implicit bot: Api[F]): F[Unit] =
+    clearMarkup(cb) *> handleCallback(cb, createS10nDialogService.onBillingPeriodUnitCb(cb, data))
 
-  def isOneTimeCb(cb: CallbackQuery)(implicit bot: Api[F]): F[Unit] =
-    clearMarkup(cb) *> handleCallback(cb, createS10nDialogService.onIsOneTimeCallback)
+  def isOneTimeCb(cb: CallbackQuery, data: IsOneTimeCbData)(implicit bot: Api[F]): F[Unit] =
+    clearMarkup(cb) *> handleCallback(cb, createS10nDialogService.onIsOneTimeCallback(cb, data))
 
-  def firstPaymentDateCb(cb: CallbackQuery)(implicit bot: Api[F]): F[Unit] =
-    clearMarkup(cb) *> handleCallback(cb, createS10nDialogService.onFirstPaymentDateCallback)
+  def firstPaymentDateCb(cb: CallbackQuery, data: FirstPaymentDateCbData)(implicit bot: Api[F]): F[Unit] =
+    clearMarkup(cb) *> handleCallback(cb, createS10nDialogService.onFirstPaymentDateCallback(cb, data))
 
   private def clearMarkup(cb: CallbackQuery)(implicit bot: Api[F]) =
     bot.editMessageReplyMarkup(
@@ -42,23 +42,21 @@ class CreateS10nDialogController[F[_] : Sync : Logger](
     )
       .void
 
-  private def handleCallback(query: CallbackQuery, handler: CallbackQuery => F[Either[String, ReplyMessage]])(
+  private def handleCallback(query: CallbackQuery, replyEitherF: F[Either[String, ReplyMessage]])(
     implicit bot: Api[F]
   ): F[Unit] = {
-    val cb = query.copy(data = query.data.map(_.replaceFirst("^.+?\\u001D", "")))
-
     def sendReply(replyEither: Either[String, ReplyMessage]) =
-      cb.message
+      query.message
         .flatMap { msg =>
           replyEither.toOption.map(sendReplyMessage(msg, _))
         }
         .sequence
 
     def replyToCb(replyEither: Either[String, ReplyMessage]) =
-      ackCb(cb, replyEither.left.toOption) *> sendReply(replyEither)
+      ackCb(query, replyEither.left.toOption) *> sendReply(replyEither)
 
     for {
-      replyEither <- handler(cb)
+      replyEither <- replyEitherF
       reply <- replyToCb(replyEither)
     } yield reply getOrElse Monad[F].unit
   }

@@ -2,18 +2,18 @@ package ru.johnspade.s10ns.subscription
 
 import java.time.temporal.ChronoUnit
 
+import doobie.free.connection
 import doobie.free.connection.ConnectionIO
 import doobie.implicits._
 import doobie.postgres.implicits._
-import doobie.util.{Meta, Read, Write}
 import doobie.util.log.LogHandler
-import cats.implicits._
-import doobie.free.connection
 import doobie.util.query.Query0
 import doobie.util.update.Update0
+import doobie.util.{Meta, Read, Write}
 import org.joda.money.{CurrencyUnit, Money}
 import ru.johnspade.s10ns.subscription.DoobieSubscriptionRepository.SubscriptionSql
-import ru.johnspade.s10ns.user.UserId
+import ru.johnspade.s10ns.subscription.tags._
+import ru.johnspade.s10ns.user.tags._
 
 class DoobieSubscriptionRepository extends SubscriptionRepository {
   override def create(draft: SubscriptionDraft): ConnectionIO[Subscription] =
@@ -38,7 +38,7 @@ class DoobieSubscriptionRepository extends SubscriptionRepository {
     for {
       oldS10n <- SubscriptionSql.get(s10n.id).option
       newS10n = oldS10n.map(_ => s10n)
-      _ <- newS10n.fold(connection.unit)(SubscriptionSql.update(_).run.void)
+      _ <- newS10n.fold(connection.unit)(SubscriptionSql.update(_).run.map(_ => Unit))
     } yield newS10n
 }
 
@@ -52,37 +52,37 @@ object DoobieSubscriptionRepository {
       sql"""
         insert into subscriptions
         (user_id, name, amount, currency, one_time, period_duration, period_unit, first_payment_date)
-        values (${userId.value}, ${name.value}, $amount, ${currency.getCode}, ${oneTime.value},
-        ${periodDuration.map(_.value)}, ${periodUnit.map(_.value)}, $firstPaymentDate)
+        values ($userId, $name, $amount, ${currency.getCode}, $oneTime,
+        $periodDuration, $periodUnit, $firstPaymentDate)
       """.update
     }
 
     def get(id: SubscriptionId): Query0[Subscription] = sql"""
         select id, user_id, name, amount, currency, description, one_time, period_duration, period_unit, first_payment_date
         from subscriptions
-        where id = ${id.value}
+        where id = $id
       """.query[Subscription]
 
     def getByUserId(userId: UserId): Query0[Subscription] = sql"""
         select id, user_id, name, amount, currency, description, one_time, period_duration, period_unit, first_payment_date
         from subscriptions
-        where user_id = ${userId.value}
+        where user_id = $userId
       """.query[Subscription]
 
-    def remove(id: SubscriptionId): Update0 = sql"delete from subscriptions where id = ${id.value}".update
+    def remove(id: SubscriptionId): Update0 = sql"delete from subscriptions where id = $id".update
 
     def update(s10n: Subscription): Update0 = {
       import s10n._
 
       sql"""
         update subscriptions set
-        user_id = ${userId.value},
-        name = ${name.value},
+        user_id = $userId,
+        name = $name,
         amount = ${amount.getAmountMinorLong},
         currency = ${amount.getCurrencyUnit.getCode},
-        one_time = ${oneTime.value},
-        period_duration = ${billingPeriod.map(_.duration.value)},
-        period_unit = ${billingPeriod.map(_.unit.value)},
+        one_time = $oneTime,
+        period_duration = ${billingPeriod.map(_.duration)},
+        period_unit = ${billingPeriod.map(_.unit)},
         first_payment_date = $firstPaymentDate
       """.update
     }

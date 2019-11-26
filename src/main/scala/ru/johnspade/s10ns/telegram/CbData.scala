@@ -1,190 +1,132 @@
 package ru.johnspade.s10ns.telegram
 
 import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 
-import ru.johnspade.s10ns.common.PageNumber
-import ru.johnspade.s10ns.subscription.{BillingPeriodUnit, OneTimeSubscription, SubscriptionId}
+import kantan.csv._
+import kantan.csv.java8._
+import kantan.csv.ops._
+import ru.johnspade.s10ns.common.tags._
+import ru.johnspade.s10ns.subscription.tags._
+import ru.johnspade.s10ns.telegram.CbData.codecs._
 
 sealed trait CbData {
   def `type`: CbDataType
-
-  /**
-    * Converts the data to string (without type)
-    */
-  def toDataString: String
-
-  final def toDataStringWithTag = s"${`type`.hex}\u001D$toDataString"
 }
 
 object CbData {
-  def subscriptions(page: PageNumber): String =
-    SubscriptionsCbData(page).toDataStringWithTag
+  def subscriptions(page: PageNumber): String = SubscriptionsCbData(page = page).writeCsvRow(csvConfig)
 
   def subscription(subscriptionId: SubscriptionId, page: PageNumber): String =
-    SubscriptionCbData(subscriptionId, page).toDataStringWithTag
+    SubscriptionCbData(subscriptionId = subscriptionId, page = page).writeCsvRow(csvConfig)
 
-  def billingPeriodUnit(unit: BillingPeriodUnit): String = BillingPeriodUnitCbData(unit).toDataStringWithTag
+  def billingPeriodUnit(unit: BillingPeriodUnit): String = BillingPeriodUnitCbData(unit = unit).writeCsvRow(csvConfig)
 
-  def oneTime(oneTime: OneTimeSubscription): String = IsOneTimeCbData(oneTime).toDataStringWithTag
+  def oneTime(oneTime: OneTimeSubscription): String = IsOneTimeCbData(oneTime = oneTime).writeCsvRow(csvConfig)
 
-  def ignore: String = IgnoreCbData().toDataStringWithTag
+  val ignore: String = IgnoreCbData().writeCsvRow(csvConfig)
 
-  def calendar(date: LocalDate): String = CalendarCbData(date).toDataStringWithTag
+  def calendar(date: LocalDate): String = CalendarCbData(date = date).writeCsvRow(csvConfig)
 
-  def dayOfMonth(date: LocalDate): String = FirstPaymentDateCbData(date).toDataStringWithTag
+  def dayOfMonth(date: FirstPaymentDate): String = FirstPaymentDateCbData(date = date).writeCsvRow(csvConfig)
 
-  val defaultCurrency: String = DefaultCurrencyCbData().toDataStringWithTag
+  val defaultCurrency: String = DefaultCurrencyCbData().writeCsvRow(csvConfig)
 
   def removeSubscription(subscriptionId: SubscriptionId, page: PageNumber): String =
-    RemoveSubscriptionCbData(subscriptionId, page).toDataStringWithTag
+    RemoveSubscriptionCbData(subscriptionId = subscriptionId, page = page).writeCsvRow(csvConfig)
 
   def editS10n(subscriptionId: SubscriptionId, page: PageNumber): String =
-    EditS10nCbData(subscriptionId, page).toDataStringWithTag
+    EditS10nCbData(subscriptionId = subscriptionId, page = page).writeCsvRow(csvConfig)
 
-  def editS10nName(subscriptionId: SubscriptionId): String = EditS10nNameCbData(subscriptionId).toDataStringWithTag
+  def editS10nName(subscriptionId: SubscriptionId): String =
+    EditS10nNameCbData(subscriptionId = subscriptionId).writeCsvRow(csvConfig)
+
+  object codecs {
+    val csvConfig: CsvConfiguration = rfc.withCellSeparator('\u001D')
+
+    implicit val cbDataTypeCellCodec: CellCodec[CbDataType] =
+      CellCodec.from(s => DecodeResult(CbDataType.withValue(Integer.parseInt(s, 16))))(_.hex)
+    implicit val chronoUnitCellCodec: CellCodec[ChronoUnit] =
+      CellCodec.from(s => DecodeResult(ChronoUnit.valueOf(s)))(u => u.name())
+
+    implicit val s10nsCbDataRowCodec: RowCodec[SubscriptionsCbData] =
+      RowCodec.caseOrdered(SubscriptionsCbData.apply _)(SubscriptionsCbData.unapply)
+    implicit val s10nCbDataRowCodec: RowCodec[SubscriptionCbData] =
+      RowCodec.caseOrdered(SubscriptionCbData.apply _)(SubscriptionCbData.unapply)
+    implicit val billingPeriodUnitCbDataRowCodec: RowCodec[BillingPeriodUnitCbData] =
+      RowCodec.caseOrdered(BillingPeriodUnitCbData.apply _)(BillingPeriodUnitCbData.unapply)
+    implicit val oneTimeCbDataRowCodec: RowCodec[IsOneTimeCbData] =
+      RowCodec.caseOrdered(IsOneTimeCbData.apply _)(IsOneTimeCbData.unapply)
+    implicit val calendarCbDataRowCodec: RowCodec[CalendarCbData] =
+      RowCodec.caseOrdered(CalendarCbData.apply _)(CalendarCbData.unapply)
+    implicit val firstPaymentDateCbDataRowCodec: RowCodec[FirstPaymentDateCbData] =
+      RowCodec.caseOrdered(FirstPaymentDateCbData.apply _)(FirstPaymentDateCbData.unapply)
+    implicit val removeSubscriptionCbDataRowCodec: RowCodec[RemoveSubscriptionCbData] =
+      RowCodec.caseOrdered(RemoveSubscriptionCbData.apply _)(RemoveSubscriptionCbData.unapply)
+    implicit val editS10nCbDataRowCodec: RowCodec[EditS10nCbData] =
+      RowCodec.caseOrdered(EditS10nCbData.apply _)(EditS10nCbData.unapply)
+    implicit val editS10nNameCbDataRowCodec: RowCodec[EditS10nNameCbData] =
+      RowCodec.caseOrdered(EditS10nNameCbData.apply _)(EditS10nNameCbData.unapply)
+    implicit val ignoreCbDataRowCodec: RowCodec[IgnoreCbData] =
+      RowCodec.caseOrdered(IgnoreCbData.apply _)(IgnoreCbData.unapply)
+    implicit val defaultCurrencyCbDataCodec: RowCodec[DefaultCurrencyCbData] =
+      RowCodec.caseOrdered(DefaultCurrencyCbData.apply _)(DefaultCurrencyCbData.unapply)
+    implicit val ignoreCbDataRowEncoder: RowEncoder[IgnoreCbData] = implicitly[RowEncoder[IgnoreCbData]]
+  }
 }
 
-case class SubscriptionsCbData(page: PageNumber) extends CbData {
-  override val `type`: CbDataType = CbDataType.Subscriptions
+case class IgnoreCbData(
+  override val `type`: CbDataType = CbDataType.Ignore
+) extends CbData
 
-  override def toDataString: String = page.value.toString
-}
-
-object SubscriptionsCbData {
-  def fromString(s: String): SubscriptionsCbData =
-    SubscriptionsCbData(PageNumber(java.lang.Long.decode(s).toInt))
-}
+case class SubscriptionsCbData(
+  override val `type`: CbDataType = CbDataType.Subscriptions,
+  page: PageNumber
+) extends CbData
 
 case class SubscriptionCbData(
+  override val `type`: CbDataType = CbDataType.Subscription,
   subscriptionId: SubscriptionId,
   page: PageNumber
-) extends CbData {
-  override val `type`: CbDataType = CbDataType.Subscription
-
-  override def toDataString: String = s"${subscriptionId.value}\u001D${page.value}"
-}
-
-object SubscriptionCbData {
-  def fromString(s: String): SubscriptionCbData = {
-    val parts = s.split('\u001D')
-    SubscriptionCbData(
-      subscriptionId = SubscriptionId(java.lang.Long.decode(parts(0))),
-      page = PageNumber(java.lang.Long.decode(parts(1)).toInt)
-    )
-  }
-}
+) extends CbData
 
 case class BillingPeriodUnitCbData(
+  override val `type`: CbDataType = CbDataType.BillingPeriodUnit,
   unit: BillingPeriodUnit
-) extends CbData {
-  override def `type`: CbDataType = CbDataType.BillingPeriodUnit
-
-  override def toDataString: String = unit.value.name()
-}
-
-object BillingPeriodUnitCbData {
-  def fromString(s: String): BillingPeriodUnitCbData =
-    BillingPeriodUnitCbData(unit = BillingPeriodUnit(ChronoUnit.valueOf(s)))
-}
+) extends CbData
 
 case class IsOneTimeCbData(
+  override val `type`: CbDataType = CbDataType.OneTime,
   oneTime: OneTimeSubscription
-) extends CbData {
-  override val `type`: CbDataType = CbDataType.OneTime
-
-  override def toDataString: String =
-    if (oneTime.value) "1"
-    else "0"
-}
-
-object IsOneTimeCbData {
-  def fromString(s: String): IsOneTimeCbData = IsOneTimeCbData(oneTime = OneTimeSubscription(s == "1"))
-}
-
-case class IgnoreCbData() extends CbData {
-  override def `type`: CbDataType = CbDataType.Ignore
-
-  override def toDataString: String = ""
-}
+) extends CbData
 
 case class CalendarCbData(
+  override val `type`: CbDataType = CbDataType.Calendar,
   date: LocalDate
-) extends CbData {
-  override def `type`: CbDataType = CbDataType.Calendar
-
-  override def toDataString: String = DateTimeFormatter.ISO_DATE.format(date)
-}
-
-object CalendarCbData {
-  def fromString(s: String): CalendarCbData = CalendarCbData(LocalDate.parse(s, DateTimeFormatter.ISO_DATE))
-}
+) extends CbData
 
 case class FirstPaymentDateCbData(
-  date: LocalDate
-) extends CbData {
-  override def `type`: CbDataType = CbDataType.FirstPaymentDate
-
-  override def toDataString: String = DateTimeFormatter.ISO_DATE.format(date)
-}
-
-object FirstPaymentDateCbData {
-  def fromString(s: String): FirstPaymentDateCbData =
-    FirstPaymentDateCbData(LocalDate.parse(s, DateTimeFormatter.ISO_DATE))
-}
-
-case class DefaultCurrencyCbData() extends CbData {
-  override def `type`: CbDataType = CbDataType.DefaultCurrency
-  override def toDataString: String = ""
-}
+  override val `type`: CbDataType = CbDataType.FirstPaymentDate,
+  date: FirstPaymentDate
+) extends CbData
 
 case class RemoveSubscriptionCbData(
+  override val `type`: CbDataType = CbDataType.RemoveSubscription,
   subscriptionId: SubscriptionId,
   page: PageNumber
-) extends CbData {
-  override def `type`: CbDataType = CbDataType.RemoveSubscription
-  override def toDataString: String = s"${subscriptionId.value}\u001D${page.value}"
-}
-
-object RemoveSubscriptionCbData {
-  def fromString(s: String): RemoveSubscriptionCbData = {
-    val parts = s.split('\u001D')
-    RemoveSubscriptionCbData(
-      subscriptionId = SubscriptionId(java.lang.Long.decode(parts(0))),
-      page = PageNumber(java.lang.Long.decode(parts(1)).toInt)
-    )
-  }
-}
+) extends CbData
 
 case class EditS10nCbData(
+  override val `type`: CbDataType = CbDataType.EditS10n,
   subscriptionId: SubscriptionId,
   page: PageNumber
-) extends CbData {
-  override def `type`: CbDataType = CbDataType.EditS10n
-  override def toDataString: String = s"${subscriptionId.value}\u001D${page.value}"
-}
-
-object EditS10nCbData {
-  def fromString(s: String): EditS10nCbData = {
-    val parts = s.split('\u001D')
-    EditS10nCbData(
-      subscriptionId = SubscriptionId(java.lang.Long.decode(parts(0))),
-      page = PageNumber(java.lang.Long.decode(parts(1)).toInt)
-    )
-  }
-}
+) extends CbData
 
 case class EditS10nNameCbData(
+  override val `type`: CbDataType = CbDataType.EditS10nName,
   subscriptionId: SubscriptionId
-) extends CbData {
-  override def `type`: CbDataType = CbDataType.EditS10nName
-  override def toDataString: String = subscriptionId.value.toString
-}
+) extends CbData
 
-object EditS10nNameCbData {
-  def fromString(s: String): EditS10nNameCbData =
-    EditS10nNameCbData(
-      subscriptionId = SubscriptionId(java.lang.Long.decode(s))
-    )
-}
+case class DefaultCurrencyCbData(
+  override val `type`: CbDataType = CbDataType.DefaultCurrency
+) extends CbData

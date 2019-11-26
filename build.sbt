@@ -14,7 +14,8 @@ val FuuidVersion = "0.2.0"
 val CirceVersion = "0.11.1"
 val SttpVersion = "1.6.4"
 val PureconfigVersion = "0.12.1"
-val catsRetryVersion = "0.3.1"
+val CatsRetryVersion = "0.3.1"
+val KantanVersion = "0.6.0"
 
 lazy val telegramiumHigh = ProjectRef(uri("https://github.com/apimorphism/telegramium.git#master"), "telegramium-high")
 lazy val root = project.in(file(".")).dependsOn(telegramiumHigh)
@@ -37,8 +38,11 @@ libraryDependencies ++= Seq(
   "io.chrisdavenport" %% "log4cats-slf4j" % "1.0.1",
   "com.github.pureconfig" %% "pureconfig" % PureconfigVersion,
   "com.github.pureconfig" %% "pureconfig-cats-effect" % PureconfigVersion,
-  "com.github.cb372" %% "cats-retry-core" % catsRetryVersion,
-  "com.github.cb372" %% "cats-retry-cats-effect" % catsRetryVersion
+  "com.github.cb372" %% "cats-retry-core" % CatsRetryVersion,
+  "com.github.cb372" %% "cats-retry-cats-effect" % CatsRetryVersion,
+  "com.nrinaudo" %% "kantan.csv" % KantanVersion,
+  "com.nrinaudo" %% "kantan.csv-java8" % KantanVersion,
+  "org.rudogma" %% "supertagged" % "1.4"
 )
 
 addCompilerPlugin("com.olegpy" %% "better-monadic-for" % "0.3.1")

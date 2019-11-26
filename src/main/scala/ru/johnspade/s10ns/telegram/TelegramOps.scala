@@ -9,16 +9,17 @@ import ru.johnspade.s10ns.subscription.SubscriptionDraft
 import ru.johnspade.s10ns.user._
 import telegramium.bots.client.{AnswerCallbackQueryReq, Api, SendMessageReq}
 import telegramium.bots.{CallbackQuery, ChatIntId, Message}
+import ru.johnspade.s10ns.user.tags._
 
 object TelegramOps {
   implicit class TelegramUserOps(val value: telegramium.bots.User) extends AnyVal {
     def toUser(chatId: Option[Long] = None, dialog: Option[DialogType] = None, draft: Option[SubscriptionDraft] = None): User =
       User(
-        id = UserId(value.id),
+        id = UserId(value.id.toLong),
         firstName = FirstName(value.firstName),
-        lastName = value.lastName.map(LastName),
-        username = value.username.map(Username),
-        chatId = chatId.map(ChatId),
+        lastName = value.lastName.map(LastName(_)),
+        username = value.username.map(Username(_)),
+        chatId = chatId.map(ChatId(_)),
         dialogType = dialog,
         subscriptionDraft = draft
       )

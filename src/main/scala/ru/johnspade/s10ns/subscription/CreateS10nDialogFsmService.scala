@@ -7,6 +7,7 @@ import doobie.util.transactor.Transactor
 import io.chrisdavenport.log4cats.Logger
 import org.joda.money.{CurrencyUnit, Money}
 import ru.johnspade.s10ns.common.Errors
+import ru.johnspade.s10ns.subscription.tags._
 import ru.johnspade.s10ns.telegram.{ReplyMessage, StateMessageService}
 import ru.johnspade.s10ns.user.{CreateS10nDialogEvent, CreateS10nDialogState, DialogType, User, UserRepository}
 
@@ -50,7 +51,7 @@ class CreateS10nDialogFsmService[F[_] : Sync : Logger](
 
   def saveIsOneTime(user: User, oneTime: OneTimeSubscription): F[ReplyMessage] = {
     val draft = getSubscriptionDraft(user).copy(oneTime = oneTime)
-    val event = if (oneTime.value) CreateS10nDialogEvent.ChosenOneTime
+    val event = if (oneTime) CreateS10nDialogEvent.ChosenOneTime
     else CreateS10nDialogEvent.ChosenRecurring
     transition(user, draft, event)
   }

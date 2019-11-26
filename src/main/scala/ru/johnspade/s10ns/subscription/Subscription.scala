@@ -1,22 +1,14 @@
 package ru.johnspade.s10ns.subscription
 
-import java.time.LocalDate
-import java.time.temporal.ChronoUnit
-
 import org.joda.money.CurrencyUnit.EUR
 import org.joda.money.{CurrencyUnit, Money}
-import ru.johnspade.s10ns.user.UserId
+import ru.johnspade.s10ns.subscription.tags._
+import ru.johnspade.s10ns.user.tags._
 
-final case class SubscriptionId(value: Long) extends AnyVal
-final case class SubscriptionName(value: String) extends AnyVal
-final case class SubscriptionAmount(value: Long) extends AnyVal
-final case class SubscriptionDescription(value: String) extends AnyVal
-final case class OneTimeSubscription(value: Boolean) extends AnyVal
-final case class BillingPeriodDuration(value: Int) extends AnyVal
-final case class BillingPeriodUnit(value: ChronoUnit) extends AnyVal
-final case class FirstPaymentDate(value: LocalDate) extends AnyVal
-
-final case class BillingPeriod(duration: BillingPeriodDuration, unit: BillingPeriodUnit)
+final case class BillingPeriod(
+  duration: BillingPeriodDuration,
+  unit: BillingPeriodUnit
+)
 
 case class Subscription(
   id: SubscriptionId,
@@ -35,7 +27,7 @@ object Subscription {
       id = id,
       userId = draft.userId,
       name = draft.name,
-      amount = Money.ofMinor(draft.currency, draft.amount.value),
+      amount = Money.ofMinor(draft.currency, draft.amount),
       description = draft.description,
       oneTime = draft.oneTime,
       billingPeriod = draft.periodDuration.flatMap { duration =>
@@ -63,7 +55,7 @@ object SubscriptionDraft {
       userId = userId,
       name = SubscriptionName(""),
       currency = currency,
-      amount = SubscriptionAmount(0),
+      amount = SubscriptionAmount(0L),
       description = None,
       oneTime = OneTimeSubscription(false),
       periodDuration = None,

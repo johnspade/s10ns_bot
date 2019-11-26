@@ -6,9 +6,10 @@ import doobie.implicits._
 import doobie.util.transactor.Transactor
 import ru.johnspade.s10ns.common.Errors
 import ru.johnspade.s10ns.common.ValidatorNec.{ValidationResult, validateAmount, validateAmountString, validateCurrency, validateDuration, validateDurationString, validateNameLength, validateText}
+import ru.johnspade.s10ns.subscription.tags._
 import ru.johnspade.s10ns.telegram.TelegramOps.TelegramUserOps
 import ru.johnspade.s10ns.telegram.{BillingPeriodUnitCbData, FirstPaymentDateCbData, IsOneTimeCbData, ReplyMessage, StateMessageService}
-import ru.johnspade.s10ns.user.{DialogType, CreateS10nDialogState, User, UserRepository}
+import ru.johnspade.s10ns.user.{CreateS10nDialogState, DialogType, User, UserRepository}
 import telegramium.bots.{CallbackQuery, MarkupRemoveKeyboard, ReplyKeyboardRemove}
 
 class CreateS10nDialogService[F[_] : Sync](
@@ -64,30 +65,27 @@ class CreateS10nDialogService[F[_] : Sync](
         .traverse(createS10nDialogFsmService.saveBillingPeriodDuration(user, _))
   }
 
-  def onBillingPeriodUnitCb(cb: CallbackQuery): F[Either[String, ReplyMessage]] =
+  def onBillingPeriodUnitCb(cb: CallbackQuery, data: BillingPeriodUnitCbData): F[Either[String, ReplyMessage]] =
     handleCreateS10nCb(cb, user =>
       for {
         state <- user.subscriptionDialogState
-        data <- cb.data if state == CreateS10nDialogState.BillingPeriodUnit
-        unit = BillingPeriodUnitCbData.fromString(data).unit
+        unit = data.unit if state == CreateS10nDialogState.BillingPeriodUnit
       } yield createS10nDialogFsmService.saveBillingPeriodUnit(user, unit)
     )
 
-  def onIsOneTimeCallback(cb: CallbackQuery): F[Either[String, ReplyMessage]] =
+  def onIsOneTimeCallback(cb: CallbackQuery, data: IsOneTimeCbData): F[Either[String, ReplyMessage]] =
     handleCreateS10nCb(cb, user =>
       for {
         state <- user.subscriptionDialogState
-        data <- cb.data if state == CreateS10nDialogState.IsOneTime
-        oneTime = IsOneTimeCbData.fromString(data).oneTime
+        oneTime = data.oneTime if state == CreateS10nDialogState.IsOneTime
       } yield createS10nDialogFsmService.saveIsOneTime(user, oneTime)
     )
 
-  def onFirstPaymentDateCallback(cb: CallbackQuery): F[Either[String, ReplyMessage]] =
+  def onFirstPaymentDateCallback(cb: CallbackQuery, data: FirstPaymentDateCbData): F[Either[String, ReplyMessage]] =
     handleCreateS10nCb(cb, user =>
       for {
         state <- user.subscriptionDialogState
-        data <- cb.data if state == CreateS10nDialogState.FirstPaymentDate
-        firstPaymentDate = FirstPaymentDateCbData.fromString(data).date
+        firstPaymentDate = data.date if state == CreateS10nDialogState.FirstPaymentDate
       } yield createS10nDialogFsmService.saveFirstPaymentDate(user, FirstPaymentDate(firstPaymentDate))
     )
 

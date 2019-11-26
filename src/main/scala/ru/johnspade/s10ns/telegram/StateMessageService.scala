@@ -8,7 +8,7 @@ import cats.implicits._
 import org.joda.money.CurrencyUnit
 import ru.johnspade.s10ns.calendar.CalendarService
 import ru.johnspade.s10ns.help.StartMarkup
-import ru.johnspade.s10ns.subscription.{BillingPeriodUnit, OneTimeSubscription}
+import ru.johnspade.s10ns.subscription.tags._
 import ru.johnspade.s10ns.user.{CreateS10nDialogState, EditS10nNameDialogState}
 import telegramium.bots.{InlineKeyboardButton, InlineKeyboardMarkup, KeyboardButton, KeyboardMarkup, MarkupInlineKeyboard, MarkupReplyKeyboard, ReplyKeyboardMarkup}
 
