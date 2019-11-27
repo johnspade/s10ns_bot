@@ -9,37 +9,71 @@ import kantan.csv.ops._
 import ru.johnspade.s10ns.common.tags._
 import ru.johnspade.s10ns.subscription.tags._
 import ru.johnspade.s10ns.telegram.CbData.codecs._
+import supertagged.TaggedType
 
 sealed trait CbData {
   def `type`: CbDataType
 }
 
 object CbData {
-  def subscriptions(page: PageNumber): String = SubscriptionsCbData(page = page).writeCsvRow(csvConfig)
+  object CbDataCsv extends TaggedType[String]
+  type CbDataCsv = CbDataCsv.Type
 
-  def subscription(subscriptionId: SubscriptionId, page: PageNumber): String =
-    SubscriptionCbData(subscriptionId = subscriptionId, page = page).writeCsvRow(csvConfig)
+  def subscriptions(page: PageNumber): CbDataCsv = writeCsv(SubscriptionsCbData(page = page))
 
-  def billingPeriodUnit(unit: BillingPeriodUnit): String = BillingPeriodUnitCbData(unit = unit).writeCsvRow(csvConfig)
+  def subscription(subscriptionId: SubscriptionId, page: PageNumber): CbDataCsv =
+    writeCsv(SubscriptionCbData(subscriptionId = subscriptionId, page = page))
 
-  def oneTime(oneTime: OneTimeSubscription): String = IsOneTimeCbData(oneTime = oneTime).writeCsvRow(csvConfig)
+  def billingPeriodUnit(unit: BillingPeriodUnit): CbDataCsv = writeCsv(BillingPeriodUnitCbData(unit = unit))
 
-  val ignore: String = IgnoreCbData().writeCsvRow(csvConfig)
+  def oneTime(oneTime: OneTimeSubscription): CbDataCsv = writeCsv(IsOneTimeCbData(oneTime = oneTime))
 
-  def calendar(date: LocalDate): String = CalendarCbData(date = date).writeCsvRow(csvConfig)
+  val ignore: CbDataCsv = writeCsv(IgnoreCbData())
 
-  def dayOfMonth(date: FirstPaymentDate): String = FirstPaymentDateCbData(date = date).writeCsvRow(csvConfig)
+  def calendar(date: LocalDate): CbDataCsv = writeCsv(CalendarCbData(date = date))
 
-  val defaultCurrency: String = DefaultCurrencyCbData().writeCsvRow(csvConfig)
+  def dayOfMonth(date: FirstPaymentDate): CbDataCsv = writeCsv(FirstPaymentDateCbData(date = date))
 
-  def removeSubscription(subscriptionId: SubscriptionId, page: PageNumber): String =
-    RemoveSubscriptionCbData(subscriptionId = subscriptionId, page = page).writeCsvRow(csvConfig)
+  val defaultCurrency: CbDataCsv = writeCsv(DefaultCurrencyCbData())
 
-  def editS10n(subscriptionId: SubscriptionId, page: PageNumber): String =
-    EditS10nCbData(subscriptionId = subscriptionId, page = page).writeCsvRow(csvConfig)
+  def removeSubscription(subscriptionId: SubscriptionId, page: PageNumber): CbDataCsv =
+    writeCsv(RemoveSubscriptionCbData(subscriptionId = subscriptionId, page = page))
 
-  def editS10nName(subscriptionId: SubscriptionId): String =
-    EditS10nNameCbData(subscriptionId = subscriptionId).writeCsvRow(csvConfig)
+  def editS10n(subscriptionId: SubscriptionId, page: PageNumber): CbDataCsv =
+    writeCsv(EditS10nCbData(subscriptionId = subscriptionId, page = page))
+
+  def editS10nName(subscriptionId: SubscriptionId): CbDataCsv =
+    writeCsv(EditS10nNameCbData(subscriptionId = subscriptionId))
+
+  private def writeCsv[A <: CbData](data: A)(implicit encoder: RowEncoder[A]): CbDataCsv =
+    CbDataCsv @@ s"${CellEncoder[CbDataType].encode(data.`type`)}${csvConfig.cellSeparator}${data.writeCsvRow(csvConfig)}"
+
+  type Decode[A] = Seq[String] => DecodeResult[A]
+
+  private def invalidDiscriminator[C](data: C): Decode[Nothing] =
+    RowDecoder.from(_ => DecodeResult.typeError(s"Couldn't decode discriminator: $data")).decode
+
+  def discriminatorRowDecoder[C: CellDecoder, A](discriminator: PartialFunction[C, Decode[A]]): RowDecoder[A] =
+    RowDecoder.from(input => for {
+      data <- input.headOption.map(CellDecoder[C].decode).getOrElse(DecodeResult.outOfBounds(0))
+      discriminated <- discriminator.applyOrElse(data, invalidDiscriminator)(input.tail)
+    } yield discriminated)
+
+  implicit val cbDataDecoder: RowDecoder[CbData] = discriminatorRowDecoder[CbDataType, CbData] {
+    case CbDataType.Subscriptions => decode[SubscriptionsCbData]
+    case CbDataType.Subscription => decode[SubscriptionCbData]
+    case CbDataType.BillingPeriodUnit => decode[BillingPeriodUnitCbData]
+    case CbDataType.OneTime => decode[IsOneTimeCbData]
+    case CbDataType.Ignore => decode[IgnoreCbData]
+    case CbDataType.Calendar => decode[CalendarCbData]
+    case CbDataType.FirstPaymentDate => decode[FirstPaymentDateCbData]
+    case CbDataType.DefaultCurrency => decode[DefaultCurrencyCbData]
+    case CbDataType.RemoveSubscription => decode[RemoveSubscriptionCbData]
+    case CbDataType.EditS10n => decode[EditS10nCbData]
+    case CbDataType.EditS10nName => decode[EditS10nNameCbData]
+  }
+
+  private def decode[A](implicit decoder: RowDecoder[A]): Decode[A] = RowDecoder.apply[A].decode _
 
   object codecs {
     val csvConfig: CsvConfiguration = rfc.withCellSeparator('\u001D')
@@ -75,58 +109,70 @@ object CbData {
   }
 }
 
-case class IgnoreCbData(
+final case class IgnoreCbData(
+  ignore: String = ""
+) extends CbData {
   override val `type`: CbDataType = CbDataType.Ignore
-) extends CbData
+}
 
-case class SubscriptionsCbData(
-  override val `type`: CbDataType = CbDataType.Subscriptions,
+final case class SubscriptionsCbData(
   page: PageNumber
-) extends CbData
+) extends CbData {
+  override val `type`: CbDataType = CbDataType.Subscriptions
+}
 
-case class SubscriptionCbData(
-  override val `type`: CbDataType = CbDataType.Subscription,
+final case class SubscriptionCbData(
   subscriptionId: SubscriptionId,
   page: PageNumber
-) extends CbData
+) extends CbData {
+  override val `type`: CbDataType = CbDataType.Subscription
+}
 
-case class BillingPeriodUnitCbData(
-  override val `type`: CbDataType = CbDataType.BillingPeriodUnit,
+final case class BillingPeriodUnitCbData(
   unit: BillingPeriodUnit
-) extends CbData
+) extends CbData {
+  override val `type`: CbDataType = CbDataType.BillingPeriodUnit
+}
 
-case class IsOneTimeCbData(
-  override val `type`: CbDataType = CbDataType.OneTime,
+final case class IsOneTimeCbData(
   oneTime: OneTimeSubscription
-) extends CbData
+) extends CbData {
+  override val `type`: CbDataType = CbDataType.OneTime
+}
 
-case class CalendarCbData(
+final case class CalendarCbData(
   override val `type`: CbDataType = CbDataType.Calendar,
   date: LocalDate
 ) extends CbData
 
-case class FirstPaymentDateCbData(
-  override val `type`: CbDataType = CbDataType.FirstPaymentDate,
+final case class FirstPaymentDateCbData(
   date: FirstPaymentDate
-) extends CbData
+) extends CbData {
+  override val `type`: CbDataType = CbDataType.FirstPaymentDate
+}
 
-case class RemoveSubscriptionCbData(
-  override val `type`: CbDataType = CbDataType.RemoveSubscription,
+final case class RemoveSubscriptionCbData(
   subscriptionId: SubscriptionId,
   page: PageNumber
-) extends CbData
+) extends CbData {
+  override val `type`: CbDataType = CbDataType.RemoveSubscription
+}
 
-case class EditS10nCbData(
-  override val `type`: CbDataType = CbDataType.EditS10n,
+final case class EditS10nCbData(
   subscriptionId: SubscriptionId,
   page: PageNumber
-) extends CbData
+) extends CbData {
+  override val `type`: CbDataType = CbDataType.EditS10n
+}
 
-case class EditS10nNameCbData(
-  override val `type`: CbDataType = CbDataType.EditS10nName,
+final case class EditS10nNameCbData(
   subscriptionId: SubscriptionId
-) extends CbData
+) extends CbData {
+  override val `type`: CbDataType = CbDataType.EditS10nName
+}
 
-case class DefaultCurrencyCbData(
+final case class DefaultCurrencyCbData(
+  ignore: String = ""
+) extends CbData {
   override val `type`: CbDataType = CbDataType.DefaultCurrency
-) extends CbData
+}
