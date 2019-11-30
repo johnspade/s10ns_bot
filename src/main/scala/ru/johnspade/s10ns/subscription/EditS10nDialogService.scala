@@ -8,8 +8,8 @@ import ru.johnspade.s10ns.common.Errors
 import ru.johnspade.s10ns.common.ValidatorNec.{ValidationResult, validateNameLength, validateText}
 import ru.johnspade.s10ns.subscription.tags._
 import ru.johnspade.s10ns.telegram.TelegramOps.TelegramUserOps
-import ru.johnspade.s10ns.telegram.{EditS10nNameCbData, ReplyMessage, StateMessageService}
-import ru.johnspade.s10ns.user.{DialogType, EditS10nDialogFsmService, EditS10nNameDialogState, User, UserRepository}
+import ru.johnspade.s10ns.telegram.{EditS10nNameCbData, ReplyMessage}
+import ru.johnspade.s10ns.user.{EditS10nDialogFsmService, EditS10nNameDialog, EditS10nNameDialogState, User, UserRepository}
 import telegramium.bots.CallbackQuery
 
 class EditS10nDialogService[F[_] : Sync](
@@ -29,9 +29,10 @@ class EditS10nDialogService[F[_] : Sync](
         case Left(error) => Sync[F].pure(ReplyMessage(error))
         case Right(reply) =>
           val userWithNewState = user.copy(
-            dialogType = DialogType.EditS10nName.some,
-            editS10nNameDialogState = EditS10nNameDialogState.Name.some,
-            existingS10nDraft = s10n.some
+            dialog = EditS10nNameDialog(
+              state = EditS10nNameDialogState.Name,
+              draft = s10n
+            ).some
           )
           userRepo.update(userWithNewState).transact(xa) *> reply
       }
@@ -47,8 +48,8 @@ class EditS10nDialogService[F[_] : Sync](
     } yield replyOpt.getOrElse(ReplyMessage(Errors.notFound))
   }
 
-  def saveName(user: User, text: Option[String]): F[ValidationResult[ReplyMessage]] =
+  def saveName(user: User, dialog: EditS10nNameDialog, text: Option[String]): F[ValidationResult[ReplyMessage]] =
     validateText(text)
       .andThen(name => validateNameLength(SubscriptionName(name)))
-      .traverse(editS10nDialogFsmService.saveName(user, _))
+      .traverse(editS10nDialogFsmService.saveName(user, dialog, _))
 }

@@ -6,7 +6,9 @@ import scala.collection.immutable.IndexedSeq
 
 sealed abstract class EditS10nNameDialogState(val message: String) extends EnumEntry
 
-object EditS10nNameDialogState extends Enum[EditS10nNameDialogState] with DoobieEnum[EditS10nNameDialogState] {
+object EditS10nNameDialogState
+  extends Enum[EditS10nNameDialogState]
+    with CirceEnum[EditS10nNameDialogState] {
   case object Name extends EditS10nNameDialogState("Name:")
   case object Finished extends EditS10nNameDialogState("Name saved.")
 

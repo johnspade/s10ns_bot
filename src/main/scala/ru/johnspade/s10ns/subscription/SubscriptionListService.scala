@@ -5,7 +5,7 @@ import cats.implicits._
 import doobie.implicits._
 import doobie.util.transactor.Transactor
 import ru.johnspade.s10ns.common.Errors
-import ru.johnspade.s10ns.common.tags._
+import ru.johnspade.s10ns.subscription.tags.PageNumber
 import ru.johnspade.s10ns.telegram.TelegramOps.TelegramUserOps
 import ru.johnspade.s10ns.telegram.{EditS10nCbData, RemoveSubscriptionCbData, ReplyMessage, SubscriptionCbData, SubscriptionsCbData}
 import ru.johnspade.s10ns.user.tags._

@@ -7,8 +7,8 @@ import cats.effect.Sync
 import cats.implicits._
 import org.joda.money.format.MoneyFormatterBuilder
 import org.joda.money.{CurrencyUnit, Money}
-import ru.johnspade.s10ns.common.tags._
 import ru.johnspade.s10ns.money.MoneyService
+import ru.johnspade.s10ns.subscription.tags.PageNumber
 import ru.johnspade.s10ns.telegram.{CbData, ReplyMessage}
 import ru.johnspade.s10ns.user.User
 import telegramium.bots.{InlineKeyboardButton, InlineKeyboardMarkup, MarkupInlineKeyboard}

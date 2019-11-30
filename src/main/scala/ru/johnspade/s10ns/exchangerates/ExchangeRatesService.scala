@@ -18,9 +18,8 @@ class ExchangeRatesService[F[_] : Sync : Logger : Timer](
   private val fixerApi: FixerApi[F],
   private val exchangeRatesRepository: ExchangeRatesRepository,
   private val exchangeRatesRefreshTimestampRepo: ExchangeRatesRefreshTimestampRepository,
-  private val cache: ExchangeRatesCache[F],
-  private val xa: Transactor[F]
-) {
+  private val cache: ExchangeRatesCache[F]
+)(private implicit val xa: Transactor[F]) {
   private val retryPolicy = RetryPolicies.limitRetries[F](3) join RetryPolicies.exponentialBackoff[F](1.minute)
 
   def saveRates(): F[Unit] = {

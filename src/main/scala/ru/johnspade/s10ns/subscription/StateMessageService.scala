@@ -1,4 +1,4 @@
-package ru.johnspade.s10ns.telegram
+package ru.johnspade.s10ns.subscription
 
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
@@ -9,6 +9,7 @@ import org.joda.money.CurrencyUnit
 import ru.johnspade.s10ns.calendar.CalendarService
 import ru.johnspade.s10ns.help.StartMarkup
 import ru.johnspade.s10ns.subscription.tags._
+import ru.johnspade.s10ns.telegram.{CbData, ReplyMessage}
 import ru.johnspade.s10ns.user.{CreateS10nDialogState, EditS10nNameDialogState}
 import telegramium.bots.{InlineKeyboardButton, InlineKeyboardMarkup, KeyboardButton, KeyboardMarkup, MarkupInlineKeyboard, MarkupReplyKeyboard, ReplyKeyboardMarkup}
 

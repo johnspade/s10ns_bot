@@ -7,17 +7,11 @@ import doobie.util.transactor.Transactor
 import ru.johnspade.s10ns.user.{User, UserRepository}
 
 class StartService[F[_] : Sync](
-  private val userRepo: UserRepository,
-  private val xa: Transactor[F]
-) {
+  private val userRepo: UserRepository
+)(private implicit val xa: Transactor[F]) {
   def reset(user: User): F[Unit] =
-    if (Seq(user.dialogType, user.subscriptionDialogState, user.settingsDialogState, user.subscriptionDraft).flatten.nonEmpty) {
-      val resetUser = user.copy(
-        dialogType = None,
-        subscriptionDialogState = None,
-        settingsDialogState = None,
-        subscriptionDraft = None
-      )
+    if (user.dialog.nonEmpty) {
+      val resetUser = user.copy(dialog = None)
       userRepo.update(resetUser).transact(xa).void
     }
     else

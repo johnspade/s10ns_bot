@@ -12,7 +12,6 @@ import doobie.util.query.Query0
 import doobie.util.update.Update0
 import org.joda.money.{CurrencyUnit, Money}
 import org.postgresql.util.PGobject
-import ru.johnspade.s10ns.subscription._
 import ru.johnspade.s10ns.user.DoobieUserRepository.UserSql
 import ru.johnspade.s10ns.user.tags._
 
@@ -47,17 +46,12 @@ object DoobieUserRepository {
 
     def create(user: User): Update0 =
       sql"""
-        insert into users (id, first_name, last_name, username, chat_id, default_currency, dialog_type,
-        subscription_dialog_state, settings_dialog_state, edit_s10n_name_dialog_state, subscription_draft,
-        existing_subscription_draft)
-        values (${user.id}, ${user.firstName}, ${user.lastName}, ${user.username},
-        ${user.chatId}, ${user.defaultCurrency}, ${user.dialogType}, ${user.subscriptionDialogState},
-        ${user.settingsDialogState}, ${user.editS10nNameDialogState}, ${user.subscriptionDraft}, ${user.existingS10nDraft})
+        insert into users (id, first_name, chat_id, default_currency, dialog)
+        values (${user.id}, ${user.firstName}, ${user.chatId}, ${user.defaultCurrency}, ${user.dialog})
       """.update
 
     def get(id: UserId): Query0[User] = sql"""
-        select id, first_name, last_name, username, chat_id, default_currency, dialog_type, subscription_dialog_state,
-        settings_dialog_state, edit_s10n_name_dialog_state, subscription_draft, existing_subscription_draft
+        select id, first_name, chat_id, default_currency, dialog
         from users
         where id = $id
       """.query[User]
@@ -66,25 +60,34 @@ object DoobieUserRepository {
       sql"""
         update users set
         first_name = ${user.firstName},
-        last_name = ${user.lastName},
-        username = ${user.username},
         chat_id = ${user.chatId},
         default_currency = ${user.defaultCurrency},
-        dialog_type = ${user.dialogType},
-        subscription_dialog_state = ${user.subscriptionDialogState},
-        settings_dialog_state = ${user.settingsDialogState},
-        edit_s10n_name_dialog_state = ${user.editS10nNameDialogState},
-        subscription_draft = ${user.subscriptionDraft},
-        existing_subscription_draft = ${user.existingS10nDraft}
+        dialog = ${user.dialog}
         where id = ${user.id}
       """.update
   }
 
-  import cats.syntax.either._
-  import io.circe.generic.auto._
-  import io.circe.generic.extras.defaults._
   import io.circe.parser._
+  import io.circe.generic.extras.auto._
+  import io.circe.generic.extras.Configuration
   import io.circe.syntax._
+  import cats.syntax.either._
+
+  private implicit val jsonConfig: Configuration = Configuration.default.withDiscriminator("discriminator")
+
+  private implicit val dialogJsonMeta: Meta[Dialog] =
+    Meta.Advanced
+      .other[PGobject]("jsonb")
+      .imap[Dialog](jsonStr => decode[Dialog](jsonStr.getValue).leftMap(err => throw err).merge)(
+        dialog => {
+          val o = new PGobject
+          o.setType("jsonb")
+          o.setValue(dialog.asJson.noSpaces)
+          o
+        }
+      )
+
+  import io.circe.generic.auto._
   import io.circe.{Decoder, Encoder}
 
   private implicit val CurrencyUnitEncoder: Encoder[CurrencyUnit] = Encoder.encodeString.contramap(_.getCode)
@@ -101,30 +104,6 @@ object DoobieUserRepository {
   private implicit val MoneyDecoder: Decoder[Money] = Decoder.decodeString.emap { s =>
     Either.catchNonFatal(Money.parse(s)).leftMap(_ => "Money")
   }
-
-  private implicit val subscriptionJsonMeta: Meta[SubscriptionDraft] =
-    Meta.Advanced
-      .other[PGobject]("jsonb")
-      .imap[SubscriptionDraft](jsonStr => decode[SubscriptionDraft](jsonStr.getValue).leftMap(err => throw err).merge)(
-        subscription => {
-          val o = new PGobject
-          o.setType("jsonb")
-          o.setValue(subscription.asJson.noSpaces)
-          o
-        }
-      )
-
-  private implicit val existingS10nJsonMeta: Meta[Subscription] =
-    Meta.Advanced
-      .other[PGobject]("jsonb")
-      .imap[Subscription](jsonStr => decode[Subscription](jsonStr.getValue).leftMap(err => throw err).merge)(
-        s10n => {
-          val o = new PGobject
-          o.setType("jsonb")
-          o.setValue(s10n.asJson.noSpaces)
-          o
-        }
-      )
 
   private implicit val currencyUnitMeta: Meta[CurrencyUnit] = Meta[String].timap(CurrencyUnit.of)(_.getCode)
 }

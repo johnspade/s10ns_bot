@@ -6,16 +6,19 @@ import doobie.implicits._
 import doobie.util.transactor.Transactor
 import ru.johnspade.s10ns.common.ValidatorNec._
 import ru.johnspade.s10ns.telegram.{CbData, ReplyMessage}
-import ru.johnspade.s10ns.user.{DialogType, SettingsDialogState, User, UserRepository}
+import ru.johnspade.s10ns.user.{SettingsDialog, SettingsDialogState, User, UserRepository}
 import telegramium.bots.{InlineKeyboardButton, InlineKeyboardMarkup, MarkupInlineKeyboard}
 
 class SettingsService[F[_] : Sync](
-  private val userRepository: UserRepository,
-  private val xa: Transactor[F]
-) {
+  private val userRepository: UserRepository
+)(private implicit val xa: Transactor[F]) {
   def startDefaultCurrencyDialog(user: User): F[ReplyMessage] =
     userRepository.createOrUpdate {
-      user.copy(dialogType = DialogType.Settings.some, settingsDialogState = SettingsDialogState.DefaultCurrency.some)
+      user.copy(
+        dialog = SettingsDialog(
+          state = SettingsDialogState.DefaultCurrency
+        ).some
+      )
     }
       .transact(xa)
       .map(_ => ReplyMessage("Default currency:"))
@@ -24,7 +27,7 @@ class SettingsService[F[_] : Sync](
     validateText(text.map(_.trim.toUpperCase))
       .andThen(validateCurrency)
       .map { currency =>
-        userRepository.update(user.copy(defaultCurrency = currency, dialogType = None))
+        userRepository.update(user.copy(defaultCurrency = currency, dialog = None))
           .transact(xa)
           .map(_ => ReplyMessage("Default currency set"))
       }

@@ -6,77 +6,67 @@ import doobie.implicits._
 import doobie.util.transactor.Transactor
 import io.chrisdavenport.log4cats.Logger
 import org.joda.money.{CurrencyUnit, Money}
-import ru.johnspade.s10ns.common.Errors
 import ru.johnspade.s10ns.subscription.tags._
-import ru.johnspade.s10ns.telegram.{ReplyMessage, StateMessageService}
-import ru.johnspade.s10ns.user.{CreateS10nDialogEvent, CreateS10nDialogState, DialogType, User, UserRepository}
+import ru.johnspade.s10ns.telegram.ReplyMessage
+import ru.johnspade.s10ns.user.{CreateS10nDialog, CreateS10nDialogEvent, CreateS10nDialogState, User, UserRepository}
 
 class CreateS10nDialogFsmService[F[_] : Sync : Logger](
   private val subscriptionRepo: SubscriptionRepository,
   private val userRepo: UserRepository,
-  private val xa: Transactor[F],
   private val stateMessageService: StateMessageService[F]
-) {
+)(private implicit val xa: Transactor[F]) {
 
-  // todo: log
-  private def getSubscriptionDraft(user: User) = user.subscriptionDraft.getOrElse(SubscriptionDraft.create(user.id))
-
-  def saveName(user: User, name: SubscriptionName): F[ReplyMessage] = {
-    val draft = getSubscriptionDraft(user).copy(name = name)
-    transition(user, draft, CreateS10nDialogEvent.EnteredName)
+  def saveName(user: User, dialog: CreateS10nDialog, name: SubscriptionName): F[ReplyMessage] = {
+    val draft = dialog.draft.copy(name = name)
+    transition(user, dialog.copy(draft = draft), CreateS10nDialogEvent.EnteredName)
   }
 
-  def saveCurrency(user: User, currency: CurrencyUnit): F[ReplyMessage] = {
-    val draft = getSubscriptionDraft(user).copy(currency = currency)
-    transition(user, draft, CreateS10nDialogEvent.ChosenCurrency)
+  def saveCurrency(user: User, dialog: CreateS10nDialog, currency: CurrencyUnit): F[ReplyMessage] = {
+    val draft = dialog.draft.copy(currency = currency)
+    transition(user, dialog.copy(draft = draft), CreateS10nDialogEvent.ChosenCurrency)
   }
 
-  def saveAmount(user: User, amount: BigDecimal): F[ReplyMessage] = {
-    val userDraft = getSubscriptionDraft(user)
-    val draft = getSubscriptionDraft(user).copy(
-      amount = SubscriptionAmount(Money.of(userDraft.currency, amount.bigDecimal).getAmountMinorLong)
+  def saveAmount(user: User, dialog: CreateS10nDialog, amount: BigDecimal): F[ReplyMessage] = {
+    val draft = dialog.draft.copy(
+      amount = SubscriptionAmount(Money.of(dialog.draft.currency, amount.bigDecimal).getAmountMinorLong)
     )
-    transition(user, draft, CreateS10nDialogEvent.EnteredAmount)
+    transition(user, dialog.copy(draft = draft), CreateS10nDialogEvent.EnteredAmount)
   }
 
-  def saveBillingPeriodDuration(user: User, duration: BillingPeriodDuration): F[ReplyMessage] = {
-    val draft = getSubscriptionDraft(user).copy(periodDuration = duration.some)
-    transition(user, draft, CreateS10nDialogEvent.EnteredBillingPeriodDuration)
+  def saveBillingPeriodDuration(user: User, dialog: CreateS10nDialog, duration: BillingPeriodDuration): F[ReplyMessage] = {
+    val draft = dialog.draft.copy(periodDuration = duration.some)
+    transition(user, dialog.copy(draft = draft), CreateS10nDialogEvent.EnteredBillingPeriodDuration)
   }
 
-  def saveBillingPeriodUnit(user: User, unit: BillingPeriodUnit): F[ReplyMessage] = {
-    val draft = getSubscriptionDraft(user).copy(periodUnit = unit.some)
-    transition(user, draft, CreateS10nDialogEvent.ChosenBillingPeriodUnit)
+  def saveBillingPeriodUnit(user: User, dialog: CreateS10nDialog, unit: BillingPeriodUnit): F[ReplyMessage] = {
+    val draft = dialog.draft.copy(periodUnit = unit.some)
+    transition(user, dialog.copy(draft = draft), CreateS10nDialogEvent.ChosenBillingPeriodUnit)
   }
 
-  def saveIsOneTime(user: User, oneTime: OneTimeSubscription): F[ReplyMessage] = {
-    val draft = getSubscriptionDraft(user).copy(oneTime = oneTime)
+  def saveIsOneTime(user: User, dialog: CreateS10nDialog, oneTime: OneTimeSubscription): F[ReplyMessage] = {
+    val draft = dialog.draft.copy(oneTime = oneTime)
     val event = if (oneTime) CreateS10nDialogEvent.ChosenOneTime
     else CreateS10nDialogEvent.ChosenRecurring
-    transition(user, draft, event)
+    transition(user, dialog.copy(draft = draft), event)
   }
 
-  def saveFirstPaymentDate(user: User, date: FirstPaymentDate): F[ReplyMessage] = {
-    val draft = getSubscriptionDraft(user).copy(firstPaymentDate = date.some)
-    transition(user, draft, CreateS10nDialogEvent.ChosenFirstPaymentDate)
+  def saveFirstPaymentDate(user: User, dialog: CreateS10nDialog, date: FirstPaymentDate): F[ReplyMessage] = {
+    val draft = dialog.draft.copy(firstPaymentDate = date.some)
+    transition(user, dialog.copy(draft = draft), CreateS10nDialogEvent.ChosenFirstPaymentDate)
   }
 
-  private def transition(user: User, draft: SubscriptionDraft, event: CreateS10nDialogEvent): F[ReplyMessage] = {
-    val newState = user.dialogType.flatMap {
-      case DialogType.CreateSubscription =>
-        user.subscriptionDialogState.map(CreateS10nDialogState.transition(_, event))
-      case _ => Option.empty[CreateS10nDialogState]
-    }
-    val savedUser = newState match {
-      case Some(CreateS10nDialogState.Finished) =>
-        val userWithNewState = user.copy(dialogType = None, subscriptionDraft = None)
-        subscriptionRepo.create(draft)
-          .productR(userRepo.createOrUpdate(userWithNewState))
+  private def transition(user: User, dialog: CreateS10nDialog, event: CreateS10nDialogEvent): F[ReplyMessage] = {
+    val updatedDialog = dialog.copy(state = CreateS10nDialogState.transition(dialog.state, event))
+    val saveUser = updatedDialog.state match {
+      case CreateS10nDialogState.Finished =>
+        val userWithoutDialog = user.copy(dialog = None)
+        subscriptionRepo.create(updatedDialog.draft)
+          .productR(userRepo.createOrUpdate(userWithoutDialog))
           .transact(xa)
       case _ =>
-        val userWithNewState = user.copy(subscriptionDialogState = newState, subscriptionDraft = draft.some)
-        userRepo.createOrUpdate(userWithNewState).transact(xa)
+        val userWithUpdatedDialog = user.copy(dialog = updatedDialog.some)
+        userRepo.createOrUpdate(userWithUpdatedDialog).transact(xa)
     }
-    savedUser *> newState.map(stateMessageService.getMessage).getOrElse(Sync[F].delay(ReplyMessage(Errors.default)))
+    saveUser *> stateMessageService.getMessage(updatedDialog.state)
   }
 }

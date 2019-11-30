@@ -6,7 +6,9 @@ import scala.collection.immutable.IndexedSeq
 
 sealed abstract class CreateS10nDialogState(val message: String) extends EnumEntry
 
-object CreateS10nDialogState extends Enum[CreateS10nDialogState] with DoobieEnum[CreateS10nDialogState] {
+object CreateS10nDialogState
+  extends Enum[CreateS10nDialogState]
+    with CirceEnum[CreateS10nDialogState] {
   case object Name extends CreateS10nDialogState("Name:")
   case object Currency extends CreateS10nDialogState("Currency:")
   case object Amount extends CreateS10nDialogState("Amount:")

@@ -7,7 +7,7 @@ import io.chrisdavenport.log4cats.Logger
 import ru.johnspade.s10ns.common.Errors
 import ru.johnspade.s10ns.telegram.{BillingPeriodUnitCbData, FirstPaymentDateCbData, IsOneTimeCbData, ReplyMessage}
 import ru.johnspade.s10ns.telegram.TelegramOps.{ackCb, sendReplyMessage, toReplyMessage}
-import ru.johnspade.s10ns.user.User
+import ru.johnspade.s10ns.user.{CreateS10nDialog, User}
 import telegramium.bots.client.{Api, EditMessageReplyMarkupReq}
 import telegramium.bots.{CallbackQuery, ChatIntId, Message}
 
@@ -19,13 +19,12 @@ class CreateS10nDialogController[F[_] : Sync : Logger](
   def createWithDefaultCurrencyCommand(user: User): F[ReplyMessage] =
     createS10nDialogService.onCreateWithDefaultCurrencyCommand(user)
 
-  def message(user: User, message: Message): F[ReplyMessage] =
-    user.subscriptionDialogState.flatMap { state =>
-      if (createS10nDialogService.saveDraft.isDefinedAt(user, state, message.text))
-        createS10nDialogService.saveDraft(user, state, message.text).map(toReplyMessage).some
-      else
-        Option.empty[F[ReplyMessage]]
-    } getOrElse Sync[F].pure(ReplyMessage(Errors.default))
+  def message(user: User, dialog: CreateS10nDialog, message: Message): F[ReplyMessage] =
+    createS10nDialogService.saveDraft
+      .lift
+      .apply(user, dialog, message.text)
+      .map(_.map(toReplyMessage))
+      .getOrElse(Sync[F].pure(ReplyMessage(Errors.default)))
 
   def billingPeriodUnitCb(cb: CallbackQuery, data: BillingPeriodUnitCbData)(implicit bot: Api[F]): F[Unit] =
     clearMarkup(cb) *> handleCallback(cb, createS10nDialogService.onBillingPeriodUnitCb(cb, data))

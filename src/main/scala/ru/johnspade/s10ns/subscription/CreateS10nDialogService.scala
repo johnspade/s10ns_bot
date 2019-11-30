@@ -8,22 +8,21 @@ import ru.johnspade.s10ns.common.Errors
 import ru.johnspade.s10ns.common.ValidatorNec.{ValidationResult, validateAmount, validateAmountString, validateCurrency, validateDuration, validateDurationString, validateNameLength, validateText}
 import ru.johnspade.s10ns.subscription.tags._
 import ru.johnspade.s10ns.telegram.TelegramOps.TelegramUserOps
-import ru.johnspade.s10ns.telegram.{BillingPeriodUnitCbData, FirstPaymentDateCbData, IsOneTimeCbData, ReplyMessage, StateMessageService}
-import ru.johnspade.s10ns.user.{CreateS10nDialogState, DialogType, User, UserRepository}
+import ru.johnspade.s10ns.telegram.{BillingPeriodUnitCbData, FirstPaymentDateCbData, IsOneTimeCbData, ReplyMessage}
+import ru.johnspade.s10ns.user.{CreateS10nDialog, CreateS10nDialogState, User, UserRepository}
 import telegramium.bots.{CallbackQuery, MarkupRemoveKeyboard, ReplyKeyboardRemove}
 
 class CreateS10nDialogService[F[_] : Sync](
   private val userRepo: UserRepository,
   private val createS10nDialogFsmService: CreateS10nDialogFsmService[F],
-  private val stateMessageService: StateMessageService[F],
-  private val xa: Transactor[F]
-) {
+  private val stateMessageService: StateMessageService[F]
+)(private implicit val xa: Transactor[F]) {
   def onCreateCommand(user: User): F[ReplyMessage] = {
-    val draft = SubscriptionDraft.create(user.id)
     val userWithDraft = user.copy(
-      dialogType = DialogType.CreateSubscription.some,
-      subscriptionDialogState = CreateS10nDialogState.Currency.some,
-      subscriptionDraft = draft.some
+      dialog = CreateS10nDialog(
+        state = CreateS10nDialogState.Currency,
+        draft = SubscriptionDraft.create(user.id)
+      ).some
     )
     userRepo.createOrUpdate(userWithDraft).transact(xa).flatMap { _ =>
       stateMessageService.getMessage(CreateS10nDialogState.Currency)
@@ -31,11 +30,11 @@ class CreateS10nDialogService[F[_] : Sync](
   }
 
   def onCreateWithDefaultCurrencyCommand(user: User): F[ReplyMessage] = {
-    val draft = SubscriptionDraft.create(user.id, user.defaultCurrency)
     val userWithDraft = user.copy(
-      dialogType = DialogType.CreateSubscription.some,
-      subscriptionDialogState = CreateS10nDialogState.Name.some,
-      subscriptionDraft = draft.some
+      dialog = CreateS10nDialog(
+        state = CreateS10nDialogState.Name,
+        draft = SubscriptionDraft.create(user.id, user.defaultCurrency)
+      ).some
     )
     userRepo.createOrUpdate(userWithDraft).transact(xa).flatMap { _ =>
       stateMessageService.getMessage(CreateS10nDialogState.Name).map { reply =>
@@ -44,49 +43,49 @@ class CreateS10nDialogService[F[_] : Sync](
     }
   }
 
-  val saveDraft: PartialFunction[(User, CreateS10nDialogState, Option[String]), F[ValidationResult[ReplyMessage]]] = {
-    case (user, state, text) if state == CreateS10nDialogState.Name =>
+  val saveDraft: PartialFunction[(User, CreateS10nDialog, Option[String]), F[ValidationResult[ReplyMessage]]] = {
+    case (user, dialog, text) if dialog.state == CreateS10nDialogState.Name =>
       validateText(text)
         .andThen(name => validateNameLength(SubscriptionName(name)))
-        .traverse(createS10nDialogFsmService.saveName(user, _))
-    case (user, state, text) if state == CreateS10nDialogState.Currency =>
+        .traverse(createS10nDialogFsmService.saveName(user, dialog, _))
+    case (user, dialog, text) if dialog.state == CreateS10nDialogState.Currency =>
       validateText(text.map(_.trim.toUpperCase))
         .andThen(validateCurrency)
-        .traverse(createS10nDialogFsmService.saveCurrency(user, _))
-    case (user, state, text) if state == CreateS10nDialogState.Amount =>
+        .traverse(createS10nDialogFsmService.saveCurrency(user, dialog, _))
+    case (user, dialog, text) if dialog.state == CreateS10nDialogState.Amount =>
       validateText(text)
         .andThen(validateAmountString)
         .andThen(validateAmount)
-        .traverse(createS10nDialogFsmService.saveAmount(user, _))
-    case (user, state, text) if state == CreateS10nDialogState.BillingPeriodDuration =>
+        .traverse(createS10nDialogFsmService.saveAmount(user, dialog, _))
+    case (user, dialog, text) if dialog.state == CreateS10nDialogState.BillingPeriodDuration =>
       validateText(text)
         .andThen(validateDurationString)
         .andThen(duration => validateDuration(BillingPeriodDuration(duration)))
-        .traverse(createS10nDialogFsmService.saveBillingPeriodDuration(user, _))
+        .traverse(createS10nDialogFsmService.saveBillingPeriodDuration(user, dialog, _))
   }
 
   def onBillingPeriodUnitCb(cb: CallbackQuery, data: BillingPeriodUnitCbData): F[Either[String, ReplyMessage]] =
     handleCreateS10nCb(cb, user =>
-      for {
-        state <- user.subscriptionDialogState
-        unit = data.unit if state == CreateS10nDialogState.BillingPeriodUnit
-      } yield createS10nDialogFsmService.saveBillingPeriodUnit(user, unit)
+      user.dialog.collect {
+        case dialog @ CreateS10nDialog(CreateS10nDialogState.BillingPeriodUnit, _) =>
+          createS10nDialogFsmService.saveBillingPeriodUnit(user, dialog, data.unit)
+      }
     )
 
   def onIsOneTimeCallback(cb: CallbackQuery, data: IsOneTimeCbData): F[Either[String, ReplyMessage]] =
     handleCreateS10nCb(cb, user =>
-      for {
-        state <- user.subscriptionDialogState
-        oneTime = data.oneTime if state == CreateS10nDialogState.IsOneTime
-      } yield createS10nDialogFsmService.saveIsOneTime(user, oneTime)
+      user.dialog.collect {
+        case dialog @ CreateS10nDialog(CreateS10nDialogState.IsOneTime, _) =>
+          createS10nDialogFsmService.saveIsOneTime(user, dialog, data.oneTime)
+      }
     )
 
   def onFirstPaymentDateCallback(cb: CallbackQuery, data: FirstPaymentDateCbData): F[Either[String, ReplyMessage]] =
     handleCreateS10nCb(cb, user =>
-      for {
-        state <- user.subscriptionDialogState
-        firstPaymentDate = data.date if state == CreateS10nDialogState.FirstPaymentDate
-      } yield createS10nDialogFsmService.saveFirstPaymentDate(user, FirstPaymentDate(firstPaymentDate))
+      user.dialog.collect {
+        case dialog @ CreateS10nDialog(CreateS10nDialogState.FirstPaymentDate, _) =>
+          createS10nDialogFsmService.saveFirstPaymentDate(user, dialog, FirstPaymentDate(data.date))
+      }
     )
 
   private def handleCreateS10nCb(cb: CallbackQuery, saveDraft: User => Option[F[ReplyMessage]]): F[Either[String, ReplyMessage]] = {

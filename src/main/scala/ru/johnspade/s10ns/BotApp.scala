@@ -20,8 +20,8 @@ import ru.johnspade.s10ns.exchangerates.{ExchangeRatesCache, ExchangeRatesJobSer
 import ru.johnspade.s10ns.help.{StartController, StartService}
 import ru.johnspade.s10ns.money.{DoobieExchangeRatesRefreshTimestampRepository, DoobieExchangeRatesRepository, MoneyService}
 import ru.johnspade.s10ns.settings.{SettingsController, SettingsService}
-import ru.johnspade.s10ns.subscription.{CreateS10nDialogController, CreateS10nDialogFsmService, CreateS10nDialogService, DoobieSubscriptionRepository, EditS10nDialogController, EditS10nDialogService, S10nsListMessageService, SubscriptionListController, SubscriptionListService}
-import ru.johnspade.s10ns.telegram.{CbDataService, StateMessageService}
+import ru.johnspade.s10ns.subscription.{CreateS10nDialogController, CreateS10nDialogFsmService, CreateS10nDialogService, DoobieSubscriptionRepository, EditS10nDialogController, EditS10nDialogService, S10nsListMessageService, StateMessageService, SubscriptionListController, SubscriptionListService}
+import ru.johnspade.s10ns.telegram.CbDataService
 import ru.johnspade.s10ns.user.{DoobieUserRepository, EditS10nDialogFsmService}
 import telegramium.bots.client.ApiHttp4sImp
 
@@ -57,9 +57,8 @@ object BotApp extends IOApp {
       settingsController: SettingsController[F],
       calendarController: CalendarController[F],
       startController: StartController[F],
-      xa: Transactor[F],
       cbDataService: CbDataService[F]
-    ) =
+    )(implicit xa: Transactor[F]) =
       BlazeClientBuilder[F](ExecutionContext.global).resource.use { httpClient =>
         val http = org.http4s.client.middleware.Logger(logBody = true, logHeaders = true)(httpClient)
         val api = new ApiHttp4sImp(http, baseUrl = s"https://api.telegram.org/bot$token")
@@ -72,7 +71,6 @@ object BotApp extends IOApp {
           calendarController,
           settingsController,
           startController,
-          xa,
           cbDataService
         )
         bot.start().handleErrorWith(e => Logger[F].error(e)(e.getMessage))
@@ -88,14 +86,13 @@ object BotApp extends IOApp {
         implicit0(logger: Logger[F]) <- Slf4jLogger.create[F]
         exchangeRates <- exchangeRatesRepo.get().transact(xa)
         exchangeRatesCache <- ExchangeRatesCache.create[F](exchangeRates)
-        createS10nDialogFsmService = new CreateS10nDialogFsmService[F](s10nRepo, userRepo, xa, stateMessageService)
+        createS10nDialogFsmService = new CreateS10nDialogFsmService[F](s10nRepo, userRepo, stateMessageService)
         fixerApi = new FixerApiInterpreter[F](conf.fixer.token)
         exchangeRatesService = new ExchangeRatesService[F](
           fixerApi,
           exchangeRatesRepo,
           exchangeRatesRefreshTimestampRepo,
-          exchangeRatesCache,
-          xa
+          exchangeRatesCache
         )
         cbDataService = new CbDataService[F]
         moneyService = new MoneyService[F](exchangeRatesService)
@@ -103,9 +100,9 @@ object BotApp extends IOApp {
         editS10nDialogFsmService = new EditS10nDialogFsmService[F](s10nsListService, stateMessageService, userRepo, s10nRepo)
         editS10nDialogService = new EditS10nDialogService[F](userRepo, s10nRepo, editS10nDialogFsmService, stateMessageService)
         s10nCbService = new SubscriptionListService[F](userRepo, s10nRepo, s10nsListService)
-        createS10nDialogService = new CreateS10nDialogService[F](userRepo, createS10nDialogFsmService, stateMessageService, xa)
-        settingsService = new SettingsService[F](userRepo, xa)
-        startService = new StartService[F](userRepo, xa)
+        createS10nDialogService = new CreateS10nDialogService[F](userRepo, createS10nDialogFsmService, stateMessageService)
+        settingsService = new SettingsService[F](userRepo)
+        startService = new StartService[F](userRepo)
         exchangeRatesJobService = new ExchangeRatesJobService[F](exchangeRatesService, exchangeRatesRefreshTimestampRepo)
         s10nListController = new SubscriptionListController[F](s10nCbService)
         createS10nDialogController = new CreateS10nDialogController[F](createS10nDialogService)
@@ -122,7 +119,6 @@ object BotApp extends IOApp {
           settingsController,
           calendarController,
           startController,
-          xa,
           cbDataService
         )
       } yield ()

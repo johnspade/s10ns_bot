@@ -9,14 +9,12 @@ import ru.johnspade.s10ns.calendar.CalendarController
 import ru.johnspade.s10ns.help.StartController
 import ru.johnspade.s10ns.settings.SettingsController
 import ru.johnspade.s10ns.subscription.{CreateS10nDialogController, EditS10nDialogController, SubscriptionListController}
-import ru.johnspade.s10ns.telegram.CbData._
-import ru.johnspade.s10ns.telegram.TelegramOps.TelegramUserOps
+import ru.johnspade.s10ns.telegram.TelegramOps.{TelegramUserOps, ackCb}
 import ru.johnspade.s10ns.telegram.{BillingPeriodUnitCbData, CalendarCbData, CbDataService, DefaultCurrencyCbData, EditS10nCbData, EditS10nNameCbData, FirstPaymentDateCbData, IgnoreCbData, IsOneTimeCbData, RemoveSubscriptionCbData, ReplyMessage, SubscriptionCbData, SubscriptionsCbData}
-import ru.johnspade.s10ns.user.{DialogType, User, UserRepository}
+import ru.johnspade.s10ns.user.{CreateS10nDialog, Dialog, EditS10nNameDialog, SettingsDialog, User, UserRepository}
 import telegramium.bots.client.{Api, SendMessageReq}
 import telegramium.bots.high.LongPollBot
 import telegramium.bots.{CallbackQuery, ChatIntId, Message, User => TgUser}
-import ru.johnspade.s10ns.telegram.TelegramOps.ackCb
 
 class SubscriptionsBot[F[_] : Sync : Timer : Logger](
   private val bot: Api[F],
@@ -27,10 +25,10 @@ class SubscriptionsBot[F[_] : Sync : Timer : Logger](
   private val calendarController: CalendarController[F],
   private val settingsController: SettingsController[F],
   private val startController: StartController[F],
-  private val xa: Transactor[F],
   private val cbDataService: CbDataService[F]
-)
-  extends LongPollBot[F](bot) {
+)(
+  private implicit val xa: Transactor[F]
+) extends LongPollBot[F](bot) {
   private implicit val api: Api[F] = bot
 
   override def onMessage(msg: Message): F[Unit] =
@@ -97,25 +95,24 @@ class SubscriptionsBot[F[_] : Sync : Timer : Logger](
         case _ => startController.helpCommand
       }
 
-    def handleDialogs(user: User, dialogType: DialogType) =
-      dialogType match {
-        case DialogType.CreateSubscription => createS10nDialogController.message(user, msg)
-        case DialogType.Settings => settingsController.message(user, msg)
-        case DialogType.EditS10nName => editS10nDialogController.s10nNameMessage(user, msg)
+    def handleDialogs(user: User, dialog: Dialog) =
+      dialog match {
+        case d: CreateS10nDialog => createS10nDialogController.message(user, d, msg)
+        case d: SettingsDialog => settingsController.message(user, d, msg)
+        case d: EditS10nNameDialog => editS10nDialogController.s10nNameMessage(user, d, msg)
       }
 
     def handleText(user: User, text: String) = {
-      user.dialogType
-        .map { dialogType =>
-          if (text.startsWith("/")) {
-            if (importantCommands.exists(text.startsWith))
-              handleCommands(user, text)
-            else
-              Sync[F].pure(ReplyMessage("Cannot execute command. Use /reset to stop."))
-          }
+      user.dialog.map { dialog =>
+        if (text.startsWith("/")) {
+          if (importantCommands.exists(text.startsWith))
+            handleCommands(user, text)
           else
-            handleDialogs(user, dialogType)
+            Sync[F].pure(ReplyMessage("Cannot execute command. Use /reset to stop."))
         }
+        else
+          handleDialogs(user, dialog)
+      }
         .getOrElse {
           if (text.startsWith("/"))
             handleCommands(user, text)

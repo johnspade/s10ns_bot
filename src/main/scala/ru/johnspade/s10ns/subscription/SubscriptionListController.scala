@@ -3,9 +3,9 @@ package ru.johnspade.s10ns.subscription
 import cats.effect.Sync
 import cats.implicits._
 import io.chrisdavenport.log4cats.Logger
-import ru.johnspade.s10ns.common.tags._
-import ru.johnspade.s10ns.telegram.{EditS10nCbData, RemoveSubscriptionCbData, ReplyMessage, SubscriptionCbData, SubscriptionsCbData}
+import ru.johnspade.s10ns.subscription.tags.PageNumber
 import ru.johnspade.s10ns.telegram.TelegramOps.ackCb
+import ru.johnspade.s10ns.telegram.{EditS10nCbData, RemoveSubscriptionCbData, ReplyMessage, SubscriptionCbData, SubscriptionsCbData}
 import ru.johnspade.s10ns.user.User
 import telegramium.bots.client.{Api, EditMessageReplyMarkupReq, EditMessageTextReq}
 import telegramium.bots.{CallbackQuery, ChatIntId, InlineKeyboardMarkup, MarkupInlineKeyboard}

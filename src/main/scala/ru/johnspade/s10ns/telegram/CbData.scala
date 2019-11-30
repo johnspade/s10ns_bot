@@ -6,7 +6,6 @@ import java.time.temporal.ChronoUnit
 import kantan.csv._
 import kantan.csv.java8._
 import kantan.csv.ops._
-import ru.johnspade.s10ns.common.tags._
 import ru.johnspade.s10ns.subscription.tags._
 import ru.johnspade.s10ns.telegram.CbData.codecs._
 import supertagged.TaggedType

@@ -29,4 +29,7 @@ object tags {
 
   object FirstPaymentDate extends Tagged[LocalDate]
   type FirstPaymentDate = FirstPaymentDate.Type
+
+  object PageNumber extends Tagged[Int]
+  type PageNumber = PageNumber.Type
 }
