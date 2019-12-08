@@ -2,10 +2,11 @@ package ru.johnspade.s10ns.telegram
 
 import cats.effect.Sync
 import kantan.csv.ops._
+import ru.johnspade.s10ns.csv._
 
 class CbDataService[F[_] : Sync] {
   def decode(csv: String): F[CbData] =
-    csv.readCsv[List, CbData](CbData.codecs.csvConfig)
+    csv.readCsv[List, CbData](CbData.csvConfig)
       .headOption
       .map {
         case Left(e) =>

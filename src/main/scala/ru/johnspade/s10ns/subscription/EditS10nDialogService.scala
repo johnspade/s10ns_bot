@@ -8,7 +8,7 @@ import ru.johnspade.s10ns.common.Errors
 import ru.johnspade.s10ns.common.ValidatorNec.{ValidationResult, validateNameLength, validateText}
 import ru.johnspade.s10ns.subscription.tags._
 import ru.johnspade.s10ns.telegram.TelegramOps.TelegramUserOps
-import ru.johnspade.s10ns.telegram.{EditS10nNameCbData, ReplyMessage}
+import ru.johnspade.s10ns.telegram.{EditS10nName, ReplyMessage}
 import ru.johnspade.s10ns.user.{EditS10nDialogFsmService, EditS10nNameDialog, EditS10nNameDialogState, User, UserRepository}
 import telegramium.bots.CallbackQuery
 
@@ -18,7 +18,7 @@ class EditS10nDialogService[F[_] : Sync](
   private val editS10nDialogFsmService: EditS10nDialogFsmService[F],
   private val stateMessageService: StateMessageService[F]
 )(private implicit val xa: Transactor[F]) {
-  def onEditS10nNameCb(cb: CallbackQuery, data: EditS10nNameCbData): F[ReplyMessage] = {
+  def onEditS10nNameCb(cb: CallbackQuery, data: EditS10nName): F[ReplyMessage] = {
     def saveAndReply(user: User, s10n: Subscription) = {
       val checkUserAndGetMessage = Either.cond(
         s10n.userId == user.id,

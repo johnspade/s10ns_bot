@@ -8,7 +8,7 @@ import ru.johnspade.s10ns.common.Errors
 import ru.johnspade.s10ns.common.ValidatorNec.{ValidationResult, validateAmount, validateAmountString, validateCurrency, validateDuration, validateDurationString, validateNameLength, validateText}
 import ru.johnspade.s10ns.subscription.tags._
 import ru.johnspade.s10ns.telegram.TelegramOps.TelegramUserOps
-import ru.johnspade.s10ns.telegram.{BillingPeriodUnitCbData, FirstPaymentDateCbData, IsOneTimeCbData, ReplyMessage}
+import ru.johnspade.s10ns.telegram.{FirstPayment, OneTime, PeriodUnit, ReplyMessage}
 import ru.johnspade.s10ns.user.{CreateS10nDialog, CreateS10nDialogState, User, UserRepository}
 import telegramium.bots.{CallbackQuery, MarkupRemoveKeyboard, ReplyKeyboardRemove}
 
@@ -64,7 +64,7 @@ class CreateS10nDialogService[F[_] : Sync](
         .traverse(createS10nDialogFsmService.saveBillingPeriodDuration(user, dialog, _))
   }
 
-  def onBillingPeriodUnitCb(cb: CallbackQuery, data: BillingPeriodUnitCbData): F[Either[String, ReplyMessage]] =
+  def onBillingPeriodUnitCb(cb: CallbackQuery, data: PeriodUnit): F[Either[String, ReplyMessage]] =
     handleCreateS10nCb(cb, user =>
       user.dialog.collect {
         case dialog @ CreateS10nDialog(CreateS10nDialogState.BillingPeriodUnit, _) =>
@@ -72,7 +72,7 @@ class CreateS10nDialogService[F[_] : Sync](
       }
     )
 
-  def onIsOneTimeCallback(cb: CallbackQuery, data: IsOneTimeCbData): F[Either[String, ReplyMessage]] =
+  def onIsOneTimeCallback(cb: CallbackQuery, data: OneTime): F[Either[String, ReplyMessage]] =
     handleCreateS10nCb(cb, user =>
       user.dialog.collect {
         case dialog @ CreateS10nDialog(CreateS10nDialogState.IsOneTime, _) =>
@@ -80,11 +80,11 @@ class CreateS10nDialogService[F[_] : Sync](
       }
     )
 
-  def onFirstPaymentDateCallback(cb: CallbackQuery, data: FirstPaymentDateCbData): F[Either[String, ReplyMessage]] =
+  def onFirstPaymentDateCallback(cb: CallbackQuery, data: FirstPayment): F[Either[String, ReplyMessage]] =
     handleCreateS10nCb(cb, user =>
       user.dialog.collect {
         case dialog @ CreateS10nDialog(CreateS10nDialogState.FirstPaymentDate, _) =>
-          createS10nDialogFsmService.saveFirstPaymentDate(user, dialog, FirstPaymentDate(data.date))
+          createS10nDialogFsmService.saveFirstPaymentDate(user, dialog, data.date)
       }
     )
 

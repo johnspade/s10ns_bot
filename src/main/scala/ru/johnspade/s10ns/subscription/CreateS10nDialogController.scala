@@ -5,7 +5,7 @@ import cats.effect.Sync
 import cats.implicits._
 import io.chrisdavenport.log4cats.Logger
 import ru.johnspade.s10ns.common.Errors
-import ru.johnspade.s10ns.telegram.{BillingPeriodUnitCbData, FirstPaymentDateCbData, IsOneTimeCbData, ReplyMessage}
+import ru.johnspade.s10ns.telegram.{PeriodUnit, FirstPayment, OneTime, ReplyMessage}
 import ru.johnspade.s10ns.telegram.TelegramOps.{ackCb, sendReplyMessage, toReplyMessage}
 import ru.johnspade.s10ns.user.{CreateS10nDialog, User}
 import telegramium.bots.client.{Api, EditMessageReplyMarkupReq}
@@ -26,13 +26,13 @@ class CreateS10nDialogController[F[_] : Sync : Logger](
       .map(_.map(toReplyMessage))
       .getOrElse(Sync[F].pure(ReplyMessage(Errors.default)))
 
-  def billingPeriodUnitCb(cb: CallbackQuery, data: BillingPeriodUnitCbData)(implicit bot: Api[F]): F[Unit] =
+  def billingPeriodUnitCb(cb: CallbackQuery, data: PeriodUnit)(implicit bot: Api[F]): F[Unit] =
     clearMarkup(cb) *> handleCallback(cb, createS10nDialogService.onBillingPeriodUnitCb(cb, data))
 
-  def isOneTimeCb(cb: CallbackQuery, data: IsOneTimeCbData)(implicit bot: Api[F]): F[Unit] =
+  def isOneTimeCb(cb: CallbackQuery, data: OneTime)(implicit bot: Api[F]): F[Unit] =
     clearMarkup(cb) *> handleCallback(cb, createS10nDialogService.onIsOneTimeCallback(cb, data))
 
-  def firstPaymentDateCb(cb: CallbackQuery, data: FirstPaymentDateCbData)(implicit bot: Api[F]): F[Unit] =
+  def firstPaymentDateCb(cb: CallbackQuery, data: FirstPayment)(implicit bot: Api[F]): F[Unit] =
     clearMarkup(cb) *> handleCallback(cb, createS10nDialogService.onFirstPaymentDateCallback(cb, data))
 
   private def clearMarkup(cb: CallbackQuery)(implicit bot: Api[F]) =

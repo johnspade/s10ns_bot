@@ -7,7 +7,7 @@ import doobie.util.transactor.Transactor
 import ru.johnspade.s10ns.common.Errors
 import ru.johnspade.s10ns.subscription.tags.PageNumber
 import ru.johnspade.s10ns.telegram.TelegramOps.TelegramUserOps
-import ru.johnspade.s10ns.telegram.{EditS10nCbData, RemoveSubscriptionCbData, ReplyMessage, SubscriptionCbData, SubscriptionsCbData}
+import ru.johnspade.s10ns.telegram.{EditS10n, RemoveS10n, ReplyMessage, S10n, S10ns}
 import ru.johnspade.s10ns.user.tags._
 import ru.johnspade.s10ns.user.{User, UserRepository}
 import telegramium.bots.{CallbackQuery, InlineKeyboardMarkup}
@@ -17,7 +17,7 @@ class SubscriptionListService[F[_] : Sync](
   private val s10nRepo: SubscriptionRepository,
   private val s10nsListService: S10nsListMessageService[F]
 )(private implicit val xa: Transactor[F]) {
-  def onSubscriptionsCb(cb: CallbackQuery, data: SubscriptionsCbData): F[ReplyMessage] = {
+  def onSubscriptionsCb(cb: CallbackQuery, data: S10ns): F[ReplyMessage] = {
     val tgUser = cb.from.toUser()
     for {
       user <- userRepo.getOrCreate(tgUser).transact(xa)
@@ -26,7 +26,7 @@ class SubscriptionListService[F[_] : Sync](
     } yield reply
   }
 
-  def onRemoveSubscriptionCb(cb: CallbackQuery, data: RemoveSubscriptionCbData): F[ReplyMessage] = {
+  def onRemoveSubscriptionCb(cb: CallbackQuery, data: RemoveS10n): F[ReplyMessage] = {
     val tgUser = cb.from.toUser()
     for {
       _ <- s10nRepo.remove(data.subscriptionId).transact(xa)
@@ -36,7 +36,7 @@ class SubscriptionListService[F[_] : Sync](
     } yield reply
   }
 
-  def onSubcriptionCb(cb: CallbackQuery, data: SubscriptionCbData): F[Either[String, ReplyMessage]] = {
+  def onSubcriptionCb(cb: CallbackQuery, data: S10n): F[Either[String, ReplyMessage]] = {
     def checkUserAndGetMessage(user: User, subscription: Subscription) =
       Either.cond(
         subscription.userId == user.id,
@@ -60,7 +60,7 @@ class SubscriptionListService[F[_] : Sync](
         s10nsListService.createSubscriptionsPage(_, page, from.defaultCurrency)
       }
 
-  def onEditS10nCb(cb: CallbackQuery, data: EditS10nCbData): F[Either[String, InlineKeyboardMarkup]] = {
+  def onEditS10nCb(cb: CallbackQuery, data: EditS10n): F[Either[String, InlineKeyboardMarkup]] = {
     def checkUserAndGetMarkup(subscription: Subscription) =
       Either.cond(
         subscription.userId == UserId(cb.from.id.toLong),

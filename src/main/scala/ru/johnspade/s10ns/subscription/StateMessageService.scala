@@ -9,7 +9,7 @@ import org.joda.money.CurrencyUnit
 import ru.johnspade.s10ns.calendar.CalendarService
 import ru.johnspade.s10ns.help.StartMarkup
 import ru.johnspade.s10ns.subscription.tags._
-import ru.johnspade.s10ns.telegram.{CbData, ReplyMessage}
+import ru.johnspade.s10ns.telegram.{OneTime, PeriodUnit, ReplyMessage}
 import ru.johnspade.s10ns.user.{CreateS10nDialogState, EditS10nNameDialogState}
 import telegramium.bots.{InlineKeyboardButton, InlineKeyboardMarkup, KeyboardButton, KeyboardMarkup, MarkupInlineKeyboard, MarkupReplyKeyboard, ReplyKeyboardMarkup}
 
@@ -36,13 +36,13 @@ class StateMessageService[F[_] : Sync](private val calendarService: CalendarServ
 
   private val BillingPeriodUnitReplyMarkup = InlineKeyboardMarkup(
     List(List(ChronoUnit.DAYS, ChronoUnit.WEEKS, ChronoUnit.MONTHS, ChronoUnit.YEARS).map { unit =>
-      InlineKeyboardButton(unit.toString, callbackData = CbData.billingPeriodUnit(BillingPeriodUnit(unit)).some)
+      InlineKeyboardButton(unit.toString, callbackData = PeriodUnit(BillingPeriodUnit(unit)).toCsv)
     })
   )
 
   private val IsOneTimeReplyMarkup = InlineKeyboardMarkup(List(List(
-    InlineKeyboardButton("Recurring", callbackData = CbData.oneTime(OneTimeSubscription(false)).some),
-    InlineKeyboardButton("One time", callbackData = CbData.oneTime(OneTimeSubscription(true)).some)
+    InlineKeyboardButton("Recurring", callbackData = OneTime(OneTimeSubscription(false)).toCsv),
+    InlineKeyboardButton("One time", callbackData = OneTime(OneTimeSubscription(true)).toCsv)
   )))
 
   private val CurrencyReplyMarkup = ReplyKeyboardMarkup(

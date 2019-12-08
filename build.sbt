@@ -34,7 +34,7 @@ libraryDependencies ++= Seq(
   "org.tpolecat" %% "doobie-postgres" % DoobieVersion,
   "org.tpolecat" %% "doobie-hikari" % DoobieVersion,
   "com.beachape" %% "enumeratum" % "1.5.13",
-  "com.beachape" %% "enumeratum-circe" % "1.5.22",
+  "com.beachape" %% "enumeratum-circe" % "1.5.20",
   "com.beachape" %% "enumeratum-doobie" % "1.5.15",
   "org.joda" % "joda-money" % "1.0.1",
   "io.chrisdavenport" %% "log4cats-slf4j" % "1.0.1",
@@ -44,6 +44,7 @@ libraryDependencies ++= Seq(
   "com.github.cb372" %% "cats-retry-cats-effect" % CatsRetryVersion,
   "com.nrinaudo" %% "kantan.csv" % KantanVersion,
   "com.nrinaudo" %% "kantan.csv-java8" % KantanVersion,
+  "com.chuusai" %% "shapeless" % "2.3.3",
   "org.rudogma" %% "supertagged" % "1.4"
 )
 

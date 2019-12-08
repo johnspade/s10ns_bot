@@ -2,7 +2,7 @@ package ru.johnspade.s10ns.calendar
 
 import cats.effect.Sync
 import cats.implicits._
-import ru.johnspade.s10ns.telegram.CalendarCbData
+import ru.johnspade.s10ns.telegram.Calendar
 import ru.johnspade.s10ns.telegram.TelegramOps.ackCb
 import telegramium.bots.client.{Api, EditMessageReplyMarkupReq}
 import telegramium.bots.{CallbackQuery, ChatIntId}
@@ -10,7 +10,7 @@ import telegramium.bots.{CallbackQuery, ChatIntId}
 class CalendarController[F[_] : Sync](
   private val calendarService: CalendarService[F]
 ) {
-  def calendarCb(cb: CallbackQuery, data: CalendarCbData)(implicit bot: Api[F]): F[Unit] =
+  def calendarCb(cb: CallbackQuery, data: Calendar)(implicit bot: Api[F]): F[Unit] =
     ackCb(cb) *>
       calendarService.generateKeyboard(data.date)
         .flatMap { kb =>

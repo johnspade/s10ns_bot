@@ -9,7 +9,7 @@ import org.joda.money.format.MoneyFormatterBuilder
 import org.joda.money.{CurrencyUnit, Money}
 import ru.johnspade.s10ns.money.MoneyService
 import ru.johnspade.s10ns.subscription.tags.PageNumber
-import ru.johnspade.s10ns.telegram.{CbData, ReplyMessage}
+import ru.johnspade.s10ns.telegram.{EditS10n, EditS10nName, ReplyMessage, RemoveS10n, S10n, S10ns}
 import ru.johnspade.s10ns.user.User
 import telegramium.bots.{InlineKeyboardButton, InlineKeyboardMarkup, MarkupInlineKeyboard}
 
@@ -44,7 +44,7 @@ class S10nsListMessageService[F[_] : Sync](
           case (s, i) =>
             InlineKeyboardButton(
               i.toString,
-              callbackData = CbData.subscription(s.id, page).some
+              callbackData = S10n(s.id, page).toCsv
             )
         })
 
@@ -52,11 +52,11 @@ class S10nsListMessageService[F[_] : Sync](
       val pageLastElementNumber = DefaultPageSize * (page + 1)
       val leftButton = InlineKeyboardButton(
         "⬅",
-        callbackData = CbData.subscriptions(PageNumber(page - 1)).some
+        callbackData = S10ns(PageNumber(page - 1)).toCsv
       )
       val rightButton = InlineKeyboardButton(
         "➡",
-        callbackData = CbData.subscriptions(PageNumber(page + 1)).some
+        callbackData = S10ns(PageNumber(page + 1)).toCsv
       )
       List(
         (pageLastElementNumber > DefaultPageSize, leftButton),
@@ -108,18 +108,18 @@ class S10nsListMessageService[F[_] : Sync](
         .flatten
         .mkString("\n")
       val editButton =
-        InlineKeyboardButton("Edit", callbackData = CbData.editS10n(subscription.id, page).some)
+        InlineKeyboardButton("Edit", callbackData = EditS10n(subscription.id, page).toCsv)
       val removeButton =
-        InlineKeyboardButton("Remove", callbackData = CbData.removeSubscription(subscription.id, page).some)
-      val backButton = InlineKeyboardButton("List", callbackData = CbData.subscriptions(page).some)
+        InlineKeyboardButton("Remove", callbackData = RemoveS10n(subscription.id, page).toCsv)
+      val backButton = InlineKeyboardButton("List", callbackData = S10ns(page).toCsv)
       val buttonsList = List(List(editButton), List(removeButton), List(backButton))
       ReplyMessage(text, MarkupInlineKeyboard(InlineKeyboardMarkup(buttonsList)).some)
     }
   }
 
   def createEditS10nMarkup(s10n: Subscription, page: PageNumber): InlineKeyboardMarkup = {
-    val nameButton = InlineKeyboardButton("Edit name", callbackData = CbData.editS10nName(s10n.id).some)
-    val backButton = InlineKeyboardButton("Back", callbackData = CbData.subscription(s10n.id, page).some)
+    val nameButton = InlineKeyboardButton("Edit name", callbackData = EditS10nName(s10n.id).toCsv)
+    val backButton = InlineKeyboardButton("Back", callbackData = S10n(s10n.id, page).toCsv)
     InlineKeyboardMarkup(List(List(nameButton), List(backButton)))
   }
 }

@@ -10,7 +10,7 @@ import ru.johnspade.s10ns.help.StartController
 import ru.johnspade.s10ns.settings.SettingsController
 import ru.johnspade.s10ns.subscription.{CreateS10nDialogController, EditS10nDialogController, SubscriptionListController}
 import ru.johnspade.s10ns.telegram.TelegramOps.{TelegramUserOps, ackCb}
-import ru.johnspade.s10ns.telegram.{BillingPeriodUnitCbData, CalendarCbData, CbDataService, DefaultCurrencyCbData, EditS10nCbData, EditS10nNameCbData, FirstPaymentDateCbData, IgnoreCbData, IsOneTimeCbData, RemoveSubscriptionCbData, ReplyMessage, SubscriptionCbData, SubscriptionsCbData}
+import ru.johnspade.s10ns.telegram.{PeriodUnit, Calendar, CbDataService, DefCurrency, EditS10n, EditS10nName, FirstPayment, Ignore, OneTime, RemoveS10n, ReplyMessage, S10n, S10ns}
 import ru.johnspade.s10ns.user.{CreateS10nDialog, Dialog, EditS10nNameDialog, SettingsDialog, User, UserRepository}
 import telegramium.bots.client.{Api, SendMessageReq}
 import telegramium.bots.high.LongPollBot
@@ -42,36 +42,36 @@ class SubscriptionsBot[F[_] : Sync : Timer : Logger](
     def route(data: String) =
       cbDataService.decode(data)
         .flatMap {
-          case _: IgnoreCbData => ackCb(query)
+          case Ignore => ackCb(query)
 
-          case s10ns: SubscriptionsCbData =>
+          case s10ns: S10ns =>
             s10nListController.subscriptionsCb(query, s10ns)
 
-          case s10n: SubscriptionCbData =>
+          case s10n: S10n =>
             s10nListController.subscriptionCb(query, s10n)
 
-          case billingPeriod: BillingPeriodUnitCbData =>
+          case billingPeriod: PeriodUnit =>
             createS10nDialogController.billingPeriodUnitCb(query, billingPeriod)
 
-          case oneTime: IsOneTimeCbData =>
+          case oneTime: OneTime =>
             createS10nDialogController.isOneTimeCb(query, oneTime)
 
-          case calendar: CalendarCbData =>
+          case calendar: Calendar =>
             calendarController.calendarCb(query, calendar)
 
-          case firstPaymentDate: FirstPaymentDateCbData =>
+          case firstPaymentDate: FirstPayment =>
             createS10nDialogController.firstPaymentDateCb(query, firstPaymentDate)
 
-          case removeS10n: RemoveSubscriptionCbData =>
+          case removeS10n: RemoveS10n =>
             s10nListController.removeSubscriptionCb(query, removeS10n)
 
-          case editS10n: EditS10nCbData =>
+          case editS10n: EditS10n =>
             s10nListController.editS10nCb(query, editS10n)
 
-          case editS10nName: EditS10nNameCbData =>
+          case editS10nName: EditS10nName =>
             editS10nDialogController.editS10nNameCb(query, editS10nName)
 
-          case _: DefaultCurrencyCbData =>
+          case DefCurrency =>
             settingsController.defaultCurrencyCb(query)
         }
 

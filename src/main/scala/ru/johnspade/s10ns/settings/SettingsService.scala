@@ -5,7 +5,7 @@ import cats.implicits._
 import doobie.implicits._
 import doobie.util.transactor.Transactor
 import ru.johnspade.s10ns.common.ValidatorNec._
-import ru.johnspade.s10ns.telegram.{CbData, ReplyMessage}
+import ru.johnspade.s10ns.telegram.{DefCurrency, ReplyMessage}
 import ru.johnspade.s10ns.user.{SettingsDialog, SettingsDialogState, User, UserRepository}
 import telegramium.bots.{InlineKeyboardButton, InlineKeyboardMarkup, MarkupInlineKeyboard}
 
@@ -39,7 +39,7 @@ class SettingsService[F[_] : Sync](
       ReplyMessage(
         "Settings",
         MarkupInlineKeyboard(InlineKeyboardMarkup(
-          List(List(InlineKeyboardButton("Default currency", callbackData = CbData.defaultCurrency.some)))
+          List(List(InlineKeyboardButton("Default currency", callbackData = DefCurrency.toCsv)))
         )).some
       )
     }
