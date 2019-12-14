@@ -7,5 +7,5 @@ import doobie.free.connection.ConnectionIO
 trait ExchangeRatesRefreshTimestampRepository {
   def save(timestamp: Instant): ConnectionIO[Unit]
 
-  def get(): ConnectionIO[Instant]
+  def get(): ConnectionIO[Option[Instant]]
 }

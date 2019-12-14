@@ -22,11 +22,12 @@ class ExchangeRatesJobService[F[_] : Concurrent : Clock : Timer : Logger](
     for {
       now <- Clock[F].realTime(TimeUnit.MILLISECONDS)
       xRatesRefreshTimestamp <- exchangeRatesRefreshTimestampRepo.get().transact(xa)
-      duration = java.time.Duration.between(xRatesRefreshTimestamp, Instant.ofEpochMilli(now)).toHours
-      initRates = if (duration > 24)
-        exchangeRatesService.saveRates()
-      else
-        Sync[F].unit
+      duration = xRatesRefreshTimestamp.map(java.time.Duration.between(_, Instant.ofEpochMilli(now)).toHours)
+      initRates = duration match {
+        case Some(x) if x > 24 => exchangeRatesService.saveRates()
+        case None => exchangeRatesService.saveRates()
+        case _ => Sync[F].unit
+      }
       midnight <- Sync[F].delay {
         LocalDateTime.of(LocalDate.now, LocalTime.MIDNIGHT).plusDays(1).atZone(ZoneId.systemDefault()).toInstant.toEpochMilli
       }

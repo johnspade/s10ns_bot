@@ -10,6 +10,7 @@ import doobie.util.ExecutionContexts
 import doobie.util.transactor.Transactor
 import io.chrisdavenport.log4cats.Logger
 import io.chrisdavenport.log4cats.slf4j.Slf4jLogger
+import org.flywaydb.core.Flyway
 import org.http4s.client.blaze.BlazeClientBuilder
 import pureconfig.ConfigSource
 import pureconfig.generic.auto._
@@ -125,7 +126,17 @@ object BotApp extends IOApp {
     }
 
     ConfigSource.file("config.properties").loadF[IO, Config].flatMap { conf =>
-      createTransactor[IO](conf.app.db).use(init[IO](conf, _).map(_ => ExitCode.Success))
+      createTransactor[IO](conf.app.db)
+        .use { xa =>
+          xa.configure { dataSource =>
+            IO {
+              val flyWay = Flyway.configure().dataSource(dataSource).load()
+              flyWay.migrate()
+              ()
+            }
+          } *>
+            init[IO](conf, xa).map(_ => ExitCode.Success)
+        }
     }
   }
 }

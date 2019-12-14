@@ -45,7 +45,8 @@ libraryDependencies ++= Seq(
   "com.nrinaudo" %% "kantan.csv" % KantanVersion,
   "com.nrinaudo" %% "kantan.csv-java8" % KantanVersion,
   "com.chuusai" %% "shapeless" % "2.3.3",
-  "org.rudogma" %% "supertagged" % "1.4"
+  "org.rudogma" %% "supertagged" % "1.4",
+  "org.flywaydb" % "flyway-core" % "6.1.1"
 )
 
 addCompilerPlugin("com.olegpy" %% "better-monadic-for" % "0.3.1")

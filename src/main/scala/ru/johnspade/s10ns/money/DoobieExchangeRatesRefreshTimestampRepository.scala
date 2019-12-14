@@ -12,7 +12,7 @@ import ru.johnspade.s10ns.money.DoobieExchangeRatesRefreshTimestampRepository.Ex
 class DoobieExchangeRatesRefreshTimestampRepository extends ExchangeRatesRefreshTimestampRepository {
   override def save(timestamp: Instant): ConnectionIO[Unit] = ExchangeRatesRefreshTimestampSql.save(timestamp).run.void
 
-  override def get(): ConnectionIO[Instant] = ExchangeRatesRefreshTimestampSql.get().unique
+  override def get(): ConnectionIO[Option[Instant]] = ExchangeRatesRefreshTimestampSql.get().option
 }
 
 object DoobieExchangeRatesRefreshTimestampRepository {
