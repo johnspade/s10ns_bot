@@ -11,7 +11,7 @@ scalacOptions ++= Seq(
 
 val DoobieVersion = "0.8.0-M1"
 val FuuidVersion = "0.2.0"
-val CirceVersion = "0.11.1"
+val CirceVersion = "0.12.3"
 val SttpVersion = "1.6.4"
 val PureconfigVersion = "0.12.1"
 val CatsRetryVersion = "0.3.1"
@@ -28,7 +28,7 @@ libraryDependencies ++= Seq(
   "ch.qos.logback" % "logback-classic" % "1.2.3",
   "io.circe" %% "circe-core" % CirceVersion,
   "io.circe" %% "circe-generic" % CirceVersion,
-  "io.circe" %% "circe-generic-extras" % CirceVersion,
+  "io.circe" %% "circe-generic-extras" % "0.12.2",
   "io.circe" %% "circe-parser" % CirceVersion,
   "org.tpolecat" %% "doobie-core" % DoobieVersion,
   "org.tpolecat" %% "doobie-postgres" % DoobieVersion,
@@ -44,9 +44,9 @@ libraryDependencies ++= Seq(
   "com.github.cb372" %% "cats-retry-cats-effect" % CatsRetryVersion,
   "com.nrinaudo" %% "kantan.csv" % KantanVersion,
   "com.nrinaudo" %% "kantan.csv-java8" % KantanVersion,
-  "com.chuusai" %% "shapeless" % "2.3.3",
   "org.rudogma" %% "supertagged" % "1.4",
-  "org.flywaydb" % "flyway-core" % "6.1.1"
+  "org.flywaydb" % "flyway-core" % "6.1.1",
+  "com.propensive" %% "magnolia" % "0.12.3"
 )
 
 addCompilerPlugin("com.olegpy" %% "better-monadic-for" % "0.3.1")

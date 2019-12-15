@@ -7,9 +7,10 @@ import cats.syntax.option._
 import kantan.csv._
 import kantan.csv.java8._
 import kantan.csv.ops._
-import ru.johnspade.s10ns.csv._
+import ru.johnspade.s10ns.csv.MagnoliaRowEncoder._
 import ru.johnspade.s10ns.subscription.tags._
 import ru.johnspade.s10ns.telegram.CbData._
+import supertagged.{@@, lifterF}
 
 sealed abstract class CbData extends Product with Serializable {
   def toCsv: Option[String] = this.writeCsvRow(csvConfig).some
@@ -29,6 +30,11 @@ case object DefCurrency extends CbData
 
 object CbData {
   val csvConfig: CsvConfiguration = rfc.withCellSeparator('\u001D')
+
+  implicit def liftedCellEncoder[T, U](implicit cellEncoder: CellEncoder[T]): CellEncoder[T @@ U] =
+    lifterF[CellEncoder].lift
+  implicit def liftedCellDecoder[T, U](implicit cellDecoder: CellDecoder[T]): CellDecoder[T @@ U] =
+    lifterF[CellDecoder].lift
 
   implicit val chronoUnitCellCodec: CellCodec[ChronoUnit] =
     CellCodec.from(s => DecodeResult(ChronoUnit.valueOf(s)))(_.name)

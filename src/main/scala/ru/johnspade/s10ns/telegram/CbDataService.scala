@@ -2,7 +2,7 @@ package ru.johnspade.s10ns.telegram
 
 import cats.effect.Sync
 import kantan.csv.ops._
-import ru.johnspade.s10ns.csv._
+import ru.johnspade.s10ns.csv.MagnoliaRowDecoder._
 
 class CbDataService[F[_] : Sync] {
   def decode(csv: String): F[CbData] =
