@@ -84,6 +84,7 @@ object DoobieSubscriptionRepository {
         period_duration = ${billingPeriod.map(_.duration)},
         period_unit = ${billingPeriod.map(_.unit)},
         first_payment_date = $firstPaymentDate
+        where id = $id
       """.update
     }
   }

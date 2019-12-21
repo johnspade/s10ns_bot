@@ -10,11 +10,13 @@ import ru.johnspade.s10ns.help.StartController
 import ru.johnspade.s10ns.settings.SettingsController
 import ru.johnspade.s10ns.subscription.{CreateS10nDialogController, EditS10nDialogController, SubscriptionListController}
 import ru.johnspade.s10ns.telegram.TelegramOps.{TelegramUserOps, ackCb}
-import ru.johnspade.s10ns.telegram.{PeriodUnit, Calendar, CbDataService, DefCurrency, EditS10n, EditS10nName, FirstPayment, Ignore, OneTime, RemoveS10n, ReplyMessage, S10n, S10ns}
+import ru.johnspade.s10ns.telegram.{Calendar, CbDataService, DefCurrency, EditS10n, EditS10nName, FirstPayment, Ignore, OneTime, PeriodUnit, RemoveS10n, ReplyMessage, S10n, S10ns}
 import ru.johnspade.s10ns.user.{CreateS10nDialog, Dialog, EditS10nNameDialog, SettingsDialog, User, UserRepository}
 import telegramium.bots.client.{Api, SendMessageReq}
 import telegramium.bots.high.LongPollBot
 import telegramium.bots.{CallbackQuery, ChatIntId, Message, User => TgUser}
+
+import scala.concurrent.duration.FiniteDuration
 
 class SubscriptionsBot[F[_] : Sync : Timer : Logger](
   private val bot: Api[F],
@@ -106,22 +108,22 @@ class SubscriptionsBot[F[_] : Sync : Timer : Logger](
       user.dialog.map { dialog =>
         if (text.startsWith("/")) {
           if (importantCommands.exists(text.startsWith))
-            handleCommands(user, text)
+            handleCommands(user, text).map(List(_))
           else
-            Sync[F].pure(ReplyMessage("Cannot execute command. Use /reset to stop."))
+            Sync[F].pure(List(ReplyMessage("Cannot execute command. Use /reset to stop.")))
         }
         else
           handleDialogs(user, dialog)
       }
         .getOrElse {
           if (text.startsWith("/"))
-            handleCommands(user, text)
+            handleCommands(user, text).map(List(_))
           else {
             text match {
-              case t if t.startsWith("\uD83D\uDCCB") => s10nListController.listCommand(user)
-              case t if t.startsWith("\uD83D\uDCB2") => createS10nDialogController.createCommand(user)
-              case t if t.startsWith("➕") => createS10nDialogController.createWithDefaultCurrencyCommand(user)
-              case _ => startController.helpCommand
+              case t if t.startsWith("\uD83D\uDCCB") => s10nListController.listCommand(user).map(List(_))
+              case t if t.startsWith("\uD83D\uDCB2") => createS10nDialogController.createCommand(user).map(List(_))
+              case t if t.startsWith("➕") => createS10nDialogController.createWithDefaultCurrencyCommand(user).map(List(_))
+              case _ => startController.helpCommand.map(List(_))
             }
           }
         }
@@ -134,14 +136,18 @@ class SubscriptionsBot[F[_] : Sync : Timer : Logger](
         msg.text match {
           case Some(txt) =>
             handleText(user, txt)
-              .flatMap { reply =>
-                bot.sendMessage(SendMessageReq(
-                  chatId = ChatIntId(msg.chat.id),
-                  text = reply.text,
-                  replyMarkup = reply.markup
-                ))
-                  .void
-                  .handleErrorWith(e => Logger[F].error(e)(e.getMessage))
+              .flatMap {
+                _.map { message =>
+                  bot.sendMessage(SendMessageReq(
+                    chatId = ChatIntId(msg.chat.id),
+                    text = message.text,
+                    replyMarkup = message.markup
+                  ))
+                    .void
+                    .handleErrorWith(e => Logger[F].error(e)(e.getMessage)) *>
+                    Timer[F].sleep(FiniteDuration(1, "second"))
+                }
+                  .sequence_
               }
           case None => Monad[F].unit
         }

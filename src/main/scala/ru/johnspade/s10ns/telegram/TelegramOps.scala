@@ -33,4 +33,12 @@ object TelegramOps {
       case Valid(message) => message
       case Invalid(errors) => ReplyMessage(errors.map(_.errorMessage).mkString_("\n"))
     }
+
+  def toReplyMessage(replies: ValidationResult[List[ReplyMessage]]): List[ReplyMessage] =
+    replies match {
+      case Valid(messages) => messages
+      case Invalid(errors) => List(ReplyMessage(errors.map(_.errorMessage).mkString_("\n")))
+    }
+
+  def singleTextMessage(text: String): List[ReplyMessage] = List(ReplyMessage(text))
 }

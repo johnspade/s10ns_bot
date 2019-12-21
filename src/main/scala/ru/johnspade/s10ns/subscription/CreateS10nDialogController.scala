@@ -19,12 +19,13 @@ class CreateS10nDialogController[F[_] : Sync : Logger](
   def createWithDefaultCurrencyCommand(user: User): F[ReplyMessage] =
     createS10nDialogService.onCreateWithDefaultCurrencyCommand(user)
 
-  def message(user: User, dialog: CreateS10nDialog, message: Message): F[ReplyMessage] =
+  def message(user: User, dialog: CreateS10nDialog, message: Message): F[List[ReplyMessage]] =
     createS10nDialogService.saveDraft
       .lift
       .apply(user, dialog, message.text)
       .map(_.map(toReplyMessage))
       .getOrElse(Sync[F].pure(ReplyMessage(Errors.default)))
+      .map(List(_))
 
   def billingPeriodUnitCb(cb: CallbackQuery, data: PeriodUnit)(implicit bot: Api[F]): F[Unit] =
     clearMarkup(cb) *> handleCallback(cb, createS10nDialogService.onBillingPeriodUnitCb(cb, data))

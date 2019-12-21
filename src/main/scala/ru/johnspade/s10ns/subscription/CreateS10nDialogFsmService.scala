@@ -7,13 +7,14 @@ import doobie.util.transactor.Transactor
 import io.chrisdavenport.log4cats.Logger
 import org.joda.money.{CurrencyUnit, Money}
 import ru.johnspade.s10ns.subscription.tags._
-import ru.johnspade.s10ns.telegram.ReplyMessage
+import ru.johnspade.s10ns.telegram.{DialogEngine, ReplyMessage}
 import ru.johnspade.s10ns.user.{CreateS10nDialog, CreateS10nDialogEvent, CreateS10nDialogState, User, UserRepository}
 
 class CreateS10nDialogFsmService[F[_] : Sync : Logger](
   private val subscriptionRepo: SubscriptionRepository,
   private val userRepo: UserRepository,
-  private val stateMessageService: StateMessageService[F]
+  private val stateMessageService: StateMessageService[F],
+  private val dialogEngine: DialogEngine[F]
 )(private implicit val xa: Transactor[F]) {
 
   def saveName(user: User, dialog: CreateS10nDialog, name: SubscriptionName): F[ReplyMessage] = {
@@ -57,16 +58,16 @@ class CreateS10nDialogFsmService[F[_] : Sync : Logger](
 
   private def transition(user: User, dialog: CreateS10nDialog, event: CreateS10nDialogEvent): F[ReplyMessage] = {
     val updatedDialog = dialog.copy(state = CreateS10nDialogState.transition(dialog.state, event))
-    val saveUser = updatedDialog.state match {
-      case CreateS10nDialogState.Finished =>
-        val userWithoutDialog = user.copy(dialog = None)
+    updatedDialog.state match {
+      case finished @ CreateS10nDialogState.Finished =>
         subscriptionRepo.create(updatedDialog.draft)
-          .productR(userRepo.createOrUpdate(userWithoutDialog))
+          .productR(dialogEngine.reset(user, finished.message))
           .transact(xa)
       case _ =>
         val userWithUpdatedDialog = user.copy(dialog = updatedDialog.some)
-        userRepo.createOrUpdate(userWithUpdatedDialog).transact(xa)
+        userRepo.createOrUpdate(userWithUpdatedDialog)
+          .transact(xa) *>
+          stateMessageService.getMessage(updatedDialog.state)
     }
-    saveUser *> stateMessageService.getMessage(updatedDialog.state)
   }
 }

@@ -4,8 +4,8 @@ import cats.effect.Sync
 import cats.implicits._
 import io.chrisdavenport.log4cats.Logger
 import ru.johnspade.s10ns.common.Errors
+import ru.johnspade.s10ns.telegram.TelegramOps.{ackCb, sendReplyMessage, singleTextMessage, toReplyMessage}
 import ru.johnspade.s10ns.telegram.{EditS10nName, ReplyMessage}
-import ru.johnspade.s10ns.telegram.TelegramOps.{ackCb, sendReplyMessage, toReplyMessage}
 import ru.johnspade.s10ns.user.{EditS10nNameDialog, EditS10nNameDialogState, User}
 import telegramium.bots.client.Api
 import telegramium.bots.{CallbackQuery, Message}
@@ -21,9 +21,9 @@ class EditS10nDialogController[F[_] : Sync : Logger](
         } getOrElse ackCb(cb, Errors.default.some)
       }
 
-  def s10nNameMessage(user: User, dialog: EditS10nNameDialog, message: Message): F[ReplyMessage] =
+  def s10nNameMessage(user: User, dialog: EditS10nNameDialog, message: Message): F[List[ReplyMessage]] =
     dialog.state match {
       case EditS10nNameDialogState.Name => editS10nDialogService.saveName(user, dialog, message.text).map(toReplyMessage)
-      case _ => Sync[F].pure(ReplyMessage(Errors.default))
+      case _ => Sync[F].pure(singleTextMessage(Errors.default))
     }
 }

@@ -7,7 +7,7 @@ import cats.effect.Sync
 import cats.implicits._
 import org.joda.money.CurrencyUnit
 import ru.johnspade.s10ns.calendar.CalendarService
-import ru.johnspade.s10ns.help.StartMarkup
+import ru.johnspade.s10ns.help.BotStart
 import ru.johnspade.s10ns.subscription.tags._
 import ru.johnspade.s10ns.telegram.{OneTime, PeriodUnit, ReplyMessage}
 import ru.johnspade.s10ns.user.{CreateS10nDialogState, EditS10nNameDialogState}
@@ -27,7 +27,7 @@ class StateMessageService[F[_] : Sync](private val calendarService: CalendarServ
           date <- Sync[F].delay(LocalDate.now)
           kb <- calendarService.generateKeyboard(date)
         } yield ReplyMessage(state.message, MarkupInlineKeyboard(kb).some)
-      case CreateS10nDialogState.Finished => getMessagePure(StartMarkup.markup.some)
+      case CreateS10nDialogState.Finished => getMessagePure(BotStart.markup.some)
       case _ => getMessagePure()
     }
   }

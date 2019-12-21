@@ -8,39 +8,34 @@ import ru.johnspade.s10ns.common.Errors
 import ru.johnspade.s10ns.common.ValidatorNec.{ValidationResult, validateAmount, validateAmountString, validateCurrency, validateDuration, validateDurationString, validateNameLength, validateText}
 import ru.johnspade.s10ns.subscription.tags._
 import ru.johnspade.s10ns.telegram.TelegramOps.TelegramUserOps
-import ru.johnspade.s10ns.telegram.{FirstPayment, OneTime, PeriodUnit, ReplyMessage}
+import ru.johnspade.s10ns.telegram.{DialogEngine, FirstPayment, OneTime, PeriodUnit, ReplyMessage}
 import ru.johnspade.s10ns.user.{CreateS10nDialog, CreateS10nDialogState, User, UserRepository}
-import telegramium.bots.{CallbackQuery, MarkupRemoveKeyboard, ReplyKeyboardRemove}
+import telegramium.bots.CallbackQuery
 
 class CreateS10nDialogService[F[_] : Sync](
   private val userRepo: UserRepository,
   private val createS10nDialogFsmService: CreateS10nDialogFsmService[F],
-  private val stateMessageService: StateMessageService[F]
+  private val stateMessageService: StateMessageService[F],
+  private val dialogEngine: DialogEngine[F]
 )(private implicit val xa: Transactor[F]) {
   def onCreateCommand(user: User): F[ReplyMessage] = {
-    val userWithDraft = user.copy(
-      dialog = CreateS10nDialog(
-        state = CreateS10nDialogState.Currency,
-        draft = SubscriptionDraft.create(user.id)
-      ).some
+    val state = CreateS10nDialogState.Currency
+    val dialog = CreateS10nDialog(
+      state = state,
+      draft = SubscriptionDraft.create(user.id)
     )
-    userRepo.createOrUpdate(userWithDraft).transact(xa).flatMap { _ =>
-      stateMessageService.getMessage(CreateS10nDialogState.Currency)
-    }
+    stateMessageService.getMessage(state)
+      .flatMap(dialogEngine.startDialog(user, dialog, _))
   }
 
   def onCreateWithDefaultCurrencyCommand(user: User): F[ReplyMessage] = {
-    val userWithDraft = user.copy(
-      dialog = CreateS10nDialog(
-        state = CreateS10nDialogState.Name,
-        draft = SubscriptionDraft.create(user.id, user.defaultCurrency)
-      ).some
+    val state = CreateS10nDialogState.Name
+    val dialog = CreateS10nDialog(
+      state = CreateS10nDialogState.Name,
+      draft = SubscriptionDraft.create(user.id, user.defaultCurrency)
     )
-    userRepo.createOrUpdate(userWithDraft).transact(xa).flatMap { _ =>
-      stateMessageService.getMessage(CreateS10nDialogState.Name).map { reply =>
-        reply.copy(markup = MarkupRemoveKeyboard(ReplyKeyboardRemove(removeKeyboard = true)).some)
-      }
-    }
+    stateMessageService.getMessage(state)
+      .flatMap(dialogEngine.startDialog(user, dialog, _))
   }
 
   val saveDraft: PartialFunction[(User, CreateS10nDialog, Option[String]), F[ValidationResult[ReplyMessage]]] = {

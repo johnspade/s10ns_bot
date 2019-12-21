@@ -18,11 +18,11 @@ import pureconfig.module.catseffect._
 import ru.johnspade.s10ns.calendar.{CalendarController, CalendarService}
 import ru.johnspade.s10ns.common.Config
 import ru.johnspade.s10ns.exchangerates.{ExchangeRatesCache, ExchangeRatesJobService, ExchangeRatesService, FixerApiInterpreter}
-import ru.johnspade.s10ns.help.{StartController, StartService}
+import ru.johnspade.s10ns.help.StartController
 import ru.johnspade.s10ns.money.{DoobieExchangeRatesRefreshTimestampRepository, DoobieExchangeRatesRepository, MoneyService}
 import ru.johnspade.s10ns.settings.{SettingsController, SettingsService}
 import ru.johnspade.s10ns.subscription.{CreateS10nDialogController, CreateS10nDialogFsmService, CreateS10nDialogService, DoobieSubscriptionRepository, EditS10nDialogController, EditS10nDialogService, S10nsListMessageService, StateMessageService, SubscriptionListController, SubscriptionListService}
-import ru.johnspade.s10ns.telegram.CbDataService
+import ru.johnspade.s10ns.telegram.{CbDataService, DialogEngine}
 import ru.johnspade.s10ns.user.{DoobieUserRepository, EditS10nDialogFsmService}
 import telegramium.bots.client.ApiHttp4sImp
 
@@ -87,7 +87,8 @@ object BotApp extends IOApp {
         implicit0(logger: Logger[F]) <- Slf4jLogger.create[F]
         exchangeRates <- exchangeRatesRepo.get().transact(xa)
         exchangeRatesCache <- ExchangeRatesCache.create[F](exchangeRates)
-        createS10nDialogFsmService = new CreateS10nDialogFsmService[F](s10nRepo, userRepo, stateMessageService)
+        dialogEngine = new DialogEngine[F](userRepo)
+        createS10nDialogFsmService = new CreateS10nDialogFsmService[F](s10nRepo, userRepo, stateMessageService, dialogEngine)
         fixerApi = new FixerApiInterpreter[F](conf.fixer.token)
         exchangeRatesService = new ExchangeRatesService[F](
           fixerApi,
@@ -98,19 +99,35 @@ object BotApp extends IOApp {
         cbDataService = new CbDataService[F]
         moneyService = new MoneyService[F](exchangeRatesService)
         s10nsListService = new S10nsListMessageService[F](moneyService)
-        editS10nDialogFsmService = new EditS10nDialogFsmService[F](s10nsListService, stateMessageService, userRepo, s10nRepo)
-        editS10nDialogService = new EditS10nDialogService[F](userRepo, s10nRepo, editS10nDialogFsmService, stateMessageService)
+        editS10nDialogFsmService = new EditS10nDialogFsmService[F](
+          s10nsListService,
+          stateMessageService,
+          userRepo,
+          s10nRepo,
+          dialogEngine
+        )
+        editS10nDialogService = new EditS10nDialogService[F](
+          userRepo,
+          s10nRepo,
+          editS10nDialogFsmService,
+          stateMessageService,
+          dialogEngine
+        )
         s10nCbService = new SubscriptionListService[F](userRepo, s10nRepo, s10nsListService)
-        createS10nDialogService = new CreateS10nDialogService[F](userRepo, createS10nDialogFsmService, stateMessageService)
-        settingsService = new SettingsService[F](userRepo)
-        startService = new StartService[F](userRepo)
+        createS10nDialogService = new CreateS10nDialogService[F](
+          userRepo,
+          createS10nDialogFsmService,
+          stateMessageService,
+          dialogEngine
+        )
+        settingsService = new SettingsService[F](dialogEngine)
         exchangeRatesJobService = new ExchangeRatesJobService[F](exchangeRatesService, exchangeRatesRefreshTimestampRepo)
         s10nListController = new SubscriptionListController[F](s10nCbService)
         createS10nDialogController = new CreateS10nDialogController[F](createS10nDialogService)
         editS10nDialogController = new EditS10nDialogController[F](editS10nDialogService)
         settingsController = new SettingsController[F](settingsService)
         calendarController = new CalendarController[F](calendarService)
-        startController = new StartController[F](startService)
+        startController = new StartController[F](dialogEngine)
         _ <- exchangeRatesJobService.startExchangeRatesJob()
         _ <- startBot[F](
           conf.telegram.token,
