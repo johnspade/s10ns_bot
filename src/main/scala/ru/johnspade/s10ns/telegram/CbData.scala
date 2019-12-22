@@ -3,7 +3,6 @@ package ru.johnspade.s10ns.telegram
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
 
-import cats.syntax.option._
 import kantan.csv._
 import kantan.csv.java8._
 import kantan.csv.ops._
@@ -13,7 +12,7 @@ import ru.johnspade.s10ns.telegram.CbData._
 import supertagged.{@@, lifterF}
 
 sealed abstract class CbData extends Product with Serializable {
-  def toCsv: Option[String] = this.writeCsvRow(csvConfig).some
+  def toCsv: String = this.writeCsvRow(csvConfig)
 }
 
 case object Ignore extends CbData

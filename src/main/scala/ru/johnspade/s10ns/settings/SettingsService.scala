@@ -3,9 +3,10 @@ package ru.johnspade.s10ns.settings
 import cats.effect.Sync
 import cats.implicits._
 import ru.johnspade.s10ns.common.ValidatorNec._
+import ru.johnspade.s10ns.telegram.TelegramOps.singleInlineKeyboardButton
 import ru.johnspade.s10ns.telegram.{DefCurrency, DialogEngine, ReplyMessage}
 import ru.johnspade.s10ns.user.{SettingsDialog, SettingsDialogState, User}
-import telegramium.bots.{InlineKeyboardButton, InlineKeyboardMarkup, MarkupInlineKeyboard}
+import telegramium.bots.{InlineKeyboardMarkup, MarkupInlineKeyboard}
 
 class SettingsService[F[_] : Sync](
   private val dialogEngine: DialogEngine[F]
@@ -28,7 +29,7 @@ class SettingsService[F[_] : Sync](
       ReplyMessage(
         "Settings",
         MarkupInlineKeyboard(InlineKeyboardMarkup(
-          List(List(InlineKeyboardButton("Default currency", callbackData = DefCurrency.toCsv)))
+          singleInlineKeyboardButton("Default currency", DefCurrency)
         )).some
       )
     }

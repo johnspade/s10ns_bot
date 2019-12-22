@@ -8,7 +8,7 @@ import ru.johnspade.s10ns.common.ValidatorNec.ValidationResult
 import ru.johnspade.s10ns.user._
 import ru.johnspade.s10ns.user.tags._
 import telegramium.bots.client.{AnswerCallbackQueryReq, Api, SendMessageReq}
-import telegramium.bots.{CallbackQuery, ChatIntId, Message}
+import telegramium.bots.{CallbackQuery, ChatIntId, InlineKeyboardButton, Message}
 
 object TelegramOps {
   implicit class TelegramUserOps(val value: telegramium.bots.User) extends AnyVal {
@@ -41,4 +41,10 @@ object TelegramOps {
     }
 
   def singleTextMessage(text: String): List[ReplyMessage] = List(ReplyMessage(text))
+
+  def inlineKeyboardButton(text: String, cbData: CbData): InlineKeyboardButton =
+    InlineKeyboardButton(text, callbackData = cbData.toCsv.some)
+
+  def singleInlineKeyboardButton(text: String, cbData: CbData): List[List[InlineKeyboardButton]] =
+    List(List(inlineKeyboardButton(text, cbData)))
 }
