@@ -17,3 +17,8 @@ final case class EditS10nNameDialog(
   state: EditS10nNameDialogState,
   draft: Subscription
 ) extends Dialog
+
+final case class EditS10nAmountDialog(
+  state: EditS10nAmountDialogState,
+  draft: Subscription
+) extends Dialog

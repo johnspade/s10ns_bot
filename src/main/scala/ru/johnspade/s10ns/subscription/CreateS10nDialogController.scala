@@ -3,15 +3,14 @@ package ru.johnspade.s10ns.subscription
 import cats.Monad
 import cats.effect.Sync
 import cats.implicits._
-import io.chrisdavenport.log4cats.Logger
 import ru.johnspade.s10ns.common.Errors
-import ru.johnspade.s10ns.telegram.{PeriodUnit, FirstPayment, OneTime, ReplyMessage}
 import ru.johnspade.s10ns.telegram.TelegramOps.{ackCb, sendReplyMessage, toReplyMessage}
+import ru.johnspade.s10ns.telegram.{FirstPayment, OneTime, PeriodUnit, ReplyMessage}
 import ru.johnspade.s10ns.user.{CreateS10nDialog, User}
 import telegramium.bots.client.{Api, EditMessageReplyMarkupReq}
 import telegramium.bots.{CallbackQuery, ChatIntId, Message}
 
-class CreateS10nDialogController[F[_] : Sync : Logger](
+class CreateS10nDialogController[F[_] : Sync](
   private val createS10nDialogService: CreateS10nDialogService[F]
 ) {
   def createCommand(user: User): F[ReplyMessage] = createS10nDialogService.onCreateCommand(user)

@@ -11,7 +11,7 @@ import ru.johnspade.s10ns.help.BotStart
 import ru.johnspade.s10ns.subscription.tags._
 import ru.johnspade.s10ns.telegram.TelegramOps.inlineKeyboardButton
 import ru.johnspade.s10ns.telegram.{OneTime, PeriodUnit, ReplyMessage}
-import ru.johnspade.s10ns.user.{CreateS10nDialogState, EditS10nNameDialogState}
+import ru.johnspade.s10ns.user.{CreateS10nDialogState, EditS10nDialogState}
 import telegramium.bots.{InlineKeyboardMarkup, KeyboardButton, KeyboardMarkup, MarkupInlineKeyboard, MarkupReplyKeyboard, ReplyKeyboardMarkup}
 
 class StateMessageService[F[_] : Sync](private val calendarService: CalendarService[F]) {
@@ -33,7 +33,7 @@ class StateMessageService[F[_] : Sync](private val calendarService: CalendarServ
     }
   }
 
-  def getMessage(state: EditS10nNameDialogState): F[ReplyMessage] = Sync[F].pure(ReplyMessage(state.message))
+  def getMessage(state: EditS10nDialogState): F[ReplyMessage] = Sync[F].pure(ReplyMessage(state.message))
 
   private val BillingPeriodUnitReplyMarkup = InlineKeyboardMarkup(
     List(List(ChronoUnit.DAYS, ChronoUnit.WEEKS, ChronoUnit.MONTHS, ChronoUnit.YEARS).map { unit =>

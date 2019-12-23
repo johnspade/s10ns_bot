@@ -25,6 +25,7 @@ final case class FirstPayment(date: FirstPaymentDate) extends CbData
 final case class RemoveS10n(subscriptionId: SubscriptionId, page: PageNumber) extends CbData
 final case class EditS10n(subscriptionId: SubscriptionId, page: PageNumber) extends CbData
 final case class EditS10nName(subscriptionId: SubscriptionId) extends CbData
+final case class EditS10nAmount(subscriptionId: SubscriptionId) extends CbData
 case object DefCurrency extends CbData
 
 object CbData {
@@ -40,24 +41,26 @@ object CbData {
 
   private def caseObjectRowCodec[T <: CbData](data: T): RowCodec[T] = RowCodec.from(_ => Right(data))(_ => Seq.empty)
 
-  implicit val s10nsCbDataRowCodec: RowCodec[S10ns] =
+  implicit val s10nsRowCodec: RowCodec[S10ns] =
     RowCodec.caseOrdered(S10ns.apply _)(S10ns.unapply)
-  implicit val s10nCbDataRowCodec: RowCodec[S10n] =
+  implicit val s10nRowCodec: RowCodec[S10n] =
     RowCodec.caseOrdered(S10n.apply _)(S10n.unapply)
-  implicit val billingPeriodUnitCbDataRowCodec: RowCodec[PeriodUnit] =
+  implicit val billingPeriodUnitRowCodec: RowCodec[PeriodUnit] =
     RowCodec.caseOrdered(PeriodUnit.apply _)(PeriodUnit.unapply)
-  implicit val oneTimeCbDataRowCodec: RowCodec[OneTime] =
+  implicit val oneTimeRowCodec: RowCodec[OneTime] =
     RowCodec.caseOrdered(OneTime.apply _)(OneTime.unapply)
-  implicit val calendarCbDataRowCodec: RowCodec[Calendar] =
+  implicit val calendarRowCodec: RowCodec[Calendar] =
     RowCodec.caseOrdered(Calendar.apply _)(Calendar.unapply)
-  implicit val firstPaymentDateCbDataRowCodec: RowCodec[FirstPayment] =
+  implicit val firstPaymentDateRowCodec: RowCodec[FirstPayment] =
     RowCodec.caseOrdered(FirstPayment.apply _)(FirstPayment.unapply)
-  implicit val removeSubscriptionCbDataRowCodec: RowCodec[RemoveS10n] =
+  implicit val removeSubscriptionRowCodec: RowCodec[RemoveS10n] =
     RowCodec.caseOrdered(RemoveS10n.apply _)(RemoveS10n.unapply)
-  implicit val editS10nCbDataRowCodec: RowCodec[EditS10n] =
+  implicit val editS10nRowCodec: RowCodec[EditS10n] =
     RowCodec.caseOrdered(EditS10n.apply _)(EditS10n.unapply)
-  implicit val editS10nNameCbDataRowCodec: RowCodec[EditS10nName] =
+  implicit val editS10nNameRowCodec: RowCodec[EditS10nName] =
     RowCodec.caseOrdered(EditS10nName.apply _)(EditS10nName.unapply)
+  implicit val editS10nAmountRowCodec: RowCodec[EditS10nAmount] =
+    RowCodec.caseOrdered(EditS10nAmount.apply _)(EditS10nAmount.unapply)
   implicit val ignoreRowCodec: RowCodec[Ignore.type] =
     caseObjectRowCodec(Ignore)
   implicit val defCurrencyRowCodec: RowCodec[DefCurrency.type] =

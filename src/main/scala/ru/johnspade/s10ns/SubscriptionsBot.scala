@@ -10,8 +10,8 @@ import ru.johnspade.s10ns.help.StartController
 import ru.johnspade.s10ns.settings.SettingsController
 import ru.johnspade.s10ns.subscription.{CreateS10nDialogController, EditS10nDialogController, SubscriptionListController}
 import ru.johnspade.s10ns.telegram.TelegramOps.{TelegramUserOps, ackCb}
-import ru.johnspade.s10ns.telegram.{Calendar, CbDataService, DefCurrency, EditS10n, EditS10nName, FirstPayment, Ignore, OneTime, PeriodUnit, RemoveS10n, ReplyMessage, S10n, S10ns}
-import ru.johnspade.s10ns.user.{CreateS10nDialog, Dialog, EditS10nNameDialog, SettingsDialog, User, UserRepository}
+import ru.johnspade.s10ns.telegram.{Calendar, CbDataService, DefCurrency, EditS10n, EditS10nAmount, EditS10nName, FirstPayment, Ignore, OneTime, PeriodUnit, RemoveS10n, ReplyMessage, S10n, S10ns}
+import ru.johnspade.s10ns.user.{CreateS10nDialog, Dialog, EditS10nAmountDialog, EditS10nNameDialog, SettingsDialog, User, UserRepository}
 import telegramium.bots.client.{Api, SendMessageReq}
 import telegramium.bots.high.LongPollBot
 import telegramium.bots.{CallbackQuery, ChatIntId, Message, User => TgUser}
@@ -73,6 +73,9 @@ class SubscriptionsBot[F[_] : Sync : Timer : Logger](
           case editS10nName: EditS10nName =>
             editS10nDialogController.editS10nNameCb(query, editS10nName)
 
+          case editS10nAmount: EditS10nAmount =>
+            editS10nDialogController.editS10nAmountCb(query, editS10nAmount)
+
           case DefCurrency =>
             settingsController.defaultCurrencyCb(query)
         }
@@ -102,6 +105,7 @@ class SubscriptionsBot[F[_] : Sync : Timer : Logger](
         case d: CreateS10nDialog => createS10nDialogController.message(user, d, msg)
         case d: SettingsDialog => settingsController.message(user, d, msg)
         case d: EditS10nNameDialog => editS10nDialogController.s10nNameMessage(user, d, msg)
+        case d: EditS10nAmountDialog => editS10nDialogController.s10nAmountMessage(user, d, msg)
       }
 
     def handleText(user: User, text: String) = {

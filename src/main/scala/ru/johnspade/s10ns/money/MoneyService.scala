@@ -8,7 +8,6 @@ import cats.implicits._
 import org.joda.money.{BigMoney, CurrencyUnit, Money}
 import ru.johnspade.s10ns.exchangerates.ExchangeRatesService
 import ru.johnspade.s10ns.subscription.{BillingPeriod, Subscription}
-import ru.johnspade.s10ns.user.User
 
 class MoneyService[F[_] : Sync](private val exchangeRatesService: ExchangeRatesService[F]) {
   def sum(subscriptions: Seq[Subscription], defaultCurrency: CurrencyUnit): F[Option[Money]] = {
