@@ -107,7 +107,6 @@ object BotApp extends IOApp {
           dialogEngine
         )
         editS10nDialogService = new EditS10nDialogService[F](
-          userRepo,
           s10nRepo,
           editS10nDialogFsmService,
           stateMessageService,

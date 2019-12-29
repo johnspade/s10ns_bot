@@ -26,6 +26,7 @@ final case class RemoveS10n(subscriptionId: SubscriptionId, page: PageNumber) ex
 final case class EditS10n(subscriptionId: SubscriptionId, page: PageNumber) extends CbData
 final case class EditS10nName(subscriptionId: SubscriptionId) extends CbData
 final case class EditS10nAmount(subscriptionId: SubscriptionId) extends CbData
+final case class EditS10nOneTime(subscriptionId: SubscriptionId) extends CbData
 case object DefCurrency extends CbData
 
 object CbData {
@@ -61,6 +62,8 @@ object CbData {
     RowCodec.caseOrdered(EditS10nName.apply _)(EditS10nName.unapply)
   implicit val editS10nAmountRowCodec: RowCodec[EditS10nAmount] =
     RowCodec.caseOrdered(EditS10nAmount.apply _)(EditS10nAmount.unapply)
+  implicit val editS10nOneTimeRowCodec: RowCodec[EditS10nOneTime] =
+    RowCodec.caseOrdered(EditS10nOneTime.apply _)(EditS10nOneTime.unapply)
   implicit val ignoreRowCodec: RowCodec[Ignore.type] =
     caseObjectRowCodec(Ignore)
   implicit val defCurrencyRowCodec: RowCodec[DefCurrency.type] =

@@ -3,20 +3,19 @@ package ru.johnspade.s10ns
 import cats.Monad
 import cats.effect.{Sync, Timer}
 import cats.implicits._
+import doobie.implicits._
 import doobie.util.transactor.Transactor
 import io.chrisdavenport.log4cats.Logger
 import ru.johnspade.s10ns.calendar.CalendarController
 import ru.johnspade.s10ns.help.StartController
 import ru.johnspade.s10ns.settings.SettingsController
 import ru.johnspade.s10ns.subscription.{CreateS10nDialogController, EditS10nDialogController, SubscriptionListController}
-import ru.johnspade.s10ns.telegram.TelegramOps.{TelegramUserOps, ackCb}
-import ru.johnspade.s10ns.telegram.{Calendar, CbDataService, DefCurrency, EditS10n, EditS10nAmount, EditS10nName, FirstPayment, Ignore, OneTime, PeriodUnit, RemoveS10n, ReplyMessage, S10n, S10ns}
-import ru.johnspade.s10ns.user.{CreateS10nDialog, Dialog, EditS10nAmountDialog, EditS10nNameDialog, SettingsDialog, User, UserRepository}
-import telegramium.bots.client.{Api, SendMessageReq}
+import ru.johnspade.s10ns.telegram.TelegramOps.{TelegramUserOps, ackCb, sendReplyMessages}
+import ru.johnspade.s10ns.telegram.{Calendar, CbDataService, DefCurrency, EditS10n, EditS10nAmount, EditS10nName, EditS10nOneTime, FirstPayment, Ignore, OneTime, PeriodUnit, RemoveS10n, ReplyMessage, S10n, S10ns}
+import ru.johnspade.s10ns.user.{CreateS10nDialog, Dialog, EditS10nAmountDialog, EditS10nNameDialog, EditS10nOneTimeDialog, SettingsDialog, User, UserRepository}
+import telegramium.bots.client.Api
 import telegramium.bots.high.LongPollBot
-import telegramium.bots.{CallbackQuery, ChatIntId, Message, User => TgUser}
-
-import scala.concurrent.duration.FiniteDuration
+import telegramium.bots.{CallbackQuery, Message, User => TgUser}
 
 class SubscriptionsBot[F[_] : Sync : Timer : Logger](
   private val bot: Api[F],
@@ -41,10 +40,10 @@ class SubscriptionsBot[F[_] : Sync : Timer : Logger](
       .handleErrorWith(e => Logger[F].error(e)(e.getMessage))
 
   override def onCallbackQuery(query: CallbackQuery): F[Unit] = {
-    def route(data: String) =
+    def route(data: String, user: User) = // todo пробрасывать пользователя
       cbDataService.decode(data)
         .flatMap {
-          case Ignore => ackCb(query)
+          case Ignore => ackCb[F](query)
 
           case s10ns: S10ns =>
             s10nListController.subscriptionsCb(query, s10ns)
@@ -53,16 +52,27 @@ class SubscriptionsBot[F[_] : Sync : Timer : Logger](
             s10nListController.subscriptionCb(query, s10n)
 
           case billingPeriod: PeriodUnit =>
-            createS10nDialogController.billingPeriodUnitCb(query, billingPeriod)
+            user.dialog.collect {
+              case d: CreateS10nDialog => createS10nDialogController.billingPeriodUnitCb(query, billingPeriod, user, d)
+              case d: EditS10nOneTimeDialog => editS10nDialogController.s10nBillingPeriodCb(query, billingPeriod, user, d)
+            }
+              .getOrElse(Monad[F].unit) // todo ошибка
 
           case oneTime: OneTime =>
-            createS10nDialogController.isOneTimeCb(query, oneTime)
+            user.dialog.collect {
+              case d: CreateS10nDialog => createS10nDialogController.isOneTimeCb(query, oneTime, user, d)
+              case d: EditS10nOneTimeDialog => editS10nDialogController.s10nOneTimeCb(query, oneTime, user, d)
+            }
+              .getOrElse(Monad[F].unit)
 
           case calendar: Calendar =>
             calendarController.calendarCb(query, calendar)
 
           case firstPaymentDate: FirstPayment =>
-            createS10nDialogController.firstPaymentDateCb(query, firstPaymentDate)
+            user.dialog.collect {
+              case d: CreateS10nDialog => createS10nDialogController.firstPaymentDateCb(query, firstPaymentDate, user, d)
+            }
+              .getOrElse(Monad[F].unit)
 
           case removeS10n: RemoveS10n =>
             s10nListController.removeSubscriptionCb(query, removeS10n)
@@ -71,23 +81,29 @@ class SubscriptionsBot[F[_] : Sync : Timer : Logger](
             s10nListController.editS10nCb(query, editS10n)
 
           case editS10nName: EditS10nName =>
-            editS10nDialogController.editS10nNameCb(query, editS10nName)
+            editS10nDialogController.editS10nNameCb(user, query, editS10nName)
 
           case editS10nAmount: EditS10nAmount =>
-            editS10nDialogController.editS10nAmountCb(query, editS10nAmount)
+            editS10nDialogController.editS10nAmountCb(user, query, editS10nAmount)
+
+          case editS10nOneTime: EditS10nOneTime =>
+            editS10nDialogController.editS10nOneTimeCb(user, query, editS10nOneTime)
 
           case DefCurrency =>
             settingsController.defaultCurrencyCb(query)
         }
 
-    query.data.map(route)
-      .getOrElse(Monad[F].unit)
-      .handleErrorWith(e => Logger[F].error(e)(e.getMessage))
+    val tgUser = query.from.toUser(query.message.map(_.chat.id.toLong))
+    userRepo.getOrCreate(tgUser)
+      .transact(xa)
+      .flatMap { user =>
+        query.data.map(route(_, user))
+          .getOrElse(Monad[F].unit)
+          .handleErrorWith(e => Logger[F].error(e)(e.getMessage))
+      }
   }
 
   private def routeMessage(chatId: Long, from: TgUser, message: Message): F[Unit] = {
-    import doobie.implicits._
-
     val msg = message.copy(text = message.text.map(_.trim))
 
     def handleCommands(user: User, text: String) =
@@ -106,6 +122,8 @@ class SubscriptionsBot[F[_] : Sync : Timer : Logger](
         case d: SettingsDialog => settingsController.message(user, d, msg)
         case d: EditS10nNameDialog => editS10nDialogController.s10nNameMessage(user, d, msg)
         case d: EditS10nAmountDialog => editS10nDialogController.s10nAmountMessage(user, d, msg)
+        case d: EditS10nOneTimeDialog => editS10nDialogController.s10nBillingPeriodDurationMessage(user, d, msg)
+        case _ => Monad[F].pure(List.empty) // todo ошибка?
       }
 
     def handleText(user: User, text: String) = {
@@ -141,17 +159,7 @@ class SubscriptionsBot[F[_] : Sync : Timer : Logger](
           case Some(txt) =>
             handleText(user, txt)
               .flatMap {
-                _.map { message =>
-                  bot.sendMessage(SendMessageReq(
-                    chatId = ChatIntId(msg.chat.id),
-                    text = message.text,
-                    replyMarkup = message.markup
-                  ))
-                    .void
-                    .handleErrorWith(e => Logger[F].error(e)(e.getMessage)) *>
-                    Timer[F].sleep(FiniteDuration(1, "second"))
-                }
-                  .sequence_
+                sendReplyMessages[F](msg, _)
               }
           case None => Monad[F].unit
         }

@@ -17,48 +17,48 @@ class CreateS10nDialogFsmService[F[_] : Sync : Logger](
   private val dialogEngine: DialogEngine[F]
 )(private implicit val xa: Transactor[F]) {
 
-  def saveName(user: User, dialog: CreateS10nDialog, name: SubscriptionName): F[ReplyMessage] = {
+  def saveName(user: User, dialog: CreateS10nDialog, name: SubscriptionName): F[List[ReplyMessage]] = {
     val draft = dialog.draft.copy(name = name)
     transition(user, dialog.copy(draft = draft), CreateS10nDialogEvent.EnteredName)
   }
 
-  def saveCurrency(user: User, dialog: CreateS10nDialog, currency: CurrencyUnit): F[ReplyMessage] = {
+  def saveCurrency(user: User, dialog: CreateS10nDialog, currency: CurrencyUnit): F[List[ReplyMessage]] = {
     val draft = dialog.draft.copy(currency = currency)
     transition(user, dialog.copy(draft = draft), CreateS10nDialogEvent.ChosenCurrency)
   }
 
-  def saveAmount(user: User, dialog: CreateS10nDialog, amount: BigDecimal): F[ReplyMessage] = {
+  def saveAmount(user: User, dialog: CreateS10nDialog, amount: BigDecimal): F[List[ReplyMessage]] = {
     val draft = dialog.draft.copy(
       amount = SubscriptionAmount(Money.of(dialog.draft.currency, amount.bigDecimal).getAmountMinorLong)
     )
     transition(user, dialog.copy(draft = draft), CreateS10nDialogEvent.EnteredAmount)
   }
 
-  def saveBillingPeriodDuration(user: User, dialog: CreateS10nDialog, duration: BillingPeriodDuration): F[ReplyMessage] = {
+  def saveBillingPeriodDuration(user: User, dialog: CreateS10nDialog, duration: BillingPeriodDuration): F[List[ReplyMessage]] = {
     val draft = dialog.draft.copy(periodDuration = duration.some)
     transition(user, dialog.copy(draft = draft), CreateS10nDialogEvent.EnteredBillingPeriodDuration)
   }
 
-  def saveBillingPeriodUnit(user: User, dialog: CreateS10nDialog, unit: BillingPeriodUnit): F[ReplyMessage] = {
+  def saveBillingPeriodUnit(user: User, dialog: CreateS10nDialog, unit: BillingPeriodUnit): F[List[ReplyMessage]] = {
     val draft = dialog.draft.copy(periodUnit = unit.some)
     transition(user, dialog.copy(draft = draft), CreateS10nDialogEvent.ChosenBillingPeriodUnit)
   }
 
-  def saveIsOneTime(user: User, dialog: CreateS10nDialog, oneTime: OneTimeSubscription): F[ReplyMessage] = {
+  def saveIsOneTime(user: User, dialog: CreateS10nDialog, oneTime: OneTimeSubscription): F[List[ReplyMessage]] = {
     val draft = dialog.draft.copy(oneTime = oneTime)
     val event = if (oneTime) CreateS10nDialogEvent.ChosenOneTime
     else CreateS10nDialogEvent.ChosenRecurring
     transition(user, dialog.copy(draft = draft), event)
   }
 
-  def saveFirstPaymentDate(user: User, dialog: CreateS10nDialog, date: FirstPaymentDate): F[ReplyMessage] = {
+  def saveFirstPaymentDate(user: User, dialog: CreateS10nDialog, date: FirstPaymentDate): F[List[ReplyMessage]] = {
     val draft = dialog.draft.copy(firstPaymentDate = date.some)
     transition(user, dialog.copy(draft = draft), CreateS10nDialogEvent.ChosenFirstPaymentDate)
   }
 
-  private def transition(user: User, dialog: CreateS10nDialog, event: CreateS10nDialogEvent): F[ReplyMessage] = {
+  private def transition(user: User, dialog: CreateS10nDialog, event: CreateS10nDialogEvent): F[List[ReplyMessage]] = {
     val updatedDialog = dialog.copy(state = CreateS10nDialogState.transition(dialog.state, event))
-    updatedDialog.state match {
+    (updatedDialog.state match {
       case finished @ CreateS10nDialogState.Finished =>
         subscriptionRepo.create(updatedDialog.draft)
           .productR(dialogEngine.reset(user, finished.message))
@@ -68,6 +68,7 @@ class CreateS10nDialogFsmService[F[_] : Sync : Logger](
         userRepo.createOrUpdate(userWithUpdatedDialog)
           .transact(xa) *>
           stateMessageService.getMessage(updatedDialog.state)
-    }
+    })
+      .map(List(_))
   }
 }

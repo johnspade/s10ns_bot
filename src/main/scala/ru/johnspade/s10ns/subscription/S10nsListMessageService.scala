@@ -10,7 +10,7 @@ import org.joda.money.{CurrencyUnit, Money}
 import ru.johnspade.s10ns.money.MoneyService
 import ru.johnspade.s10ns.subscription.tags.PageNumber
 import ru.johnspade.s10ns.telegram.TelegramOps.inlineKeyboardButton
-import ru.johnspade.s10ns.telegram.{EditS10n, EditS10nAmount, EditS10nName, RemoveS10n, ReplyMessage, S10n, S10ns}
+import ru.johnspade.s10ns.telegram.{EditS10n, EditS10nAmount, EditS10nName, EditS10nOneTime, RemoveS10n, ReplyMessage, S10n, S10ns}
 import ru.johnspade.s10ns.user.User
 import telegramium.bots.{InlineKeyboardButton, InlineKeyboardMarkup, MarkupInlineKeyboard}
 
@@ -111,7 +111,8 @@ class S10nsListMessageService[F[_] : Sync](
   def createEditS10nMarkup(s10n: Subscription, page: PageNumber): InlineKeyboardMarkup = {
     val nameButton = inlineKeyboardButton("Edit name", EditS10nName(s10n.id))
     val currencyButton = inlineKeyboardButton("Edit currency", EditS10nAmount(s10n.id))
+    val oneTimeButton = inlineKeyboardButton("Recurring/one time", EditS10nOneTime(s10n.id))
     val backButton = inlineKeyboardButton("Back", S10n(s10n.id, page))
-    InlineKeyboardMarkup(List(List(nameButton), List(currencyButton), List(backButton)))
+    InlineKeyboardMarkup(List(List(nameButton), List(currencyButton), List(oneTimeButton), List(backButton)))
   }
 }
