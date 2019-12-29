@@ -7,10 +7,11 @@ import doobie.implicits._
 import doobie.util.transactor.Transactor
 import io.chrisdavenport.log4cats.Logger
 import ru.johnspade.s10ns.calendar.CalendarController
+import ru.johnspade.s10ns.common.Errors
 import ru.johnspade.s10ns.help.StartController
 import ru.johnspade.s10ns.settings.SettingsController
 import ru.johnspade.s10ns.subscription.{CreateS10nDialogController, EditS10nDialogController, SubscriptionListController}
-import ru.johnspade.s10ns.telegram.TelegramOps.{TelegramUserOps, ackCb, sendReplyMessages}
+import ru.johnspade.s10ns.telegram.TelegramOps.{TelegramUserOps, ackCb, sendReplyMessages, singleTextMessage}
 import ru.johnspade.s10ns.telegram.{Calendar, CbDataService, DefCurrency, EditS10n, EditS10nAmount, EditS10nName, EditS10nOneTime, FirstPayment, Ignore, OneTime, PeriodUnit, RemoveS10n, ReplyMessage, S10n, S10ns}
 import ru.johnspade.s10ns.user.{CreateS10nDialog, Dialog, EditS10nAmountDialog, EditS10nNameDialog, EditS10nOneTimeDialog, SettingsDialog, User, UserRepository}
 import telegramium.bots.client.Api
@@ -40,30 +41,32 @@ class SubscriptionsBot[F[_] : Sync : Timer : Logger](
       .handleErrorWith(e => Logger[F].error(e)(e.getMessage))
 
   override def onCallbackQuery(query: CallbackQuery): F[Unit] = {
-    def route(data: String, user: User) = // todo пробрасывать пользователя
+    val ackError = ackCb(query, Errors.default.some)
+
+    def route(data: String, user: User) =
       cbDataService.decode(data)
         .flatMap {
           case Ignore => ackCb[F](query)
 
           case s10ns: S10ns =>
-            s10nListController.subscriptionsCb(query, s10ns)
+            s10nListController.subscriptionsCb(user, query, s10ns)
 
           case s10n: S10n =>
-            s10nListController.subscriptionCb(query, s10n)
+            s10nListController.subscriptionCb(user, query, s10n)
 
           case billingPeriod: PeriodUnit =>
             user.dialog.collect {
               case d: CreateS10nDialog => createS10nDialogController.billingPeriodUnitCb(query, billingPeriod, user, d)
               case d: EditS10nOneTimeDialog => editS10nDialogController.s10nBillingPeriodCb(query, billingPeriod, user, d)
             }
-              .getOrElse(Monad[F].unit) // todo ошибка
+              .getOrElse(ackError)
 
           case oneTime: OneTime =>
             user.dialog.collect {
               case d: CreateS10nDialog => createS10nDialogController.isOneTimeCb(query, oneTime, user, d)
               case d: EditS10nOneTimeDialog => editS10nDialogController.s10nOneTimeCb(query, oneTime, user, d)
             }
-              .getOrElse(Monad[F].unit)
+              .getOrElse(ackError)
 
           case calendar: Calendar =>
             calendarController.calendarCb(query, calendar)
@@ -72,10 +75,10 @@ class SubscriptionsBot[F[_] : Sync : Timer : Logger](
             user.dialog.collect {
               case d: CreateS10nDialog => createS10nDialogController.firstPaymentDateCb(query, firstPaymentDate, user, d)
             }
-              .getOrElse(Monad[F].unit)
+              .getOrElse(ackError)
 
           case removeS10n: RemoveS10n =>
-            s10nListController.removeSubscriptionCb(query, removeS10n)
+            s10nListController.removeSubscriptionCb(user, query, removeS10n)
 
           case editS10n: EditS10n =>
             s10nListController.editS10nCb(query, editS10n)
@@ -90,7 +93,7 @@ class SubscriptionsBot[F[_] : Sync : Timer : Logger](
             editS10nDialogController.editS10nOneTimeCb(user, query, editS10nOneTime)
 
           case DefCurrency =>
-            settingsController.defaultCurrencyCb(query)
+            settingsController.defaultCurrencyCb(user, query)
         }
 
     val tgUser = query.from.toUser(query.message.map(_.chat.id.toLong))
@@ -123,7 +126,7 @@ class SubscriptionsBot[F[_] : Sync : Timer : Logger](
         case d: EditS10nNameDialog => editS10nDialogController.s10nNameMessage(user, d, msg)
         case d: EditS10nAmountDialog => editS10nDialogController.s10nAmountMessage(user, d, msg)
         case d: EditS10nOneTimeDialog => editS10nDialogController.s10nBillingPeriodDurationMessage(user, d, msg)
-        case _ => Monad[F].pure(List.empty) // todo ошибка?
+        case _ => Sync[F].pure(singleTextMessage(Errors.default))
       }
 
     def handleText(user: User, text: String) = {

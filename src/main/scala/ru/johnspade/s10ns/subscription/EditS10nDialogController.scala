@@ -40,12 +40,12 @@ class EditS10nDialogController[F[_] : Sync : Logger : Timer](
     editS10nDialogService.onEditS10nOneTimeCb(user, cb, data).flatMap(reply(cb, _))
 
   def s10nOneTimeCb(cb: CallbackQuery, data: OneTime, user: User, dialog: EditS10nOneTimeDialog)(implicit bot: Api[F]): F[Unit] =
-    clearMarkup(cb) *> editS10nDialogService.saveIsOneTime(cb, data, user, dialog).map(handleCallback(cb, _))
+    clearMarkup(cb) *> editS10nDialogService.saveIsOneTime(cb, data, user, dialog).flatMap(handleCallback(cb, _))
 
   def s10nBillingPeriodCb(cb: CallbackQuery, data: PeriodUnit, user: User, dialog: EditS10nOneTimeDialog)(
     implicit bot: Api[F]
   ): F[Unit] =
-    clearMarkup(cb) *> editS10nDialogService.saveBillingPeriodUnit(cb, data, user, dialog).map(handleCallback(cb, _))
+    clearMarkup(cb) *> editS10nDialogService.saveBillingPeriodUnit(cb, data, user, dialog).flatMap(handleCallback(cb, _))
 
   def s10nBillingPeriodDurationMessage(user: User, dialog: EditS10nOneTimeDialog, message: Message): F[List[ReplyMessage]] =
     dialog.state match {

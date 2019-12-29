@@ -2,6 +2,7 @@ package ru.johnspade.s10ns.user
 
 import cats.effect.Sync
 import cats.implicits._
+import com.softwaremill.quicklens._
 import doobie.implicits._
 import doobie.util.transactor.Transactor
 import org.joda.money.{CurrencyUnit, Money}
@@ -27,35 +28,34 @@ class EditS10nDialogFsmService[F[_] : Sync](
     updatedDialog.state match {
       case EditS10nNameDialogState.Finished => onFinish(user, draft, EditS10nNameDialogState.Finished.message)
       case state @ _ =>
-        s10nRepo.update(draft).transact(xa) *>
+        val userWithUpdatedDialog = user.copy(dialog = updatedDialog.some)
+        userRepo.createOrUpdate(userWithUpdatedDialog).transact(xa) *>
           stateMessageService.getMessage(state).map(List(_))
     }
   }
 
   def saveCurrency(user: User, dialog: EditS10nAmountDialog, currency: CurrencyUnit): F[List[ReplyMessage]] = {
-    val draft = dialog.draft.copy(amount = Money.zero(currency))
-    transitionEditS10nAmountDialogState(user, draft, dialog, ChosenCurrency)
+    val updatedDialog = dialog.modify(_.draft.amount).setTo(Money.zero(currency))
+    transitionEditS10nAmountDialogState(user, updatedDialog, ChosenCurrency)
   }
 
   def saveAmount(user: User, dialog: EditS10nAmountDialog, amount: BigDecimal): F[List[ReplyMessage]] = {
-    val draft = dialog.draft.copy(amount = Money.of(dialog.draft.amount.getCurrencyUnit, amount.bigDecimal))
-    transitionEditS10nAmountDialogState(user, draft, dialog, EnteredAmount)
+    val updatedDialog = dialog.modify(_.draft.amount).setTo(Money.of(dialog.draft.amount.getCurrencyUnit, amount.bigDecimal))
+    transitionEditS10nAmountDialogState(user, updatedDialog, EnteredAmount)
   }
 
   def saveIsOneTime(user: User, dialog: EditS10nOneTimeDialog, oneTime: OneTimeSubscription): F[List[ReplyMessage]] = {
-    val draft = dialog.draft.copy(
-      oneTime = oneTime,
-      billingPeriod = if (oneTime) None
-      else dialog.draft.billingPeriod
-    )
+    val updatedDialog = dialog
+      .modify(_.draft.oneTime).setTo(oneTime)
+      .modify(_.draft.billingPeriod).setTo(if (oneTime) None else dialog.draft.billingPeriod)
     val event = if (oneTime) ChosenOneTime
     else {
-      if (draft.billingPeriod.isDefined)
+      if (dialog.draft.billingPeriod.isDefined)
         ChosenRecurringWithPeriod
       else
         ChosenRecurringWithoutPeriod
     }
-    transitionEditS10nOneTimeDialogState(user, draft, dialog, event)
+    transitionEditS10nOneTimeDialogState(user, updatedDialog, event)
   }
 
   def saveBillingPeriodUnit(user: User, dialog: EditS10nOneTimeDialog, unit: BillingPeriodUnit): F[List[ReplyMessage]] = {
@@ -63,8 +63,8 @@ class EditS10nDialogFsmService[F[_] : Sync](
       unit = unit,
       duration = BillingPeriodDuration(1)
     )
-    val draft = dialog.draft.copy(billingPeriod = billingPeriod.some)
-    transitionEditS10nOneTimeDialogState(user, draft, dialog, ChosenBillingPeriodUnit)
+    val updatedDialog = dialog.modify(_.draft.billingPeriod).setTo(billingPeriod.some)
+    transitionEditS10nOneTimeDialogState(user, updatedDialog, ChosenBillingPeriodUnit)
   }
 
   def saveBillingPeriodDuration(user: User, dialog: EditS10nOneTimeDialog, duration: BillingPeriodDuration): F[List[ReplyMessage]] = {
@@ -76,36 +76,36 @@ class EditS10nDialogFsmService[F[_] : Sync](
           duration = duration
         )
       }
-    val draft = dialog.draft.copy(billingPeriod = billingPeriod)
-    transitionEditS10nOneTimeDialogState(user, draft, dialog, ChosenBillingPeriodDuration)
+    val updatedDialog = dialog.modify(_.draft.billingPeriod).setTo(billingPeriod)
+    transitionEditS10nOneTimeDialogState(user, updatedDialog, ChosenBillingPeriodDuration)
   }
 
   private def transitionEditS10nAmountDialogState(
     user: User,
-    draft: Subscription,
     dialog: EditS10nAmountDialog,
     event: EditS10nAmountDialogEvent
   ) = {
     val updatedDialog = dialog.copy(state = EditS10nAmountDialogState.transition(dialog.state, event))
     updatedDialog.state match {
-      case finished @ EditS10nAmountDialogState.Finished => onFinish(user, draft, finished.message)
+      case finished @ EditS10nAmountDialogState.Finished => onFinish(user, dialog.draft, finished.message)
       case state @ _ =>
-        s10nRepo.update(draft).transact(xa) *>
+        val userWithUpdatedDialog = user.copy(dialog = updatedDialog.some)
+        userRepo.createOrUpdate(userWithUpdatedDialog).transact(xa) *>
           stateMessageService.getMessage(state).map(List(_))
     }
   }
 
   private def transitionEditS10nOneTimeDialogState(
     user: User,
-    draft: Subscription,
     dialog: EditS10nOneTimeDialog,
     event: EditS10nOneTimeDialogEvent
   ) = {
     val updatedDialog = dialog.copy(state = EditS10nOneTimeDialogState.transition(dialog.state, event))
     updatedDialog.state match {
-      case finished @ EditS10nOneTimeDialogState.Finished => onFinish(user, draft, finished.message)
+      case finished @ EditS10nOneTimeDialogState.Finished => onFinish(user, dialog.draft, finished.message)
       case state @ _ =>
-        s10nRepo.update(draft).transact(xa) *>
+        val userWithUpdatedDialog = user.copy(dialog = updatedDialog.some)
+        userRepo.createOrUpdate(userWithUpdatedDialog).transact(xa) *>
           stateMessageService.getMessage(state).map(List(_))
     }
   }

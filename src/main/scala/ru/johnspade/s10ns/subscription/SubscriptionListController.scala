@@ -13,16 +13,16 @@ import telegramium.bots.{CallbackQuery, ChatIntId, InlineKeyboardMarkup, MarkupI
 class SubscriptionListController[F[_] : Sync : Logger](
   private val s10nListService: SubscriptionListService[F]
 ) {
-  def subscriptionsCb(cb: CallbackQuery, data: S10ns)(implicit bot: Api[F]): F[Unit] =
-    s10nListService.onSubscriptionsCb(cb, data)
+  def subscriptionsCb(user: User, cb: CallbackQuery, data: S10ns)(implicit bot: Api[F]): F[Unit] =
+    s10nListService.onSubscriptionsCb(user, cb, data)
       .flatMap(ackCb(cb) *> editMessage(cb, _))
 
-  def removeSubscriptionCb(cb: CallbackQuery, data: RemoveS10n)(implicit bot: Api[F]): F[Unit] =
-    s10nListService.onRemoveSubscriptionCb(cb, data)
+  def removeSubscriptionCb(user: User, cb: CallbackQuery, data: RemoveS10n)(implicit bot: Api[F]): F[Unit] =
+    s10nListService.onRemoveSubscriptionCb(user, cb, data)
       .flatMap(ackCb(cb) *> editMessage(cb, _))
 
-  def subscriptionCb(cb: CallbackQuery, data: S10n)(implicit bot: Api[F]): F[Unit] =
-    ackAndEditMsg(cb, s10nListService.onSubcriptionCb(cb, data))
+  def subscriptionCb(user: User, cb: CallbackQuery, data: S10n)(implicit bot: Api[F]): F[Unit] =
+    ackAndEditMsg(cb, s10nListService.onSubcriptionCb(user, cb, data))
 
   def listCommand(from: User): F[ReplyMessage] = s10nListService.onListCommand(from, PageNumber(0))
 

@@ -6,7 +6,7 @@ import cats.implicits._
 import io.chrisdavenport.log4cats.Logger
 import ru.johnspade.s10ns.common.Errors
 import ru.johnspade.s10ns.telegram.ReplyMessage
-import ru.johnspade.s10ns.telegram.TelegramOps.{TelegramUserOps, ackCb, sendReplyMessage, toReplyMessage}
+import ru.johnspade.s10ns.telegram.TelegramOps.{ackCb, sendReplyMessage, toReplyMessage}
 import ru.johnspade.s10ns.user.{SettingsDialog, SettingsDialogState, User}
 import telegramium.bots.client.Api
 import telegramium.bots.{CallbackQuery, Message}
@@ -22,9 +22,9 @@ class SettingsController[F[_] : Sync : Logger](
     }).getOrElse(Sync[F].pure(ReplyMessage(Errors.default)))
       .map(List(_))
 
-  def defaultCurrencyCb(cb: CallbackQuery)(implicit bot: Api[F]): F[Unit] =
+  def defaultCurrencyCb(user: User, cb: CallbackQuery)(implicit bot: Api[F]): F[Unit] =
     ackCb(cb) *> cb.message.map { msg =>
-      settingsService.startDefaultCurrencyDialog(cb.from.toUser())
+      settingsService.startDefaultCurrencyDialog(user)
         .flatMap(sendReplyMessage(msg, _))
     }.getOrElse(Monad[F].unit)
 

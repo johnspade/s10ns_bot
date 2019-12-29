@@ -28,13 +28,13 @@ class CreateS10nDialogController[F[_] : Sync : Logger : Timer](
   def billingPeriodUnitCb(cb: CallbackQuery, data: PeriodUnit, user: User, dialog: CreateS10nDialog)(
     implicit bot: Api[F]
   ): F[Unit] =
-    clearMarkup(cb) *> createS10nDialogService.onBillingPeriodUnitCb(cb, data, user, dialog).map(handleCallback(cb, _))
+    clearMarkup(cb) *> createS10nDialogService.onBillingPeriodUnitCb(cb, data, user, dialog).flatMap(handleCallback(cb, _))
 
   def isOneTimeCb(cb: CallbackQuery, data: OneTime, user: User, dialog: CreateS10nDialog)(implicit bot: Api[F]): F[Unit] =
-    clearMarkup(cb) *> createS10nDialogService.onIsOneTimeCallback(cb, data, user, dialog).map(handleCallback(cb, _))
+    clearMarkup(cb) *> createS10nDialogService.onIsOneTimeCallback(cb, data, user, dialog).flatMap(handleCallback(cb, _))
 
   def firstPaymentDateCb(cb: CallbackQuery, data: FirstPayment, user: User, dialog: CreateS10nDialog)(
     implicit bot: Api[F]
   ): F[Unit] =
-    clearMarkup(cb) *> createS10nDialogService.onFirstPaymentDateCallback(cb, data, user, dialog).map(handleCallback(cb, _))
+    clearMarkup(cb) *> createS10nDialogService.onFirstPaymentDateCallback(cb, data, user, dialog).flatMap(handleCallback(cb, _))
 }

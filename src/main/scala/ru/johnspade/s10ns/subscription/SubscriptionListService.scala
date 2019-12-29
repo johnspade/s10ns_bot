@@ -6,38 +6,32 @@ import doobie.implicits._
 import doobie.util.transactor.Transactor
 import ru.johnspade.s10ns.common.Errors
 import ru.johnspade.s10ns.subscription.tags.PageNumber
-import ru.johnspade.s10ns.telegram.TelegramOps.TelegramUserOps
 import ru.johnspade.s10ns.telegram.{EditS10n, RemoveS10n, ReplyMessage, S10n, S10ns}
+import ru.johnspade.s10ns.user.User
 import ru.johnspade.s10ns.user.tags._
-import ru.johnspade.s10ns.user.{User, UserRepository}
 import telegramium.bots.{CallbackQuery, InlineKeyboardMarkup}
 
 class SubscriptionListService[F[_] : Sync](
-  private val userRepo: UserRepository,
   private val s10nRepo: SubscriptionRepository,
   private val s10nsListService: S10nsListMessageService[F]
 )(private implicit val xa: Transactor[F]) {
-  def onSubscriptionsCb(cb: CallbackQuery, data: S10ns): F[ReplyMessage] = {
-    val tgUser = cb.from.toUser()
+  def onSubscriptionsCb(user: User, cb: CallbackQuery, data: S10ns): F[ReplyMessage] = {
     for {
-      user <- userRepo.getOrCreate(tgUser).transact(xa)
       s10ns <- s10nRepo.getByUserId(user.id).transact(xa)
       reply <- s10nsListService.createSubscriptionsPage(s10ns, data.page, user.defaultCurrency)
     } yield reply
   }
 
-  def onRemoveSubscriptionCb(cb: CallbackQuery, data: RemoveS10n): F[ReplyMessage] = {
-    val tgUser = cb.from.toUser()
+  def onRemoveSubscriptionCb(user: User, cb: CallbackQuery, data: RemoveS10n): F[ReplyMessage] = {
     for {
       _ <- s10nRepo.remove(data.subscriptionId).transact(xa)
-      user <- userRepo.getOrCreate(tgUser).transact(xa)
       s10ns <- s10nRepo.getByUserId(user.id).transact(xa)
       reply <- s10nsListService.createSubscriptionsPage(s10ns, data.page, user.defaultCurrency)
     } yield reply
   }
 
-  def onSubcriptionCb(cb: CallbackQuery, data: S10n): F[Either[String, ReplyMessage]] = {
-    def checkUserAndGetMessage(user: User, subscription: Subscription) =
+  def onSubcriptionCb(user: User, cb: CallbackQuery, data: S10n): F[Either[String, ReplyMessage]] = {
+    def checkUserAndGetMessage(subscription: Subscription) =
       Either.cond(
         subscription.userId == user.id,
         s10nsListService.createSubscriptionMessage(user, subscription, data.page),
@@ -45,11 +39,9 @@ class SubscriptionListService[F[_] : Sync](
       )
         .sequence
 
-    val tgUser = cb.from.toUser()
     for {
-      user <- userRepo.getOrCreate(tgUser).transact(xa)
       s10nOpt <- s10nRepo.getById(data.subscriptionId).transact(xa)
-      replyOpt <- s10nOpt.traverse(checkUserAndGetMessage(user, _))
+      replyOpt <- s10nOpt.traverse(checkUserAndGetMessage)
     } yield replyOpt.toRight[String](Errors.notFound).flatten
   }
 

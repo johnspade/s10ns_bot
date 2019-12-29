@@ -112,7 +112,7 @@ object BotApp extends IOApp {
           stateMessageService,
           dialogEngine
         )
-        s10nCbService = new SubscriptionListService[F](userRepo, s10nRepo, s10nsListService)
+        s10nCbService = new SubscriptionListService[F](s10nRepo, s10nsListService)
         createS10nDialogService = new CreateS10nDialogService[F](
           userRepo,
           createS10nDialogFsmService,
