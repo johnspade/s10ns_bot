@@ -11,9 +11,6 @@ import ru.johnspade.s10ns.subscription.tags._
 import ru.johnspade.s10ns.subscription.{BillingPeriod, S10nsListMessageService, StateMessageService, Subscription, SubscriptionRepository}
 import ru.johnspade.s10ns.telegram.TelegramOps.singleTextMessage
 import ru.johnspade.s10ns.telegram.{DialogEngine, ReplyMessage}
-import ru.johnspade.s10ns.user.EditS10nAmountDialogEvent.{ChosenCurrency, EnteredAmount}
-import ru.johnspade.s10ns.user.EditS10nNameDialogEvent.EnteredName
-import ru.johnspade.s10ns.user.EditS10nOneTimeDialogEvent.{ChosenBillingPeriodDuration, ChosenBillingPeriodUnit, ChosenOneTime, ChosenRecurringWithPeriod, ChosenRecurringWithoutPeriod}
 
 class EditS10nDialogFsmService[F[_] : Sync](
   private val s10nsListMessageService: S10nsListMessageService[F],
@@ -24,7 +21,7 @@ class EditS10nDialogFsmService[F[_] : Sync](
 )(private implicit val xa: Transactor[F]) {
   def saveName(user: User, dialog: EditS10nNameDialog, name: SubscriptionName): F[List[ReplyMessage]] = {
     val draft = dialog.draft.copy(name = name)
-    val updatedDialog = dialog.copy(state = EditS10nNameDialogState.transition(dialog.state, EnteredName))
+    val updatedDialog = dialog.copy(state = EditS10nNameDialogState.transition(dialog.state, EditS10nNameDialogEvent.EnteredName))
     updatedDialog.state match {
       case EditS10nNameDialogState.Finished => onFinish(user, draft, EditS10nNameDialogState.Finished.message)
       case state @ _ =>
@@ -36,24 +33,24 @@ class EditS10nDialogFsmService[F[_] : Sync](
 
   def saveCurrency(user: User, dialog: EditS10nAmountDialog, currency: CurrencyUnit): F[List[ReplyMessage]] = {
     val updatedDialog = dialog.modify(_.draft.amount).setTo(Money.zero(currency))
-    transitionEditS10nAmountDialogState(user, updatedDialog, ChosenCurrency)
+    transitionEditS10nAmountDialogState(user, updatedDialog, EditS10nAmountDialogEvent.ChosenCurrency)
   }
 
   def saveAmount(user: User, dialog: EditS10nAmountDialog, amount: BigDecimal): F[List[ReplyMessage]] = {
     val updatedDialog = dialog.modify(_.draft.amount).setTo(Money.of(dialog.draft.amount.getCurrencyUnit, amount.bigDecimal))
-    transitionEditS10nAmountDialogState(user, updatedDialog, EnteredAmount)
+    transitionEditS10nAmountDialogState(user, updatedDialog, EditS10nAmountDialogEvent.EnteredAmount)
   }
 
   def saveIsOneTime(user: User, dialog: EditS10nOneTimeDialog, oneTime: OneTimeSubscription): F[List[ReplyMessage]] = {
     val updatedDialog = dialog
       .modify(_.draft.oneTime).setTo(oneTime)
       .modify(_.draft.billingPeriod).setTo(if (oneTime) None else dialog.draft.billingPeriod)
-    val event = if (oneTime) ChosenOneTime
+    val event = if (oneTime) EditS10nOneTimeDialogEvent.ChosenOneTime
     else {
       if (dialog.draft.billingPeriod.isDefined)
-        ChosenRecurringWithPeriod
+        EditS10nOneTimeDialogEvent.ChosenRecurringWithPeriod
       else
-        ChosenRecurringWithoutPeriod
+        EditS10nOneTimeDialogEvent.ChosenRecurringWithoutPeriod
     }
     transitionEditS10nOneTimeDialogState(user, updatedDialog, event)
   }
@@ -64,7 +61,7 @@ class EditS10nDialogFsmService[F[_] : Sync](
       duration = BillingPeriodDuration(1)
     )
     val updatedDialog = dialog.modify(_.draft.billingPeriod).setTo(billingPeriod.some)
-    transitionEditS10nOneTimeDialogState(user, updatedDialog, ChosenBillingPeriodUnit)
+    transitionEditS10nOneTimeDialogState(user, updatedDialog, EditS10nOneTimeDialogEvent.ChosenBillingPeriodUnit)
   }
 
   def saveBillingPeriodDuration(user: User, dialog: EditS10nOneTimeDialog, duration: BillingPeriodDuration): F[List[ReplyMessage]] = {
@@ -77,7 +74,18 @@ class EditS10nDialogFsmService[F[_] : Sync](
         )
       }
     val updatedDialog = dialog.modify(_.draft.billingPeriod).setTo(billingPeriod)
-    transitionEditS10nOneTimeDialogState(user, updatedDialog, ChosenBillingPeriodDuration)
+    transitionEditS10nOneTimeDialogState(user, updatedDialog, EditS10nOneTimeDialogEvent.ChosenBillingPeriodDuration)
+  }
+
+  def saveBillingPeriodUnit(user: User, dialog: EditS10nBillingPeriodDialog, unit: BillingPeriodUnit): F[List[ReplyMessage]] = {
+    val billingPeriod = BillingPeriod(
+      unit = unit,
+      duration = BillingPeriodDuration(1)
+    )
+    val updatedDialog = dialog
+      .modify(_.draft.billingPeriod).setTo(billingPeriod.some)
+      .modify(_.draft.oneTime).setTo(OneTimeSubscription(false))
+    transitionEditS10nBillingPeriodDialogState(user, updatedDialog, EditS10nBillingPeriodEvent.ChosenBillingPeriodUnit)
   }
 
   private def transitionEditS10nAmountDialogState(
@@ -107,6 +115,21 @@ class EditS10nDialogFsmService[F[_] : Sync](
         val userWithUpdatedDialog = user.copy(dialog = updatedDialog.some)
         userRepo.createOrUpdate(userWithUpdatedDialog).transact(xa) *>
           stateMessageService.getMessage(state).map(List(_))
+    }
+  }
+
+  private def transitionEditS10nBillingPeriodDialogState(
+    user: User,
+    dialog: EditS10nBillingPeriodDialog,
+    event: EditS10nBillingPeriodEvent
+  ) = {
+    val updatedDialog = dialog.modify(_.state).setTo(EditS10nBillingPeriodDialogState.transition(dialog.state, event))
+    updatedDialog.state match {
+      case finished @ EditS10nBillingPeriodDialogState.Finished => onFinish(user, dialog.draft, finished.message)
+      case state @ _ =>
+        val userWithUpdatedDialog = user.modify(_.dialog).setTo(updatedDialog.some)
+        userRepo.createOrUpdate(userWithUpdatedDialog).transact(xa) *>
+        stateMessageService.getMessage(state).map(List(_))
     }
   }
 

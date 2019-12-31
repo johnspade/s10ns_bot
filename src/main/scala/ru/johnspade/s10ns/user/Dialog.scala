@@ -27,3 +27,8 @@ final case class EditS10nOneTimeDialog(
   state: EditS10nOneTimeDialogState,
   draft: Subscription
 ) extends Dialog
+
+final case class EditS10nBillingPeriodDialog(
+  state: EditS10nBillingPeriodDialogState,
+  draft: Subscription
+) extends Dialog
