@@ -1,5 +1,5 @@
 package ru.johnspade.s10ns.user
 
-trait EditS10nDialogState {
+trait StateWithMessage {
   def message: String
 }

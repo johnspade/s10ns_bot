@@ -5,7 +5,7 @@ import enumeratum._
 import scala.collection.immutable.IndexedSeq
 
 sealed abstract class EditS10nBillingPeriodDialogState(override val message: String)
-  extends EnumEntry with EditS10nDialogState
+  extends EnumEntry with StateWithMessage
 
 object EditS10nBillingPeriodDialogState
   extends Enum[EditS10nBillingPeriodDialogState] with CirceEnum[EditS10nBillingPeriodDialogState] {

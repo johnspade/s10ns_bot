@@ -11,7 +11,7 @@ import ru.johnspade.s10ns.help.BotStart
 import ru.johnspade.s10ns.subscription.tags._
 import ru.johnspade.s10ns.telegram.TelegramOps.inlineKeyboardButton
 import ru.johnspade.s10ns.telegram.{OneTime, PeriodUnit, ReplyMessage}
-import ru.johnspade.s10ns.user.{CreateS10nDialogState, EditS10nDialogState, EditS10nOneTimeDialogState}
+import ru.johnspade.s10ns.user.{CreateS10nDialogState, EditS10nOneTimeDialogState, StateWithMessage}
 import telegramium.bots.{InlineKeyboardMarkup, KeyboardButton, KeyboardMarkup, MarkupInlineKeyboard, MarkupReplyKeyboard, ReplyKeyboardMarkup}
 
 class StateMessageService[F[_] : Sync](private val calendarService: CalendarService[F]) {
@@ -29,7 +29,7 @@ class StateMessageService[F[_] : Sync](private val calendarService: CalendarServ
       case _ => getMessagePure(state.message)
     }
 
-  def getMessage(state: EditS10nDialogState): F[ReplyMessage] =
+  def getMessage(state: StateWithMessage): F[ReplyMessage] = // todo
     state match {
       case EditS10nOneTimeDialogState.IsOneTime =>
         getMessagePure(state.message, MarkupInlineKeyboard(IsOneTimeReplyMarkup).some)

@@ -41,7 +41,7 @@ class SubscriptionsBot[F[_] : Sync : Timer : Logger](
       .handleErrorWith(e => Logger[F].error(e)(e.getMessage))
 
   override def onCallbackQuery(query: CallbackQuery): F[Unit] = {
-    val ackError = ackCb(query, Errors.default.some)
+    val ackError = ackCb[F](query, Errors.default.some)
 
     def route(data: String, user: User) =
       cbDataService.decode(data)

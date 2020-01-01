@@ -5,7 +5,7 @@ import enumeratum._
 import scala.collection.immutable.IndexedSeq
 
 sealed abstract class EditS10nAmountDialogState(override val message: String)
-  extends EnumEntry with EditS10nDialogState
+  extends EnumEntry with StateWithMessage
 
 object EditS10nAmountDialogState extends Enum[EditS10nAmountDialogState] with CirceEnum[EditS10nAmountDialogState] {
   case object Currency extends EditS10nAmountDialogState("Currency:")

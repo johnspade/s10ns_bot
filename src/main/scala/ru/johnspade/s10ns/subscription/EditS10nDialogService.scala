@@ -8,7 +8,7 @@ import ru.johnspade.s10ns.common.Errors
 import ru.johnspade.s10ns.common.ValidatorNec._
 import ru.johnspade.s10ns.subscription.tags._
 import ru.johnspade.s10ns.telegram.{DialogEngine, EditS10nAmount, EditS10nName, EditS10nOneTime, OneTime, PeriodUnit, ReplyMessage}
-import ru.johnspade.s10ns.user.{Dialog, EditS10nAmountDialog, EditS10nAmountDialogState, EditS10nDialogFsmService, EditS10nDialogState, EditS10nNameDialog, EditS10nNameDialogState, EditS10nOneTimeDialog, EditS10nOneTimeDialogState, User}
+import ru.johnspade.s10ns.user.{Dialog, EditS10nAmountDialog, EditS10nAmountDialogState, EditS10nDialogFsmService, StateWithMessage, EditS10nNameDialog, EditS10nNameDialogState, EditS10nOneTimeDialog, EditS10nOneTimeDialogState, User}
 import telegramium.bots.CallbackQuery
 
 class EditS10nDialogService[F[_] : Sync](
@@ -90,7 +90,7 @@ class EditS10nDialogService[F[_] : Sync](
     user: User,
     cb: CallbackQuery,
     s10nId: SubscriptionId,
-    state: EditS10nDialogState,
+    state: StateWithMessage,
     createDialog: Subscription => Dialog
   ): F[ReplyMessage] = {
     def saveAndReply(s10n: Subscription) = {
