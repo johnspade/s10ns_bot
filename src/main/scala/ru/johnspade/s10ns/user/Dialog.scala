@@ -3,7 +3,7 @@ package ru.johnspade.s10ns.user
 import ru.johnspade.s10ns.subscription.{Subscription, SubscriptionDraft}
 
 sealed abstract class Dialog { self =>
-  type S <: StateWithMessage
+  type S <: DialogState
   type E <: StateEvent
 
   def state: S
@@ -89,4 +89,14 @@ final case class EditS10nBillingPeriodDialog(
     copy(state = EditS10nBillingPeriodDialogState.transition(state, event))
 }
 
+final case class EditS10nFirstPaymentDateDialog(
+  override val state: EditS10nFirstPaymentDateDialogState,
+  override val draft: Subscription
+) extends EditS10nDialog {
+  override type S = EditS10nFirstPaymentDateDialogState
+  override type E = EditS10nFirstPaymentDateDialogEvent
 
+  override val finished: EditS10nFirstPaymentDateDialogState = EditS10nFirstPaymentDateDialogState.Finished
+  override def transition(event: EditS10nFirstPaymentDateDialogEvent): EditS10nFirstPaymentDateDialog =
+    copy(state = EditS10nFirstPaymentDateDialogState.transition(state, event))
+}

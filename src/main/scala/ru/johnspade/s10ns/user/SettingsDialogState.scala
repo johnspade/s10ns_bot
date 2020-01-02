@@ -4,7 +4,7 @@ import enumeratum._
 
 import scala.collection.immutable.IndexedSeq
 
-sealed abstract class SettingsDialogState(override val message: String) extends EnumEntry with StateWithMessage
+sealed abstract class SettingsDialogState(override val message: String) extends EnumEntry with DialogState
 
 object SettingsDialogState
   extends Enum[SettingsDialogState]

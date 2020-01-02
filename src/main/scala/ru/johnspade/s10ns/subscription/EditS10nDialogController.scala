@@ -6,8 +6,8 @@ import cats.syntax.option._
 import io.chrisdavenport.log4cats.Logger
 import ru.johnspade.s10ns.common.Errors
 import ru.johnspade.s10ns.telegram.TelegramOps.{ackCb, clearMarkup, handleCallback, sendReplyMessage, singleTextMessage, toReplyMessages}
-import ru.johnspade.s10ns.telegram.{EditS10nAmount, EditS10nBillingPeriod, EditS10nName, EditS10nOneTime, OneTime, PeriodUnit, ReplyMessage}
-import ru.johnspade.s10ns.user.{EditS10nAmountDialog, EditS10nAmountDialogState, EditS10nBillingPeriodDialog, EditS10nBillingPeriodDialogState, EditS10nNameDialog, EditS10nNameDialogState, EditS10nOneTimeDialog, EditS10nOneTimeDialogState, User}
+import ru.johnspade.s10ns.telegram.{EditS10nAmount, EditS10nBillingPeriod, EditS10nFirstPaymentDate, EditS10nName, EditS10nOneTime, FirstPayment, OneTime, PeriodUnit, ReplyMessage}
+import ru.johnspade.s10ns.user.{EditS10nAmountDialog, EditS10nAmountDialogState, EditS10nBillingPeriodDialog, EditS10nBillingPeriodDialogState, EditS10nFirstPaymentDateDialog, EditS10nNameDialog, EditS10nNameDialogState, EditS10nOneTimeDialog, EditS10nOneTimeDialogState, User}
 import telegramium.bots.client.Api
 import telegramium.bots.{CallbackQuery, Message}
 
@@ -67,6 +67,13 @@ class EditS10nDialogController[F[_] : Sync : Logger : Timer](
         editS10nDialogService.saveBillingPeriodDuration(user, dialog, message.text).map(toReplyMessages)
       case _ => defaultError
     }
+
+  def editS10nFirstPaymentDateCb(user: User, cb: CallbackQuery, data: EditS10nFirstPaymentDate)(implicit bot: Api[F]): F[Unit] =
+    editS10nDialogService.onEditS10nFirstPaymentDateCb(user, cb, data).flatMap(reply(cb, _))
+
+  def s10nFirstPaymentDateCb(cb: CallbackQuery, data: FirstPayment, user: User, dialog: EditS10nFirstPaymentDateDialog)
+    (implicit bot: Api[F]): F[Unit] =
+    clearMarkup(cb) *> editS10nDialogService.saveFirstPaymentDate(cb, data, user, dialog).flatMap(handleCallback(cb, _))
 
   private def reply(cb: CallbackQuery, message: ReplyMessage)(implicit bot: Api[F]) =
     cb.message.map {

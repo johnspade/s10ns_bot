@@ -94,7 +94,12 @@ class EditS10nDialogFsmService[F[_] : Sync](
     transition(user, updatedDialog)(EditS10nBillingPeriodEvent.ChosenBillingPeriodDuration, stateMessageService.getMessage)
   }
 
-  private def transition(user: User, dialog: EditS10nDialog with Dialog)
+  def saveFirstPaymentDate(user: User, dialog: EditS10nFirstPaymentDateDialog, date: FirstPaymentDate): F[List[ReplyMessage]] ={
+    val updatedDialog = dialog.modify(_.draft.firstPaymentDate).setTo(date.some)
+    transition(user, updatedDialog)(EditS10nFirstPaymentDateDialogEvent.ChosenFirstPaymentDate, stateMessageService.getMessage)
+  }
+
+  private def transition(user: User, dialog: EditS10nDialog)
     (event: dialog.E, getMessage: dialog.S => F[ReplyMessage]): F[List[ReplyMessage]] = {
     val updatedDialog = dialog.transition(event)
     if (updatedDialog.state == dialog.finished)
@@ -120,5 +125,4 @@ class EditS10nDialogFsmService[F[_] : Sync](
       }
     } yield replies.getOrElse(singleTextMessage(Errors.notFound))
   }
-
 }

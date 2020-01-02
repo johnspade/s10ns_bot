@@ -5,7 +5,7 @@ import enumeratum._
 import scala.collection.immutable.IndexedSeq
 
 sealed abstract class EditS10nOneTimeDialogState(override val message: String)
-  extends EnumEntry with StateWithMessage
+  extends EnumEntry with DialogState
 
 object EditS10nOneTimeDialogState extends Enum[EditS10nOneTimeDialogState] with CirceEnum[EditS10nOneTimeDialogState] {
   case object IsOneTime extends EditS10nOneTimeDialogState("Recurring/one time:")

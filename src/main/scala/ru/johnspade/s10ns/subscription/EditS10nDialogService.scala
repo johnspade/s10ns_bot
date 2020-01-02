@@ -7,8 +7,8 @@ import doobie.util.transactor.Transactor
 import ru.johnspade.s10ns.common.Errors
 import ru.johnspade.s10ns.common.ValidatorNec._
 import ru.johnspade.s10ns.subscription.tags._
-import ru.johnspade.s10ns.telegram.{DialogEngine, EditS10nAmount, EditS10nBillingPeriod, EditS10nName, EditS10nOneTime, OneTime, PeriodUnit, ReplyMessage}
-import ru.johnspade.s10ns.user.{EditS10nAmountDialog, EditS10nAmountDialogState, EditS10nBillingPeriodDialog, EditS10nBillingPeriodDialogState, EditS10nDialog, EditS10nDialogFsmService, EditS10nNameDialog, EditS10nNameDialogState, EditS10nOneTimeDialog, EditS10nOneTimeDialogState, User}
+import ru.johnspade.s10ns.telegram.{DialogEngine, EditS10nAmount, EditS10nBillingPeriod, EditS10nFirstPaymentDate, EditS10nName, EditS10nOneTime, FirstPayment, OneTime, PeriodUnit, ReplyMessage}
+import ru.johnspade.s10ns.user.{EditS10nAmountDialog, EditS10nAmountDialogState, EditS10nBillingPeriodDialog, EditS10nBillingPeriodDialogState, EditS10nDialog, EditS10nDialogFsmService, EditS10nFirstPaymentDateDialog, EditS10nFirstPaymentDateDialogEvent, EditS10nFirstPaymentDateDialogState, EditS10nNameDialog, EditS10nNameDialogState, EditS10nOneTimeDialog, EditS10nOneTimeDialogState, User}
 import telegramium.bots.CallbackQuery
 
 class EditS10nDialogService[F[_] : Sync](
@@ -107,6 +107,24 @@ class EditS10nDialogService[F[_] : Sync](
       .andThen(validateDurationString)
       .andThen(duration => validateDuration(BillingPeriodDuration(duration)))
       .traverse(editS10nDialogFsmService.saveBillingPeriodDuration(user, dialog, _))
+
+  def onEditS10nFirstPaymentDateCb(user: User, cb: CallbackQuery, data: EditS10nFirstPaymentDate): F[ReplyMessage] = {
+    val start = EditS10nFirstPaymentDateDialogState.FirstPaymentDate
+    onEditS10nDialogCb(
+      user = user,
+      cb = cb,
+      s10nId = data.subscriptionId,
+      message = stateMessageService.getMessage(start),
+      createDialog = s10n => EditS10nFirstPaymentDateDialog(start, s10n)
+    )
+  }
+
+  def saveFirstPaymentDate(
+    cb: CallbackQuery,
+    data: FirstPayment,
+    user: User,
+    dialog: EditS10nFirstPaymentDateDialog
+  ): F[List[ReplyMessage]] = editS10nDialogFsmService.saveFirstPaymentDate(user, dialog, data.date)
 
   private def onEditS10nDialogCb(
     user: User,

@@ -10,7 +10,7 @@ import org.joda.money.{CurrencyUnit, Money}
 import ru.johnspade.s10ns.money.MoneyService
 import ru.johnspade.s10ns.subscription.tags.PageNumber
 import ru.johnspade.s10ns.telegram.TelegramOps.inlineKeyboardButton
-import ru.johnspade.s10ns.telegram.{EditS10n, EditS10nAmount, EditS10nBillingPeriod, EditS10nName, EditS10nOneTime, RemoveS10n, ReplyMessage, S10n, S10ns}
+import ru.johnspade.s10ns.telegram.{EditS10n, EditS10nAmount, EditS10nBillingPeriod, EditS10nFirstPaymentDate, EditS10nName, EditS10nOneTime, RemoveS10n, ReplyMessage, S10n, S10ns}
 import ru.johnspade.s10ns.user.User
 import telegramium.bots.{InlineKeyboardButton, InlineKeyboardMarkup, MarkupInlineKeyboard}
 
@@ -114,7 +114,15 @@ class S10nsListMessageService[F[_] : Sync](
     val oneTimeButton = inlineKeyboardButton("Recurring/one time", EditS10nOneTime(s10n.id))
     val billingPeriodButton = if (s10n.oneTime) List.empty
     else List(inlineKeyboardButton("Edit billing period", EditS10nBillingPeriod(s10n.id)))
+    val firstPaymentDateButton = inlineKeyboardButton("Edit first payment date", EditS10nFirstPaymentDate(s10n.id))
     val backButton = inlineKeyboardButton("Back", S10n(s10n.id, page))
-    InlineKeyboardMarkup(List(List(nameButton), List(currencyButton), List(oneTimeButton), billingPeriodButton, List(backButton)))
+    InlineKeyboardMarkup(List(
+      List(nameButton),
+      List(currencyButton),
+      List(oneTimeButton),
+      billingPeriodButton,
+      List(firstPaymentDateButton),
+      List(backButton)
+    ))
   }
 }

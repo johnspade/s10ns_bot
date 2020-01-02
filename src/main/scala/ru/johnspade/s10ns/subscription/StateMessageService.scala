@@ -11,7 +11,7 @@ import ru.johnspade.s10ns.help.BotStart
 import ru.johnspade.s10ns.subscription.tags._
 import ru.johnspade.s10ns.telegram.TelegramOps.inlineKeyboardButton
 import ru.johnspade.s10ns.telegram.{OneTime, PeriodUnit, ReplyMessage}
-import ru.johnspade.s10ns.user.{CreateS10nDialogState, EditS10nAmountDialogState, EditS10nBillingPeriodDialogState, EditS10nOneTimeDialogState, StateWithMessage}
+import ru.johnspade.s10ns.user.{CreateS10nDialogState, DialogState, EditS10nAmountDialogState, EditS10nBillingPeriodDialogState, EditS10nFirstPaymentDateDialogState, EditS10nOneTimeDialogState}
 import telegramium.bots.{InlineKeyboardMarkup, KeyboardButton, KeyboardMarkup, MarkupInlineKeyboard, MarkupReplyKeyboard, ReplyKeyboardMarkup}
 
 class StateMessageService[F[_] : Sync](private val calendarService: CalendarService[F]) {
@@ -48,10 +48,20 @@ class StateMessageService[F[_] : Sync](private val calendarService: CalendarServ
       case _ => getTextMessage(state)
     }
 
-  def getTextMessage(state: StateWithMessage): F[ReplyMessage] =
+  def getMessage(state: EditS10nFirstPaymentDateDialogState): F[ReplyMessage] =
+    state match {
+      case EditS10nFirstPaymentDateDialogState.FirstPaymentDate =>
+        for {
+          date <- Sync[F].delay(LocalDate.now)
+          kb <- calendarService.generateKeyboard(date)
+        } yield ReplyMessage(state.message, MarkupInlineKeyboard(kb).some)
+      case EditS10nFirstPaymentDateDialogState.Finished => getMessagePure(state)
+    }
+
+  def getTextMessage(state: DialogState): F[ReplyMessage] =
     getMessagePure(state)
 
-  private def getMessagePure(state: StateWithMessage, markup: Option[KeyboardMarkup] = None): F[ReplyMessage] =
+  private def getMessagePure(state: DialogState, markup: Option[KeyboardMarkup] = None): F[ReplyMessage] =
     Sync[F].pure(ReplyMessage(state.message, markup))
 
   private val BillingPeriodUnitReplyMarkup = InlineKeyboardMarkup(

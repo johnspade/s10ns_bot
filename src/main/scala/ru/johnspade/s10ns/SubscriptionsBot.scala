@@ -12,8 +12,8 @@ import ru.johnspade.s10ns.help.StartController
 import ru.johnspade.s10ns.settings.SettingsController
 import ru.johnspade.s10ns.subscription.{CreateS10nDialogController, EditS10nDialogController, SubscriptionListController}
 import ru.johnspade.s10ns.telegram.TelegramOps.{TelegramUserOps, ackCb, sendReplyMessages, singleTextMessage}
-import ru.johnspade.s10ns.telegram.{Calendar, CbDataService, DefCurrency, EditS10n, EditS10nAmount, EditS10nBillingPeriod, EditS10nName, EditS10nOneTime, FirstPayment, Ignore, OneTime, PeriodUnit, RemoveS10n, ReplyMessage, S10n, S10ns}
-import ru.johnspade.s10ns.user.{CreateS10nDialog, Dialog, EditS10nAmountDialog, EditS10nBillingPeriodDialog, EditS10nNameDialog, EditS10nOneTimeDialog, SettingsDialog, User, UserRepository}
+import ru.johnspade.s10ns.telegram.{Calendar, CbDataService, DefCurrency, EditS10n, EditS10nAmount, EditS10nBillingPeriod, EditS10nFirstPaymentDate, EditS10nName, EditS10nOneTime, FirstPayment, Ignore, OneTime, PeriodUnit, RemoveS10n, ReplyMessage, S10n, S10ns}
+import ru.johnspade.s10ns.user.{CreateS10nDialog, Dialog, EditS10nAmountDialog, EditS10nBillingPeriodDialog, EditS10nFirstPaymentDateDialog, EditS10nNameDialog, EditS10nOneTimeDialog, SettingsDialog, User, UserRepository}
 import telegramium.bots.client.Api
 import telegramium.bots.high.LongPollBot
 import telegramium.bots.{CallbackQuery, Message, User => TgUser}
@@ -75,6 +75,8 @@ class SubscriptionsBot[F[_] : Sync : Timer : Logger](
           case firstPaymentDate: FirstPayment =>
             user.dialog.collect {
               case d: CreateS10nDialog => createS10nDialogController.firstPaymentDateCb(query, firstPaymentDate, user, d)
+              case d: EditS10nFirstPaymentDateDialog =>
+                editS10nDialogController.s10nFirstPaymentDateCb(query, firstPaymentDate, user,  d)
             }
               .getOrElse(ackError)
 
@@ -95,6 +97,9 @@ class SubscriptionsBot[F[_] : Sync : Timer : Logger](
 
           case editS10nBillingPeriod: EditS10nBillingPeriod =>
             editS10nDialogController.editS10nBillingPeriodCb(user, query, editS10nBillingPeriod)
+
+          case editS10nFirstPaymentDate: EditS10nFirstPaymentDate =>
+            editS10nDialogController.editS10nFirstPaymentDateCb(user, query, editS10nFirstPaymentDate)
 
           case DefCurrency =>
             settingsController.defaultCurrencyCb(user, query)
