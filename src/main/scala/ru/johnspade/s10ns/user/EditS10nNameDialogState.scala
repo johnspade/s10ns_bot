@@ -30,9 +30,9 @@ object EditS10nNameDialogState
   }
 }
 
-sealed trait EditS10nNameDialogEvent extends EnumEntry
+sealed trait EditS10nNameDialogEvent extends EnumEntry with StateEvent
 
-object EditS10nNameDialogEvent extends Enum[EditS10nNameDialogEvent] {
+object EditS10nNameDialogEvent extends Enum[EditS10nNameDialogEvent] with CirceEnum[EditS10nNameDialogEvent] {
   case object EnteredName extends EditS10nNameDialogEvent
 
   override def values: IndexedSeq[EditS10nNameDialogEvent] = findValues

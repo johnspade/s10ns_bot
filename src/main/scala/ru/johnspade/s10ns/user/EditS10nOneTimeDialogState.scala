@@ -41,9 +41,9 @@ object EditS10nOneTimeDialogState extends Enum[EditS10nOneTimeDialogState] with 
   }
 }
 
-sealed trait EditS10nOneTimeDialogEvent extends EnumEntry
+sealed trait EditS10nOneTimeDialogEvent extends EnumEntry with StateEvent
 
-object EditS10nOneTimeDialogEvent extends Enum[EditS10nOneTimeDialogEvent] {
+object EditS10nOneTimeDialogEvent extends Enum[EditS10nOneTimeDialogEvent] with CirceEnum[EditS10nOneTimeDialogEvent] {
   case object ChosenOneTime extends EditS10nOneTimeDialogEvent
   case object ChosenRecurringWithPeriod extends EditS10nOneTimeDialogEvent
   case object ChosenRecurringWithoutPeriod extends EditS10nOneTimeDialogEvent

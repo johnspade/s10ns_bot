@@ -7,8 +7,8 @@ import doobie.util.transactor.Transactor
 import ru.johnspade.s10ns.common.Errors
 import ru.johnspade.s10ns.common.ValidatorNec._
 import ru.johnspade.s10ns.subscription.tags._
-import ru.johnspade.s10ns.telegram.{DialogEngine, EditS10nAmount, EditS10nName, EditS10nOneTime, OneTime, PeriodUnit, ReplyMessage}
-import ru.johnspade.s10ns.user.{Dialog, EditS10nAmountDialog, EditS10nAmountDialogState, EditS10nDialogFsmService, StateWithMessage, EditS10nNameDialog, EditS10nNameDialogState, EditS10nOneTimeDialog, EditS10nOneTimeDialogState, User}
+import ru.johnspade.s10ns.telegram.{DialogEngine, EditS10nAmount, EditS10nBillingPeriod, EditS10nName, EditS10nOneTime, OneTime, PeriodUnit, ReplyMessage}
+import ru.johnspade.s10ns.user.{EditS10nAmountDialog, EditS10nAmountDialogState, EditS10nBillingPeriodDialog, EditS10nBillingPeriodDialogState, EditS10nDialog, EditS10nDialogFsmService, EditS10nNameDialog, EditS10nNameDialogState, EditS10nOneTimeDialog, EditS10nOneTimeDialogState, User}
 import telegramium.bots.CallbackQuery
 
 class EditS10nDialogService[F[_] : Sync](
@@ -24,7 +24,7 @@ class EditS10nDialogService[F[_] : Sync](
       user = user,
       cb = cb,
       s10nId = data.subscriptionId,
-      state = EditS10nNameDialogState.Name,
+      message = stateMessageService.getTextMessage(EditS10nNameDialogState.Name),
       createDialog =
         s10n => EditS10nNameDialog(
           state = EditS10nNameDialogState.Name,
@@ -42,7 +42,7 @@ class EditS10nDialogService[F[_] : Sync](
       user = user,
       cb = cb,
       s10nId = data.subscriptionId,
-      state = EditS10nAmountDialogState.Currency,
+      message = stateMessageService.getMessage(EditS10nAmountDialogState.Currency),
       createDialog =
         s10n => EditS10nAmountDialog(
           EditS10nAmountDialogState.Currency,
@@ -69,7 +69,7 @@ class EditS10nDialogService[F[_] : Sync](
       user = user,
       cb = cb,
       s10nId = data.subscriptionId,
-      state = EditS10nOneTimeDialogState.IsOneTime,
+      message = stateMessageService.getMessage(EditS10nOneTimeDialogState.IsOneTime),
       createDialog =
         s10n => EditS10nOneTimeDialog(
           EditS10nOneTimeDialogState.IsOneTime,
@@ -86,17 +86,39 @@ class EditS10nDialogService[F[_] : Sync](
       .andThen(duration => validateDuration(BillingPeriodDuration(duration)))
       .traverse(editS10nDialogFsmService.saveBillingPeriodDuration(user, dialog, _))
 
+  def onEditS10nBillingPeriodCb(user: User, cb: CallbackQuery, data: EditS10nBillingPeriod): F[ReplyMessage] =
+    onEditS10nDialogCb(
+      user = user,
+      cb = cb,
+      s10nId = data.subscriptionId,
+      message = stateMessageService.getMessage(EditS10nBillingPeriodDialogState.BillingPeriodUnit),
+      createDialog =
+        s10n => EditS10nBillingPeriodDialog(
+          EditS10nBillingPeriodDialogState.BillingPeriodUnit,
+          s10n
+        )
+    )
+
+  def saveBillingPeriodUnit(cb: CallbackQuery, data: PeriodUnit, user: User, dialog: EditS10nBillingPeriodDialog): F[List[ReplyMessage]] =
+    editS10nDialogFsmService.saveBillingPeriodUnit(user, dialog, data.unit)
+
+  def saveBillingPeriodDuration(user: User, dialog: EditS10nBillingPeriodDialog, text: Option[String]): F[RepliesValidated] =
+    validateText(text)
+      .andThen(validateDurationString)
+      .andThen(duration => validateDuration(BillingPeriodDuration(duration)))
+      .traverse(editS10nDialogFsmService.saveBillingPeriodDuration(user, dialog, _))
+
   private def onEditS10nDialogCb(
     user: User,
     cb: CallbackQuery,
     s10nId: SubscriptionId,
-    state: StateWithMessage,
-    createDialog: Subscription => Dialog
+    message: F[ReplyMessage],
+    createDialog: Subscription => EditS10nDialog
   ): F[ReplyMessage] = {
     def saveAndReply(s10n: Subscription) = {
       val checkUserAndGetMessage = Either.cond(
         s10n.userId == user.id,
-        stateMessageService.getMessage(state),
+        message,
         Errors.accessDenied
       )
       checkUserAndGetMessage match {

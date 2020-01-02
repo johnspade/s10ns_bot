@@ -2,15 +2,15 @@ package ru.johnspade.s10ns.user
 
 import ru.johnspade.s10ns.subscription.{Subscription, SubscriptionDraft}
 
-sealed abstract class Dialog {
+sealed abstract class Dialog { self =>
   type S <: StateWithMessage
   type E <: StateEvent
 
   def state: S
   def finished: S
   def transition(event: E): Dialog {
-      type S = this.S
-      type E = this.E
+      type S = self.S
+      type E = self.E
     }
 }
 
@@ -37,7 +37,7 @@ final case class SettingsDialog(
     copy(state = SettingsDialogState.transition(state, event))
 }
 
-trait EditS10nDialog extends Dialog {
+sealed trait EditS10nDialog extends Dialog {
   def draft: Subscription
 }
 
@@ -89,10 +89,4 @@ final case class EditS10nBillingPeriodDialog(
     copy(state = EditS10nBillingPeriodDialogState.transition(state, event))
 }
 
-object Dialog {
-  type Aux[S0 <: StateWithMessage, E0 <: StateEvent] = Dialog {
-    type S = S0
-    type E = E0
-  }
-}
 

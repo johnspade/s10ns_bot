@@ -11,35 +11,48 @@ import ru.johnspade.s10ns.help.BotStart
 import ru.johnspade.s10ns.subscription.tags._
 import ru.johnspade.s10ns.telegram.TelegramOps.inlineKeyboardButton
 import ru.johnspade.s10ns.telegram.{OneTime, PeriodUnit, ReplyMessage}
-import ru.johnspade.s10ns.user.{CreateS10nDialogState, EditS10nOneTimeDialogState, StateWithMessage}
+import ru.johnspade.s10ns.user.{CreateS10nDialogState, EditS10nAmountDialogState, EditS10nBillingPeriodDialogState, EditS10nOneTimeDialogState, StateWithMessage}
 import telegramium.bots.{InlineKeyboardMarkup, KeyboardButton, KeyboardMarkup, MarkupInlineKeyboard, MarkupReplyKeyboard, ReplyKeyboardMarkup}
 
 class StateMessageService[F[_] : Sync](private val calendarService: CalendarService[F]) {
   def getMessage(state: CreateS10nDialogState): F[ReplyMessage] =
     state match {
-      case CreateS10nDialogState.Currency => getMessagePure(state.message, MarkupReplyKeyboard(CurrencyReplyMarkup).some)
-      case CreateS10nDialogState.BillingPeriodUnit => getMessagePure(state.message, MarkupInlineKeyboard(BillingPeriodUnitReplyMarkup).some)
-      case CreateS10nDialogState.IsOneTime => getMessagePure(state.message, MarkupInlineKeyboard(IsOneTimeReplyMarkup).some)
+      case CreateS10nDialogState.Currency => getMessagePure(state, MarkupReplyKeyboard(CurrencyReplyMarkup).some)
+      case CreateS10nDialogState.BillingPeriodUnit => getMessagePure(state, MarkupInlineKeyboard(BillingPeriodUnitReplyMarkup).some)
+      case CreateS10nDialogState.IsOneTime => getMessagePure(state, MarkupInlineKeyboard(IsOneTimeReplyMarkup).some)
       case CreateS10nDialogState.FirstPaymentDate =>
         for {
           date <- Sync[F].delay(LocalDate.now)
           kb <- calendarService.generateKeyboard(date)
         } yield ReplyMessage(state.message, MarkupInlineKeyboard(kb).some)
-      case CreateS10nDialogState.Finished => getMessagePure(state.message, BotStart.markup.some)
-      case _ => getMessagePure(state.message)
+      case CreateS10nDialogState.Finished => getMessagePure(state, BotStart.markup.some)
+      case _ => getMessagePure(state)
     }
 
-  def getMessage(state: StateWithMessage): F[ReplyMessage] = // todo
+  def getMessage(state: EditS10nOneTimeDialogState): F[ReplyMessage] =
     state match {
       case EditS10nOneTimeDialogState.IsOneTime =>
-        getMessagePure(state.message, MarkupInlineKeyboard(IsOneTimeReplyMarkup).some)
+        getMessagePure(state, MarkupInlineKeyboard(IsOneTimeReplyMarkup).some)
       case EditS10nOneTimeDialogState.BillingPeriodUnit =>
-        getMessagePure(state.message, MarkupInlineKeyboard(BillingPeriodUnitReplyMarkup).some)
-      case _ => getMessagePure(state.message)
+        getMessagePure(state, MarkupInlineKeyboard(BillingPeriodUnitReplyMarkup).some)
+      case _ => getTextMessage(state)
     }
 
-  private def getMessagePure(message: String, markup: Option[KeyboardMarkup] = None): F[ReplyMessage] =
-    Sync[F].pure(ReplyMessage(message, markup))
+  def getMessage(state: EditS10nAmountDialogState): F[ReplyMessage] =
+    getTextMessage(state)
+
+  def getMessage(state: EditS10nBillingPeriodDialogState): F[ReplyMessage] =
+    state match {
+      case EditS10nBillingPeriodDialogState.BillingPeriodUnit =>
+        getMessagePure(state, MarkupInlineKeyboard(BillingPeriodUnitReplyMarkup).some)
+      case _ => getTextMessage(state)
+    }
+
+  def getTextMessage(state: StateWithMessage): F[ReplyMessage] =
+    getMessagePure(state)
+
+  private def getMessagePure(state: StateWithMessage, markup: Option[KeyboardMarkup] = None): F[ReplyMessage] =
+    Sync[F].pure(ReplyMessage(state.message, markup))
 
   private val BillingPeriodUnitReplyMarkup = InlineKeyboardMarkup(
     List(List(ChronoUnit.DAYS, ChronoUnit.WEEKS, ChronoUnit.MONTHS, ChronoUnit.YEARS).map { unit =>

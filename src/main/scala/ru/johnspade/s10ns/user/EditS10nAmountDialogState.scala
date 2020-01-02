@@ -34,9 +34,9 @@ object EditS10nAmountDialogState extends Enum[EditS10nAmountDialogState] with Ci
   }
 }
 
-sealed trait EditS10nAmountDialogEvent extends EnumEntry
+sealed trait EditS10nAmountDialogEvent extends EnumEntry with StateEvent
 
-object EditS10nAmountDialogEvent extends Enum[EditS10nAmountDialogEvent] {
+object EditS10nAmountDialogEvent extends Enum[EditS10nAmountDialogEvent] with CirceEnum[EditS10nAmountDialogEvent] {
   case object ChosenCurrency extends EditS10nAmountDialogEvent
   case object EnteredAmount extends EditS10nAmountDialogEvent
 

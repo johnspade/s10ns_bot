@@ -66,9 +66,9 @@ object CreateS10nDialogState
   }
 }
 
-sealed trait CreateS10nDialogEvent extends EnumEntry
+sealed trait CreateS10nDialogEvent extends EnumEntry with StateEvent
 
-object CreateS10nDialogEvent extends Enum[CreateS10nDialogEvent] {
+object CreateS10nDialogEvent extends Enum[CreateS10nDialogEvent] with CirceEnum[CreateS10nDialogEvent] {
   case object EnteredName extends CreateS10nDialogEvent
   case object ChosenCurrency extends CreateS10nDialogEvent
   case object EnteredAmount extends CreateS10nDialogEvent

@@ -29,9 +29,9 @@ object SettingsDialogState
   }
 }
 
-sealed trait SettingsDialogEvent extends EnumEntry
+sealed trait SettingsDialogEvent extends EnumEntry with StateEvent
 
-object SettingsDialogEvent extends Enum[SettingsDialogEvent] {
+object SettingsDialogEvent extends Enum[SettingsDialogEvent] with CirceEnum[SettingsDialogEvent] {
   case object ChosenDefaultCurrency extends SettingsDialogEvent
   override def values: IndexedSeq[SettingsDialogEvent] = findValues
 }

@@ -35,9 +35,9 @@ object EditS10nBillingPeriodDialogState
   }
 }
 
-sealed trait EditS10nBillingPeriodEvent extends EnumEntry
+sealed trait EditS10nBillingPeriodEvent extends EnumEntry with StateEvent
 
-object EditS10nBillingPeriodEvent extends Enum[EditS10nBillingPeriodEvent] {
+object EditS10nBillingPeriodEvent extends Enum[EditS10nBillingPeriodEvent] with CirceEnum[EditS10nBillingPeriodEvent] {
   case object ChosenBillingPeriodUnit extends EditS10nBillingPeriodEvent
   case object ChosenBillingPeriodDuration extends EditS10nBillingPeriodEvent
 

@@ -6,8 +6,8 @@ import cats.syntax.option._
 import io.chrisdavenport.log4cats.Logger
 import ru.johnspade.s10ns.common.Errors
 import ru.johnspade.s10ns.telegram.TelegramOps.{ackCb, clearMarkup, handleCallback, sendReplyMessage, singleTextMessage, toReplyMessages}
-import ru.johnspade.s10ns.telegram.{EditS10nAmount, EditS10nName, EditS10nOneTime, OneTime, PeriodUnit, ReplyMessage}
-import ru.johnspade.s10ns.user.{EditS10nAmountDialog, EditS10nAmountDialogState, EditS10nNameDialog, EditS10nNameDialogState, EditS10nOneTimeDialog, EditS10nOneTimeDialogState, User}
+import ru.johnspade.s10ns.telegram.{EditS10nAmount, EditS10nBillingPeriod, EditS10nName, EditS10nOneTime, OneTime, PeriodUnit, ReplyMessage}
+import ru.johnspade.s10ns.user.{EditS10nAmountDialog, EditS10nAmountDialogState, EditS10nBillingPeriodDialog, EditS10nBillingPeriodDialogState, EditS10nNameDialog, EditS10nNameDialogState, EditS10nOneTimeDialog, EditS10nOneTimeDialogState, User}
 import telegramium.bots.client.Api
 import telegramium.bots.{CallbackQuery, Message}
 
@@ -50,6 +50,20 @@ class EditS10nDialogController[F[_] : Sync : Logger : Timer](
   def s10nBillingPeriodDurationMessage(user: User, dialog: EditS10nOneTimeDialog, message: Message): F[List[ReplyMessage]] =
     dialog.state match {
       case EditS10nOneTimeDialogState.BillingPeriodDuration =>
+        editS10nDialogService.saveBillingPeriodDuration(user, dialog, message.text).map(toReplyMessages)
+      case _ => defaultError
+    }
+
+  def editS10nBillingPeriodCb(user: User, cb: CallbackQuery, data: EditS10nBillingPeriod)(implicit bot: Api[F]): F[Unit] =
+    editS10nDialogService.onEditS10nBillingPeriodCb(user, cb, data).flatMap(reply(cb, _))
+
+  def s10nBillingPeriodCb(cb: CallbackQuery, data: PeriodUnit, user: User, dialog: EditS10nBillingPeriodDialog)
+    (implicit bot: Api[F]): F[Unit] =
+    clearMarkup(cb) *> editS10nDialogService.saveBillingPeriodUnit(cb, data, user, dialog).flatMap(handleCallback(cb, _))
+
+  def s10nBillingPeriodDurationMessage(user: User, dialog: EditS10nBillingPeriodDialog, message: Message): F[List[ReplyMessage]] =
+    dialog.state match {
+      case EditS10nBillingPeriodDialogState.BillingPeriodDuration =>
         editS10nDialogService.saveBillingPeriodDuration(user, dialog, message.text).map(toReplyMessages)
       case _ => defaultError
     }
