@@ -1,0 +1,24 @@
+@startuml
+
+hide empty description
+
+skinparam monochrome true
+skinparam shadowing false
+skinparam TitleFontSize 30
+skinparam StateFontSize 20
+
+title Create subscription dialog
+
+[*] -r-> Name
+Name -r-> Currency
+Currency -r-> Amount
+Amount -r-> IsOneTime
+IsOneTime --> [*] : Save
+IsOneTime --> FirstPaymentDate : One time
+IsOneTime --> BillingPeriodUnit : Recurring
+BillingPeriodUnit --> BillingPeriodDuration
+BillingPeriodDuration --> FirstPaymentDate
+FirstPaymentDate --> [*] : Choose
+FirstPaymentDate --> [*] : Save
+
+@enduml
