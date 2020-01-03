@@ -8,7 +8,7 @@ import ru.johnspade.s10ns.common.Errors
 import ru.johnspade.s10ns.common.ValidatorNec._
 import ru.johnspade.s10ns.subscription.tags._
 import ru.johnspade.s10ns.telegram.{DialogEngine, EditS10nAmount, EditS10nBillingPeriod, EditS10nFirstPaymentDate, EditS10nName, EditS10nOneTime, FirstPayment, OneTime, PeriodUnit, ReplyMessage}
-import ru.johnspade.s10ns.user.{EditS10nAmountDialog, EditS10nAmountDialogState, EditS10nBillingPeriodDialog, EditS10nBillingPeriodDialogState, EditS10nDialog, EditS10nDialogFsmService, EditS10nFirstPaymentDateDialog, EditS10nFirstPaymentDateDialogEvent, EditS10nFirstPaymentDateDialogState, EditS10nNameDialog, EditS10nNameDialogState, EditS10nOneTimeDialog, EditS10nOneTimeDialogState, User}
+import ru.johnspade.s10ns.user.{EditS10nAmountDialog, EditS10nAmountDialogState, EditS10nBillingPeriodDialog, EditS10nBillingPeriodDialogState, EditS10nDialog, EditS10nDialogFsmService, EditS10nFirstPaymentDateDialog, EditS10nFirstPaymentDateDialogState, EditS10nNameDialog, EditS10nNameDialogState, EditS10nOneTimeDialog, EditS10nOneTimeDialogState, User}
 import telegramium.bots.CallbackQuery
 
 class EditS10nDialogService[F[_] : Sync](
@@ -60,6 +60,9 @@ class EditS10nDialogService[F[_] : Sync](
       .andThen(validateAmountString)
       .andThen(amount => validateAmount(amount))
       .traverse(editS10nDialogFsmService.saveAmount(user, dialog, _))
+
+  def removeIsOneTime(cb: CallbackQuery, user: User, dialog: EditS10nOneTimeDialog): F[List[ReplyMessage]] =
+    editS10nDialogFsmService.removeIsOneTime(user, dialog)
 
   def saveIsOneTime(cb: CallbackQuery, data: OneTime, user: User, dialog: EditS10nOneTimeDialog): F[List[ReplyMessage]] =
     editS10nDialogFsmService.saveIsOneTime(user, dialog, data.oneTime)

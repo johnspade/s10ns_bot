@@ -16,7 +16,7 @@ case class Subscription(
   name: SubscriptionName,
   amount: Money,
   description: Option[SubscriptionDescription],
-  oneTime: OneTimeSubscription,
+  oneTime: Option[OneTimeSubscription],
   billingPeriod: Option[BillingPeriod],
   firstPaymentDate: Option[FirstPaymentDate]
 )
@@ -43,7 +43,7 @@ case class SubscriptionDraft(
   currency: CurrencyUnit,
   amount: SubscriptionAmount,
   description: Option[SubscriptionDescription],
-  oneTime: OneTimeSubscription,
+  oneTime: Option[OneTimeSubscription],
   periodDuration: Option[BillingPeriodDuration],
   periodUnit: Option[BillingPeriodUnit],
   firstPaymentDate: Option[FirstPaymentDate]
@@ -57,7 +57,7 @@ object SubscriptionDraft {
       currency = currency,
       amount = SubscriptionAmount(0L),
       description = None,
-      oneTime = OneTimeSubscription(false),
+      oneTime = None,
       periodDuration = None,
       periodUnit = None,
       firstPaymentDate = None

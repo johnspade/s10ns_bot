@@ -112,7 +112,7 @@ class S10nsListMessageService[F[_] : Sync](
     val nameButton = inlineKeyboardButton("Edit name", EditS10nName(s10n.id))
     val currencyButton = inlineKeyboardButton("Edit currency", EditS10nAmount(s10n.id))
     val oneTimeButton = inlineKeyboardButton("Recurring/one time", EditS10nOneTime(s10n.id))
-    val billingPeriodButton = if (s10n.oneTime) List.empty
+    val billingPeriodButton = if (s10n.oneTime.getOrElse(false)) List.empty
     else List(inlineKeyboardButton("Edit billing period", EditS10nBillingPeriod(s10n.id)))
     val firstPaymentDateButton = inlineKeyboardButton("Edit first payment date", EditS10nFirstPaymentDate(s10n.id))
     val backButton = inlineKeyboardButton("Back", S10n(s10n.id, page))

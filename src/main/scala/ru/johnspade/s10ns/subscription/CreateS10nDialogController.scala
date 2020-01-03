@@ -30,6 +30,9 @@ class CreateS10nDialogController[F[_] : Sync : Logger : Timer](
   ): F[Unit] =
     clearMarkup(cb) *> createS10nDialogService.onBillingPeriodUnitCb(cb, data, user, dialog).flatMap(handleCallback(cb, _))
 
+  def skipIsOneTimeCb(cb: CallbackQuery, user: User, dialog: CreateS10nDialog)(implicit bot: Api[F]): F[Unit] =
+    clearMarkup(cb) *> createS10nDialogService.onSkipIsOneTimeCb(cb, user, dialog).flatMap(handleCallback(cb, _))
+
   def isOneTimeCb(cb: CallbackQuery, data: OneTime, user: User, dialog: CreateS10nDialog)(implicit bot: Api[F]): F[Unit] =
     clearMarkup(cb) *> createS10nDialogService.onIsOneTimeCallback(cb, data, user, dialog).flatMap(handleCallback(cb, _))
 

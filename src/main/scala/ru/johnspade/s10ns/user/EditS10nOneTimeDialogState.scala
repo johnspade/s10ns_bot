@@ -22,7 +22,7 @@ object EditS10nOneTimeDialogState extends Enum[EditS10nOneTimeDialogState] with 
     state match {
       case IsOneTime =>
         e match {
-          case ChosenOneTime | ChosenRecurringWithPeriod => Finished
+          case RemovedIsOneTime | ChosenOneTime | ChosenRecurringWithPeriod => Finished
           case ChosenRecurringWithoutPeriod => BillingPeriodUnit
           case _ => state
         }
@@ -44,6 +44,7 @@ object EditS10nOneTimeDialogState extends Enum[EditS10nOneTimeDialogState] with 
 sealed trait EditS10nOneTimeDialogEvent extends EnumEntry with StateEvent
 
 object EditS10nOneTimeDialogEvent extends Enum[EditS10nOneTimeDialogEvent] with CirceEnum[EditS10nOneTimeDialogEvent] {
+  case object RemovedIsOneTime extends EditS10nOneTimeDialogEvent
   case object ChosenOneTime extends EditS10nOneTimeDialogEvent
   case object ChosenRecurringWithPeriod extends EditS10nOneTimeDialogEvent
   case object ChosenRecurringWithoutPeriod extends EditS10nOneTimeDialogEvent

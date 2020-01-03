@@ -44,8 +44,11 @@ class CreateS10nDialogFsmService[F[_] : Sync : Logger](
     transition(user, dialog.copy(draft = draft), CreateS10nDialogEvent.ChosenBillingPeriodUnit)
   }
 
+  def skipIsOneTime(user: User, dialog: CreateS10nDialog): F[List[ReplyMessage]] =
+    transition(user, dialog, CreateS10nDialogEvent.SkippedIsOneTime)
+
   def saveIsOneTime(user: User, dialog: CreateS10nDialog, oneTime: OneTimeSubscription): F[List[ReplyMessage]] = {
-    val draft = dialog.draft.copy(oneTime = oneTime)
+    val draft = dialog.draft.copy(oneTime = oneTime.some)
     val event = if (oneTime) CreateS10nDialogEvent.ChosenOneTime
     else CreateS10nDialogEvent.ChosenRecurring
     transition(user, dialog.copy(draft = draft), event)

@@ -19,6 +19,7 @@ case object Ignore extends CbData
 final case class S10ns(page: PageNumber) extends CbData
 final case class S10n(subscriptionId: SubscriptionId, page: PageNumber) extends CbData
 final case class PeriodUnit(unit: BillingPeriodUnit) extends CbData
+case object SkipIsOneTime extends CbData
 final case class OneTime(oneTime: OneTimeSubscription) extends CbData
 final case class Calendar(date: LocalDate) extends CbData
 final case class FirstPayment(date: FirstPaymentDate) extends CbData
@@ -70,6 +71,8 @@ object CbData {
     RowCodec.caseOrdered(EditS10nBillingPeriod.apply _)(EditS10nBillingPeriod.unapply)
   implicit val editS10nFirstPaymentDateRowCodec: RowCodec[EditS10nFirstPaymentDate] =
     RowCodec.caseOrdered(EditS10nFirstPaymentDate.apply _)(EditS10nFirstPaymentDate.unapply)
+  implicit val skipIsOneTimeRowCodec: RowCodec[SkipIsOneTime.type] =
+    caseObjectRowCodec(SkipIsOneTime)
   implicit val ignoreRowCodec: RowCodec[Ignore.type] =
     caseObjectRowCodec(Ignore)
   implicit val defCurrencyRowCodec: RowCodec[DefCurrency.type] =

@@ -34,9 +34,16 @@ class EditS10nDialogFsmService[F[_] : Sync](
     transition(user, updatedDialog)(EditS10nAmountDialogEvent.EnteredAmount, stateMessageService.getTextMessage)
   }
 
+  def removeIsOneTime(user: User, dialog: EditS10nOneTimeDialog): F[List[ReplyMessage]] = {
+    val updatedDialog = dialog
+      .modify(_.draft.oneTime).setTo(None)
+      .modify(_.draft.billingPeriod).setTo(None)
+    transition(user, updatedDialog)(EditS10nOneTimeDialogEvent.RemovedIsOneTime, stateMessageService.getMessage)
+  }
+
   def saveIsOneTime(user: User, dialog: EditS10nOneTimeDialog, oneTime: OneTimeSubscription): F[List[ReplyMessage]] = {
     val updatedDialog = dialog
-      .modify(_.draft.oneTime).setTo(oneTime)
+      .modify(_.draft.oneTime).setTo(oneTime.some)
       .modify(_.draft.billingPeriod).setTo(if (oneTime) None else dialog.draft.billingPeriod)
     val event = if (oneTime) EditS10nOneTimeDialogEvent.ChosenOneTime
     else {
@@ -77,7 +84,7 @@ class EditS10nDialogFsmService[F[_] : Sync](
     )
     val updatedDialog = dialog
       .modify(_.draft.billingPeriod).setTo(billingPeriod.some)
-      .modify(_.draft.oneTime).setTo(OneTimeSubscription(false))
+      .modify(_.draft.oneTime).setTo(OneTimeSubscription(false).some)
     transition(user, updatedDialog)(EditS10nBillingPeriodEvent.ChosenBillingPeriodUnit, stateMessageService.getMessage)
   }
 

@@ -12,7 +12,7 @@ import ru.johnspade.s10ns.help.StartController
 import ru.johnspade.s10ns.settings.SettingsController
 import ru.johnspade.s10ns.subscription.{CreateS10nDialogController, EditS10nDialogController, SubscriptionListController}
 import ru.johnspade.s10ns.telegram.TelegramOps.{TelegramUserOps, ackCb, sendReplyMessages, singleTextMessage}
-import ru.johnspade.s10ns.telegram.{Calendar, CbDataService, DefCurrency, EditS10n, EditS10nAmount, EditS10nBillingPeriod, EditS10nFirstPaymentDate, EditS10nName, EditS10nOneTime, FirstPayment, Ignore, OneTime, PeriodUnit, RemoveS10n, ReplyMessage, S10n, S10ns}
+import ru.johnspade.s10ns.telegram.{Calendar, CbDataService, DefCurrency, EditS10n, EditS10nAmount, EditS10nBillingPeriod, EditS10nFirstPaymentDate, EditS10nName, EditS10nOneTime, FirstPayment, Ignore, OneTime, PeriodUnit, RemoveS10n, ReplyMessage, S10n, S10ns, SkipIsOneTime}
 import ru.johnspade.s10ns.user.{CreateS10nDialog, Dialog, EditS10nAmountDialog, EditS10nBillingPeriodDialog, EditS10nFirstPaymentDateDialog, EditS10nNameDialog, EditS10nOneTimeDialog, SettingsDialog, User, UserRepository}
 import telegramium.bots.client.Api
 import telegramium.bots.high.LongPollBot
@@ -28,9 +28,7 @@ class SubscriptionsBot[F[_] : Sync : Timer : Logger](
   private val settingsController: SettingsController[F],
   private val startController: StartController[F],
   private val cbDataService: CbDataService[F]
-)(
-  private implicit val xa: Transactor[F]
-) extends LongPollBot[F](bot) {
+)(private implicit val xa: Transactor[F]) extends LongPollBot[F](bot) {
   private implicit val api: Api[F] = bot
 
   override def onMessage(msg: Message): F[Unit] =
@@ -62,6 +60,13 @@ class SubscriptionsBot[F[_] : Sync : Timer : Logger](
             }
               .getOrElse(ackError)
 
+          case SkipIsOneTime =>
+            user.dialog.collect {
+              case d: CreateS10nDialog => createS10nDialogController.skipIsOneTimeCb(query, user, d)
+              case d: EditS10nOneTimeDialog => editS10nDialogController.removeS10nIsOneTimeCb(query, user, d)
+            }
+              .getOrElse(ackError)
+
           case oneTime: OneTime =>
             user.dialog.collect {
               case d: CreateS10nDialog => createS10nDialogController.isOneTimeCb(query, oneTime, user, d)
@@ -76,7 +81,7 @@ class SubscriptionsBot[F[_] : Sync : Timer : Logger](
             user.dialog.collect {
               case d: CreateS10nDialog => createS10nDialogController.firstPaymentDateCb(query, firstPaymentDate, user, d)
               case d: EditS10nFirstPaymentDateDialog =>
-                editS10nDialogController.s10nFirstPaymentDateCb(query, firstPaymentDate, user,  d)
+                editS10nDialogController.s10nFirstPaymentDateCb(query, firstPaymentDate, user, d)
             }
               .getOrElse(ackError)
 
