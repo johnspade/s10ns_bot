@@ -2,10 +2,11 @@ package ru.johnspade.s10ns.settings
 
 import cats.effect.Sync
 import cats.implicits._
-import ru.johnspade.s10ns.common.ValidatorNec._
-import ru.johnspade.s10ns.telegram.TelegramOps.singleInlineKeyboardButton
-import ru.johnspade.s10ns.telegram.{DefCurrency, DialogEngine, ReplyMessage}
-import ru.johnspade.s10ns.user.{SettingsDialog, SettingsDialogState, User}
+import ru.johnspade.s10ns.bot.{DefCurrency, SettingsDialog}
+import ru.johnspade.s10ns.bot.engine.{DialogEngine, ReplyMessage}
+import ru.johnspade.s10ns.bot.ValidatorNec._
+import ru.johnspade.s10ns.bot.engine.TelegramOps.singleInlineKeyboardButton
+import ru.johnspade.s10ns.user.User
 import telegramium.bots.{InlineKeyboardMarkup, MarkupInlineKeyboard}
 
 class SettingsService[F[_] : Sync](

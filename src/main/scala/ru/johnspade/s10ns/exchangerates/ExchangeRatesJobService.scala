@@ -8,7 +8,6 @@ import cats.implicits._
 import doobie.implicits._
 import doobie.util.transactor.Transactor
 import io.chrisdavenport.log4cats.Logger
-import ru.johnspade.s10ns.money.ExchangeRatesRefreshTimestampRepository
 
 import scala.concurrent.duration._
 

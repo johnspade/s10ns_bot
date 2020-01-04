@@ -6,14 +6,13 @@ import cats.implicits._
 import doobie.implicits._
 import doobie.util.transactor.Transactor
 import io.chrisdavenport.log4cats.Logger
+import ru.johnspade.s10ns.bot.{Calendar, CbDataService, CreateS10nDialog, DefCurrency, Dialog, EditS10n, EditS10nAmount, EditS10nAmountDialog, EditS10nBillingPeriod, EditS10nBillingPeriodDialog, EditS10nFirstPaymentDate, EditS10nFirstPaymentDateDialog, EditS10nName, EditS10nNameDialog, EditS10nOneTime, EditS10nOneTimeDialog, Errors, FirstPayment, Ignore, OneTime, PeriodUnit, RemoveS10n, S10n, S10ns, SettingsDialog, SkipIsOneTime, StartController}
+import ru.johnspade.s10ns.bot.engine.ReplyMessage
 import ru.johnspade.s10ns.calendar.CalendarController
-import ru.johnspade.s10ns.common.Errors
-import ru.johnspade.s10ns.help.StartController
 import ru.johnspade.s10ns.settings.SettingsController
-import ru.johnspade.s10ns.subscription.{CreateS10nDialogController, EditS10nDialogController, SubscriptionListController}
-import ru.johnspade.s10ns.telegram.TelegramOps.{TelegramUserOps, ackCb, sendReplyMessages, singleTextMessage}
-import ru.johnspade.s10ns.telegram.{Calendar, CbDataService, DefCurrency, EditS10n, EditS10nAmount, EditS10nBillingPeriod, EditS10nFirstPaymentDate, EditS10nName, EditS10nOneTime, FirstPayment, Ignore, OneTime, PeriodUnit, RemoveS10n, ReplyMessage, S10n, S10ns, SkipIsOneTime}
-import ru.johnspade.s10ns.user.{CreateS10nDialog, Dialog, EditS10nAmountDialog, EditS10nBillingPeriodDialog, EditS10nFirstPaymentDateDialog, EditS10nNameDialog, EditS10nOneTimeDialog, SettingsDialog, User, UserRepository}
+import ru.johnspade.s10ns.bot.engine.TelegramOps.{TelegramUserOps, ackCb, sendReplyMessages, singleTextMessage}
+import ru.johnspade.s10ns.subscription.controller.{CreateS10nDialogController, EditS10nDialogController, SubscriptionListController}
+import ru.johnspade.s10ns.user.{User, UserRepository}
 import telegramium.bots.client.Api
 import telegramium.bots.high.LongPollBot
 import telegramium.bots.{CallbackQuery, Message, User => TgUser}

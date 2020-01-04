@@ -12,6 +12,7 @@ import doobie.util.query.Query0
 import doobie.util.update.Update0
 import org.joda.money.{CurrencyUnit, Money}
 import org.postgresql.util.PGobject
+import ru.johnspade.s10ns.bot.Dialog
 import ru.johnspade.s10ns.user.DoobieUserRepository.UserSql
 import ru.johnspade.s10ns.user.tags._
 

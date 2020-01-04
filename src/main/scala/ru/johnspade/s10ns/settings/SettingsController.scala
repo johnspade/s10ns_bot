@@ -4,10 +4,10 @@ import cats.Monad
 import cats.effect.Sync
 import cats.implicits._
 import io.chrisdavenport.log4cats.Logger
-import ru.johnspade.s10ns.common.Errors
-import ru.johnspade.s10ns.telegram.ReplyMessage
-import ru.johnspade.s10ns.telegram.TelegramOps.{ackCb, sendReplyMessage, toReplyMessage}
-import ru.johnspade.s10ns.user.{SettingsDialog, SettingsDialogState, User}
+import ru.johnspade.s10ns.bot.{Errors, SettingsDialog}
+import ru.johnspade.s10ns.bot.engine.ReplyMessage
+import ru.johnspade.s10ns.bot.engine.TelegramOps.{ackCb, sendReplyMessage, toReplyMessage}
+import ru.johnspade.s10ns.user.User
 import telegramium.bots.client.Api
 import telegramium.bots.{CallbackQuery, Message}
 

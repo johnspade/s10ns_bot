@@ -15,15 +15,15 @@ import org.http4s.client.blaze.BlazeClientBuilder
 import pureconfig.ConfigSource
 import pureconfig.generic.auto._
 import pureconfig.module.catseffect._
+import ru.johnspade.s10ns.bot.engine.DialogEngine
+import ru.johnspade.s10ns.bot.{CbDataService, Config, MoneyService, StartController, StateMessageService}
 import ru.johnspade.s10ns.calendar.{CalendarController, CalendarService}
-import ru.johnspade.s10ns.common.Config
-import ru.johnspade.s10ns.exchangerates.{ExchangeRatesCache, ExchangeRatesJobService, ExchangeRatesService, FixerApiInterpreter}
-import ru.johnspade.s10ns.help.StartController
-import ru.johnspade.s10ns.money.{DoobieExchangeRatesRefreshTimestampRepository, DoobieExchangeRatesRepository, MoneyService}
+import ru.johnspade.s10ns.exchangerates.{DoobieExchangeRatesRefreshTimestampRepository, DoobieExchangeRatesRepository, ExchangeRatesCache, ExchangeRatesJobService, ExchangeRatesService, FixerApiInterpreter}
 import ru.johnspade.s10ns.settings.{SettingsController, SettingsService}
-import ru.johnspade.s10ns.subscription.{CreateS10nDialogController, CreateS10nDialogFsmService, CreateS10nDialogService, DoobieSubscriptionRepository, EditS10nDialogController, EditS10nDialogService, S10nsListMessageService, StateMessageService, SubscriptionListController, SubscriptionListService}
-import ru.johnspade.s10ns.telegram.{CbDataService, DialogEngine}
-import ru.johnspade.s10ns.user.{DoobieUserRepository, EditS10nDialogFsmService}
+import ru.johnspade.s10ns.subscription.controller.{CreateS10nDialogController, EditS10nDialogController, SubscriptionListController}
+import ru.johnspade.s10ns.subscription.repository.DoobieSubscriptionRepository
+import ru.johnspade.s10ns.subscription.service.{CreateS10nDialogFsmService, CreateS10nDialogService, EditS10nDialogFsmService, EditS10nDialogService, S10nsListMessageService, SubscriptionListService}
+import ru.johnspade.s10ns.user.DoobieUserRepository
 import telegramium.bots.client.ApiHttp4sImp
 
 import scala.concurrent.ExecutionContext

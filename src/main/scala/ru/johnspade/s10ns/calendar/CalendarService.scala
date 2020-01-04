@@ -4,10 +4,10 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
 import cats.effect.Sync
+import ru.johnspade.s10ns.bot.{Calendar, FirstPayment, Ignore}
 import ru.johnspade.s10ns.subscription.tags._
-import ru.johnspade.s10ns.telegram.{Calendar, FirstPayment, Ignore}
 import telegramium.bots.{InlineKeyboardButton, InlineKeyboardMarkup}
-import ru.johnspade.s10ns.telegram.TelegramOps.inlineKeyboardButton
+import ru.johnspade.s10ns.bot.engine.TelegramOps.inlineKeyboardButton
 
 class CalendarService[F[_]: Sync] {
   private val monthFormatter = DateTimeFormatter.ofPattern("MMM yyyy")

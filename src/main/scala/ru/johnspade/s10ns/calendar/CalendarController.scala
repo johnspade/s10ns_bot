@@ -2,8 +2,8 @@ package ru.johnspade.s10ns.calendar
 
 import cats.effect.Sync
 import cats.implicits._
-import ru.johnspade.s10ns.telegram.Calendar
-import ru.johnspade.s10ns.telegram.TelegramOps.ackCb
+import ru.johnspade.s10ns.bot.Calendar
+import ru.johnspade.s10ns.bot.engine.TelegramOps.ackCb
 import telegramium.bots.client.{Api, EditMessageReplyMarkupReq}
 import telegramium.bots.{CallbackQuery, ChatIntId}
 

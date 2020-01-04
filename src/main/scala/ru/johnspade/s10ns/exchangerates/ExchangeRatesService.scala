@@ -10,7 +10,6 @@ import io.chrisdavenport.log4cats.Logger
 import retry.CatsEffect._
 import retry.RetryDetails.{GivingUp, WillDelayAndRetry}
 import retry._
-import ru.johnspade.s10ns.money.{ExchangeRatesRefreshTimestampRepository, ExchangeRatesRepository}
 
 import scala.concurrent.duration._
 
