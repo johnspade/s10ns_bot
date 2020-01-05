@@ -25,7 +25,7 @@ object EditS10nFirstPaymentDateDialogState
     state match {
       case FirstPaymentDate =>
         e match {
-          case ChosenFirstPaymentDate => Finished
+          case ChosenFirstPaymentDate | RemovedFirstPaymentDate => Finished
           case _ => state
         }
       case _ => state
@@ -37,6 +37,7 @@ sealed trait EditS10nFirstPaymentDateDialogEvent extends EnumEntry with StateEve
 
 object EditS10nFirstPaymentDateDialogEvent
   extends Enum[EditS10nFirstPaymentDateDialogEvent] with CirceEnum[EditS10nFirstPaymentDateDialogEvent] {
+  case object RemovedFirstPaymentDate extends EditS10nFirstPaymentDateDialogEvent
   case object ChosenFirstPaymentDate extends EditS10nFirstPaymentDateDialogEvent
 
   override def values: IndexedSeq[EditS10nFirstPaymentDateDialogEvent] = findValues

@@ -58,6 +58,9 @@ class CreateS10nDialogFsmService[F[_] : Sync : Logger](
     transition(user, dialog.copy(draft = draft), event)
   }
 
+  def skipFirstPaymentDate(user: User, dialog: CreateS10nDialog): F[List[ReplyMessage]] =
+    transition(user, dialog, CreateS10nDialogEvent.SkippedFirstPaymentDate)
+
   def saveFirstPaymentDate(user: User, dialog: CreateS10nDialog, date: FirstPaymentDate): F[List[ReplyMessage]] = {
     val draft = dialog.draft.copy(firstPaymentDate = date.some)
     transition(user, dialog.copy(draft = draft), CreateS10nDialogEvent.ChosenFirstPaymentDate)

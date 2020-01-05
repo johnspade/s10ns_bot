@@ -61,7 +61,7 @@ object CreateS10nDialogState
         }
       case FirstPaymentDate =>
         e match {
-          case ChosenFirstPaymentDate => Finished
+          case ChosenFirstPaymentDate | SkippedFirstPaymentDate => Finished
           case _ => state
         }
       case _ => state
@@ -80,6 +80,7 @@ object CreateS10nDialogEvent extends Enum[CreateS10nDialogEvent] with CirceEnum[
   case object ChosenRecurring extends CreateS10nDialogEvent
   case object EnteredBillingPeriodDuration extends CreateS10nDialogEvent
   case object ChosenBillingPeriodUnit extends CreateS10nDialogEvent
+  case object SkippedFirstPaymentDate extends CreateS10nDialogEvent
   case object ChosenFirstPaymentDate extends CreateS10nDialogEvent
 
   override def values: IndexedSeq[CreateS10nDialogEvent] = findValues

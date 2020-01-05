@@ -23,6 +23,7 @@ case object SkipIsOneTime extends CbData
 final case class OneTime(oneTime: OneTimeSubscription) extends CbData
 final case class Calendar(date: LocalDate) extends CbData
 final case class FirstPayment(date: FirstPaymentDate) extends CbData
+case object SkipFirstPayment extends CbData
 final case class RemoveS10n(subscriptionId: SubscriptionId, page: PageNumber) extends CbData
 final case class EditS10n(subscriptionId: SubscriptionId, page: PageNumber) extends CbData
 final case class EditS10nName(subscriptionId: SubscriptionId) extends CbData
@@ -73,6 +74,8 @@ object CbData {
     RowCodec.caseOrdered(EditS10nFirstPaymentDate.apply _)(EditS10nFirstPaymentDate.unapply)
   implicit val skipIsOneTimeRowCodec: RowCodec[SkipIsOneTime.type] =
     caseObjectRowCodec(SkipIsOneTime)
+  implicit val skipFirstPaymentRowCodec: RowCodec[SkipFirstPayment.type] =
+    caseObjectRowCodec(SkipFirstPayment)
   implicit val ignoreRowCodec: RowCodec[Ignore.type] =
     caseObjectRowCodec(Ignore)
   implicit val defCurrencyRowCodec: RowCodec[DefCurrency.type] =

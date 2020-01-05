@@ -6,7 +6,7 @@ import cats.implicits._
 import doobie.implicits._
 import doobie.util.transactor.Transactor
 import io.chrisdavenport.log4cats.Logger
-import ru.johnspade.s10ns.bot.{Calendar, CbDataService, CreateS10nDialog, DefCurrency, Dialog, EditS10n, EditS10nAmount, EditS10nAmountDialog, EditS10nBillingPeriod, EditS10nBillingPeriodDialog, EditS10nFirstPaymentDate, EditS10nFirstPaymentDateDialog, EditS10nName, EditS10nNameDialog, EditS10nOneTime, EditS10nOneTimeDialog, Errors, FirstPayment, Ignore, OneTime, PeriodUnit, RemoveS10n, S10n, S10ns, SettingsDialog, SkipIsOneTime, StartController}
+import ru.johnspade.s10ns.bot.{Calendar, CbDataService, CreateS10nDialog, DefCurrency, Dialog, EditS10n, EditS10nAmount, EditS10nAmountDialog, EditS10nBillingPeriod, EditS10nBillingPeriodDialog, EditS10nFirstPaymentDate, EditS10nFirstPaymentDateDialog, EditS10nName, EditS10nNameDialog, EditS10nOneTime, EditS10nOneTimeDialog, Errors, FirstPayment, Ignore, OneTime, PeriodUnit, RemoveS10n, S10n, S10ns, SettingsDialog, SkipFirstPayment, SkipIsOneTime, StartController}
 import ru.johnspade.s10ns.bot.engine.ReplyMessage
 import ru.johnspade.s10ns.calendar.CalendarController
 import ru.johnspade.s10ns.settings.SettingsController
@@ -85,6 +85,16 @@ class SubscriptionsBot[F[_] : Sync : Timer : Logger](
 
           case calendar: Calendar =>
             calendarController.calendarCb(query, calendar)
+
+          case SkipFirstPayment =>
+            getUser.flatMap { user =>
+              user.dialog.collect {
+                case d: CreateS10nDialog => createS10nDialogController.skipFirstPaymentDateCb(query, user, d)
+                case d: EditS10nFirstPaymentDateDialog =>
+                  editS10nDialogController.removeFirstPaymentDateCb(query, user, d)
+              }
+                .getOrElse(ackError)
+            }
 
           case firstPaymentDate: FirstPayment =>
             getUser.flatMap { user =>

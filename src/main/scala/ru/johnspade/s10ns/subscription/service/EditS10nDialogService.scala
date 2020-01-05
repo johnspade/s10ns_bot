@@ -126,6 +126,9 @@ class EditS10nDialogService[F[_] : Sync](
     )
   }
 
+  def removeFirstPaymentDate(user: User, dialog: EditS10nFirstPaymentDateDialog): F[List[ReplyMessage]] =
+    editS10nDialogFsmService.removeFirstPaymentDate(user, dialog)
+
   def saveFirstPaymentDate(
     cb: CallbackQuery,
     data: FirstPayment,

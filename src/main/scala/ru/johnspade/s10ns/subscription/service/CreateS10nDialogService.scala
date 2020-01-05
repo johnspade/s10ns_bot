@@ -69,6 +69,9 @@ class CreateS10nDialogService[F[_] : Sync](
   def onIsOneTimeCallback(cb: CallbackQuery, data: OneTime, user: User, dialog: CreateS10nDialog): F[List[ReplyMessage]] =
     createS10nDialogFsmService.saveIsOneTime(user, dialog, data.oneTime)
 
+  def onSkipFirstPaymentDateCb(cb: CallbackQuery, user: User, dialog: CreateS10nDialog): F[List[ReplyMessage]] =
+    createS10nDialogFsmService.skipFirstPaymentDate(user, dialog)
+
   def onFirstPaymentDateCallback(cb: CallbackQuery, data: FirstPayment, user: User, dialog: CreateS10nDialog): F[List[ReplyMessage]] =
     createS10nDialogFsmService.saveFirstPaymentDate(user, dialog, data.date)
 }

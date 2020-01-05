@@ -104,6 +104,11 @@ class EditS10nDialogFsmService[F[_] : Sync](
     transition(user, updatedDialog)(EditS10nBillingPeriodEvent.ChosenBillingPeriodDuration, stateMessageService.getMessage)
   }
 
+  def removeFirstPaymentDate(user: User, dialog: EditS10nFirstPaymentDateDialog): F[List[ReplyMessage]] = {
+    val updatedDialog = dialog.modify(_.draft.firstPaymentDate).setTo(None)
+    transition(user, updatedDialog)(EditS10nFirstPaymentDateDialogEvent.RemovedFirstPaymentDate, stateMessageService.getMessage)
+  }
+
   def saveFirstPaymentDate(user: User, dialog: EditS10nFirstPaymentDateDialog, date: FirstPaymentDate): F[List[ReplyMessage]] ={
     val updatedDialog = dialog.modify(_.draft.firstPaymentDate).setTo(date.some)
     transition(user, updatedDialog)(EditS10nFirstPaymentDateDialogEvent.ChosenFirstPaymentDate, stateMessageService.getMessage)

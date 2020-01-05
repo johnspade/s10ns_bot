@@ -76,6 +76,10 @@ class EditS10nDialogController[F[_] : Sync : Logger : Timer](
   def editS10nFirstPaymentDateCb(user: User, cb: CallbackQuery, data: EditS10nFirstPaymentDate)(implicit bot: Api[F]): F[Unit] =
     editS10nDialogService.onEditS10nFirstPaymentDateCb(user, cb, data).flatMap(reply(cb, _))
 
+  def removeFirstPaymentDateCb(cb: CallbackQuery, user: User, dialog: EditS10nFirstPaymentDateDialog)
+    (implicit bot: Api[F]): F[Unit] =
+    clearMarkup(cb) *> editS10nDialogService.removeFirstPaymentDate(user, dialog).flatMap(handleCallback(cb, _))
+
   def s10nFirstPaymentDateCb(cb: CallbackQuery, data: FirstPayment, user: User, dialog: EditS10nFirstPaymentDateDialog)
     (implicit bot: Api[F]): F[Unit] =
     clearMarkup(cb) *> editS10nDialogService.saveFirstPaymentDate(cb, data, user, dialog).flatMap(handleCallback(cb, _))
