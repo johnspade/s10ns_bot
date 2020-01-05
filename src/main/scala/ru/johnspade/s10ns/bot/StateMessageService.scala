@@ -9,6 +9,7 @@ import org.joda.money.CurrencyUnit
 import ru.johnspade.s10ns.bot.engine.TelegramOps.inlineKeyboardButton
 import ru.johnspade.s10ns.bot.engine.{DialogState, ReplyMessage}
 import ru.johnspade.s10ns.calendar.CalendarService
+import ru.johnspade.s10ns.settings.SettingsDialogState
 import ru.johnspade.s10ns.subscription.dialog.{CreateS10nDialogState, EditS10nAmountDialogState, EditS10nBillingPeriodDialogState, EditS10nFirstPaymentDateDialogState, EditS10nOneTimeDialogState}
 import ru.johnspade.s10ns.subscription.tags._
 import telegramium.bots.{InlineKeyboardMarkup, KeyboardButton, KeyboardMarkup, MarkupInlineKeyboard, MarkupReplyKeyboard, ReplyKeyboardMarkup}
@@ -25,6 +26,12 @@ class StateMessageService[F[_] : Sync](private val calendarService: CalendarServ
           kb <- calendarService.generateKeyboard(date)
         } yield ReplyMessage(state.message, MarkupInlineKeyboard(kb).some)
       case CreateS10nDialogState.Finished => getMessagePure(state, BotStart.markup.some)
+      case _ => getMessagePure(state)
+    }
+
+  def getMessage(state: SettingsDialogState): F[ReplyMessage] =
+    state match {
+      case SettingsDialogState.DefaultCurrency => getMessagePure(state, MarkupReplyKeyboard(CurrencyReplyMarkup).some)
       case _ => getMessagePure(state)
     }
 

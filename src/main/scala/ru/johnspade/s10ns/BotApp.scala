@@ -88,7 +88,6 @@ object BotApp extends IOApp {
         exchangeRates <- exchangeRatesRepo.get().transact(xa)
         exchangeRatesCache <- ExchangeRatesCache.create[F](exchangeRates)
         dialogEngine = new DialogEngine[F](userRepo)
-        createS10nDialogFsmService = new CreateS10nDialogFsmService[F](s10nRepo, userRepo, stateMessageService, dialogEngine)
         fixerApi = new FixerApiInterpreter[F](conf.fixer.token)
         exchangeRatesService = new ExchangeRatesService[F](
           fixerApi,
@@ -96,9 +95,16 @@ object BotApp extends IOApp {
           exchangeRatesRefreshTimestampRepo,
           exchangeRatesCache
         )
-        cbDataService = new CbDataService[F]
         moneyService = new MoneyService[F](exchangeRatesService)
         s10nsListService = new S10nsListMessageService[F](moneyService)
+        createS10nDialogFsmService = new CreateS10nDialogFsmService[F](
+          s10nRepo,
+          userRepo,
+          stateMessageService,
+          dialogEngine,
+          s10nsListService
+        )
+        cbDataService = new CbDataService[F]
         editS10nDialogFsmService = new EditS10nDialogFsmService[F](
           s10nsListService,
           stateMessageService,
@@ -119,7 +125,7 @@ object BotApp extends IOApp {
           stateMessageService,
           dialogEngine
         )
-        settingsService = new SettingsService[F](dialogEngine)
+        settingsService = new SettingsService[F](dialogEngine, stateMessageService)
         exchangeRatesJobService = new ExchangeRatesJobService[F](exchangeRatesService, exchangeRatesRefreshTimestampRepo)
         s10nListController = new SubscriptionListController[F](s10nCbService)
         createS10nDialogController = new CreateS10nDialogController[F](createS10nDialogService)

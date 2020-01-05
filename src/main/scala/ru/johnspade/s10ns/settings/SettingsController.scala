@@ -19,7 +19,7 @@ class SettingsController[F[_] : Sync : Logger](
       case SettingsDialogState.DefaultCurrency =>
         settingsService.saveDefaultCurrency(user, message.text).map(toReplyMessage).some
       case _ => Option.empty[F[ReplyMessage]]
-    }).getOrElse(Sync[F].pure(ReplyMessage(Errors.default)))
+    }).getOrElse(Sync[F].pure(ReplyMessage(Errors.Default)))
       .map(List(_))
 
   def defaultCurrencyCb(user: User, cb: CallbackQuery)(implicit bot: Api[F]): F[Unit] =

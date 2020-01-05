@@ -24,7 +24,7 @@ class CreateS10nDialogController[F[_] : Sync : Logger : Timer](
       .lift
       .apply(user, dialog, message.text)
       .map(_.map(toReplyMessages))
-      .getOrElse(Sync[F].pure(singleTextMessage(Errors.default)))
+      .getOrElse(Sync[F].pure(singleTextMessage(Errors.Default)))
 
   def billingPeriodUnitCb(cb: CallbackQuery, data: PeriodUnit, user: User, dialog: CreateS10nDialog)(
     implicit bot: Api[F]

@@ -1,6 +1,7 @@
 package ru.johnspade.s10ns.subscription.dialog
 
 import enumeratum._
+import ru.johnspade.s10ns.bot.Messages
 import ru.johnspade.s10ns.bot.engine.{DialogState, StateEvent}
 
 import scala.collection.immutable.IndexedSeq
@@ -11,7 +12,7 @@ sealed abstract class EditS10nNameDialogState(override val message: String)
 object EditS10nNameDialogState
   extends Enum[EditS10nNameDialogState]
     with CirceEnum[EditS10nNameDialogState] {
-  case object Name extends EditS10nNameDialogState("Name:")
+  case object Name extends EditS10nNameDialogState(Messages.Name)
   case object Finished extends EditS10nNameDialogState("Name saved.")
 
   override def values: IndexedSeq[EditS10nNameDialogState] = findValues

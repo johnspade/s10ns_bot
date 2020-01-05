@@ -75,23 +75,23 @@ class S10nsListMessageService[F[_] : Sync](
     createReplyMessage(subscriptions)
   }
 
-  def createSubscriptionMessage(user: User, subscription: Subscription, page: PageNumber): F[ReplyMessage] = {
-    val name = subscription.name
-    val amount = MoneyFormatter.print(subscription.amount)
+  def createSubscriptionMessage(user: User, s10n: Subscription, page: PageNumber): F[ReplyMessage] = {
+    val name = s10n.name
+    val amount = MoneyFormatter.print(s10n.amount)
     val amountInStandardCurrency = {
       val converted =
-        if (subscription.amount.getCurrencyUnit == user.defaultCurrency) Monad[F].pure(Option.empty[Money])
-        else moneyService.convert(subscription.amount, user.defaultCurrency)
+        if (s10n.amount.getCurrencyUnit == user.defaultCurrency) Monad[F].pure(Option.empty[Money])
+        else moneyService.convert(s10n.amount, user.defaultCurrency)
       converted.map(_.map(MoneyFormatter.print))
     }
-    val billingPeriod = subscription.billingPeriod.map { period =>
+    val billingPeriod = s10n.billingPeriod.map { period =>
       val number = if (period.duration == 1) ""
       else s" ${period.duration}"
       val unitName = period.unit.toString.toLowerCase.reverse.replaceFirst("s", "").reverse
       s"Billing period: every$number $unitName"
     }
     val nextPayment = Option.empty[String] // todo
-    val firstPaymentDate = subscription.firstPaymentDate.map { date =>
+    val firstPaymentDate = s10n.firstPaymentDate.map { date =>
       s"First payment: ${DateTimeFormatter.ISO_DATE.format(date)}"
     }
     val paidInTotal = Option.empty[String] // todo
@@ -100,9 +100,9 @@ class S10nsListMessageService[F[_] : Sync](
         .flatten
         .mkString("\n")
       val editButton =
-        inlineKeyboardButton("Edit", EditS10n(subscription.id, page))
+        inlineKeyboardButton("Edit", EditS10n(s10n.id, page))
       val removeButton =
-        inlineKeyboardButton("Remove", RemoveS10n(subscription.id, page))
+        inlineKeyboardButton("Remove", RemoveS10n(s10n.id, page))
       val backButton = inlineKeyboardButton("List", S10ns(page))
       val buttonsList = List(List(editButton), List(removeButton), List(backButton))
       ReplyMessage(text, MarkupInlineKeyboard(InlineKeyboardMarkup(buttonsList)).some)

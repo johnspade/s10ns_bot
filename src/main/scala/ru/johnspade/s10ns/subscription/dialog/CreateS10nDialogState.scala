@@ -1,6 +1,7 @@
 package ru.johnspade.s10ns.subscription.dialog
 
 import enumeratum._
+import ru.johnspade.s10ns.bot.Messages
 import ru.johnspade.s10ns.bot.engine.{DialogState, StateEvent}
 
 import scala.collection.immutable.IndexedSeq
@@ -10,14 +11,14 @@ sealed abstract class CreateS10nDialogState(override val message: String) extend
 object CreateS10nDialogState
   extends Enum[CreateS10nDialogState]
     with CirceEnum[CreateS10nDialogState] {
-  case object Name extends CreateS10nDialogState("Name:")
-  case object Currency extends CreateS10nDialogState("Currency:")
-  case object Amount extends CreateS10nDialogState("Amount:")
-  case object IsOneTime extends CreateS10nDialogState("Recurring/one time:")
-  case object BillingPeriodUnit extends CreateS10nDialogState("Billing period unit:")
-  case object BillingPeriodDuration extends CreateS10nDialogState("Billing period duration:")
-  case object FirstPaymentDate extends CreateS10nDialogState("First payment date:")
-  case object Finished extends CreateS10nDialogState("Subscription created.")
+  case object Name extends CreateS10nDialogState(Messages.Name)
+  case object Currency extends CreateS10nDialogState(Messages.Currency)
+  case object Amount extends CreateS10nDialogState(Messages.Amount)
+  case object IsOneTime extends CreateS10nDialogState(Messages.IsOneTime)
+  case object BillingPeriodUnit extends CreateS10nDialogState(Messages.BillingPeriodUnit)
+  case object BillingPeriodDuration extends CreateS10nDialogState(Messages.BillingPeriodDuration)
+  case object FirstPaymentDate extends CreateS10nDialogState(Messages.FirstPaymentDate)
+  case object Finished extends CreateS10nDialogState(Messages.S10nSaved)
 
   override val values: IndexedSeq[CreateS10nDialogState] = findValues
 

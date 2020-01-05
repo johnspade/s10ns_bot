@@ -1,6 +1,7 @@
 package ru.johnspade.s10ns.subscription.dialog
 
 import enumeratum._
+import ru.johnspade.s10ns.bot.Messages
 import ru.johnspade.s10ns.bot.engine.{DialogState, StateEvent}
 
 import scala.collection.immutable.IndexedSeq
@@ -10,8 +11,8 @@ sealed abstract class EditS10nBillingPeriodDialogState(override val message: Str
 
 object EditS10nBillingPeriodDialogState
   extends Enum[EditS10nBillingPeriodDialogState] with CirceEnum[EditS10nBillingPeriodDialogState] {
-  case object BillingPeriodUnit extends EditS10nBillingPeriodDialogState("Billing period unit:") // todo common messages
-  case object BillingPeriodDuration extends EditS10nBillingPeriodDialogState("Billing period duration:")
+  case object BillingPeriodUnit extends EditS10nBillingPeriodDialogState(Messages.BillingPeriodUnit)
+  case object BillingPeriodDuration extends EditS10nBillingPeriodDialogState(Messages.BillingPeriodDuration)
   case object Finished extends EditS10nBillingPeriodDialogState("Saved.")
 
   override def values: IndexedSeq[EditS10nBillingPeriodDialogState] = findValues

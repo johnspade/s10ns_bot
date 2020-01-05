@@ -133,6 +133,6 @@ class EditS10nDialogFsmService[F[_] : Sync](
       replies <- reply.traverse { p =>
         s10nsListMessageService.createSubscriptionMessage(user, p._2, PageNumber(0)).map(List(p._1, _))
       }
-    } yield replies.getOrElse(singleTextMessage(Errors.notFound))
+    } yield replies.getOrElse(singleTextMessage(Errors.NotFound))
   }
 }

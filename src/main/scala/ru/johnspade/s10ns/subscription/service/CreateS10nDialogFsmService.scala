@@ -17,7 +17,8 @@ class CreateS10nDialogFsmService[F[_] : Sync : Logger](
   private val subscriptionRepo: SubscriptionRepository,
   private val userRepo: UserRepository,
   private val stateMessageService: StateMessageService[F],
-  private val dialogEngine: DialogEngine[F]
+  private val dialogEngine: DialogEngine[F],
+  private val s10nsListMessageService: S10nsListMessageService[F]
 )(private implicit val xa: Transactor[F]) {
 
   def saveName(user: User, dialog: CreateS10nDialog, name: SubscriptionName): F[List[ReplyMessage]] = {
@@ -64,17 +65,23 @@ class CreateS10nDialogFsmService[F[_] : Sync : Logger](
 
   private def transition(user: User, dialog: CreateS10nDialog, event: CreateS10nDialogEvent): F[List[ReplyMessage]] = {
     val updatedDialog = dialog.copy(state = CreateS10nDialogState.transition(dialog.state, event))
-    (updatedDialog.state match {
+    updatedDialog.state match {
       case finished @ CreateS10nDialogState.Finished =>
-        subscriptionRepo.create(updatedDialog.draft)
-          .productR(dialogEngine.reset(user, finished.message))
+        subscriptionRepo.create(updatedDialog.draft).flatMap { s10n =>
+          dialogEngine.reset(user, finished.message)
+            .map((_, s10n))
+        }
           .transact(xa)
+          .flatMap { p =>
+            s10nsListMessageService.createSubscriptionMessage(user, p._2, PageNumber(0))
+              .map(List(p._1, _))
+          }
       case _ =>
         val userWithUpdatedDialog = user.copy(dialog = updatedDialog.some)
         userRepo.createOrUpdate(userWithUpdatedDialog)
           .transact(xa) *>
           stateMessageService.getMessage(updatedDialog.state)
-    })
-      .map(List(_))
+            .map(List(_))
+    }
   }
 }

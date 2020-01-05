@@ -83,7 +83,7 @@ class EditS10nDialogController[F[_] : Sync : Logger : Timer](
   private def reply(cb: CallbackQuery, message: ReplyMessage)(implicit bot: Api[F]) =
     cb.message.map {
       ackCb(cb) *> sendReplyMessage(_, message)
-    } getOrElse ackCb(cb, Errors.default.some)
+    } getOrElse ackCb(cb, Errors.Default.some)
 
-  private val defaultError = Sync[F].pure(singleTextMessage(Errors.default))
+  private val defaultError = Sync[F].pure(singleTextMessage(Errors.Default))
 }

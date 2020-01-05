@@ -144,7 +144,7 @@ class EditS10nDialogService[F[_] : Sync](
       val checkUserAndGetMessage = Either.cond(
         s10n.userId == user.id,
         message,
-        Errors.accessDenied
+        Errors.AccessDenied
       )
       checkUserAndGetMessage match {
         case Left(error) => Sync[F].pure(ReplyMessage(error))
@@ -157,6 +157,6 @@ class EditS10nDialogService[F[_] : Sync](
     for {
       s10nOpt <- s10nRepo.getById(s10nId).transact(xa)
       replyOpt <- s10nOpt.traverse(saveAndReply)
-    } yield replyOpt.getOrElse(ReplyMessage(Errors.notFound))
+    } yield replyOpt.getOrElse(ReplyMessage(Errors.NotFound))
   }
 }

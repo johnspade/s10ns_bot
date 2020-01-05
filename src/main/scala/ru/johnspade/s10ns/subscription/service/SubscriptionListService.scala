@@ -37,14 +37,14 @@ class SubscriptionListService[F[_] : Sync](
       Either.cond(
         subscription.userId == user.id,
         s10nsListService.createSubscriptionMessage(user, subscription, data.page),
-        Errors.accessDenied
+        Errors.AccessDenied
       )
         .sequence
 
     for {
       s10nOpt <- s10nRepo.getById(data.subscriptionId).transact(xa)
       replyOpt <- s10nOpt.traverse(checkUserAndGetMessage)
-    } yield replyOpt.toRight[String](Errors.notFound).flatten
+    } yield replyOpt.toRight[String](Errors.NotFound).flatten
   }
 
   def onListCommand(from: User, page: PageNumber): F[ReplyMessage] =
@@ -59,14 +59,14 @@ class SubscriptionListService[F[_] : Sync](
       Either.cond(
         subscription.userId == UserId(cb.from.id.toLong),
         s10nsListService.createEditS10nMarkup(subscription, data.page),
-        Errors.accessDenied
+        Errors.AccessDenied
       )
 
     s10nRepo.getById(data.subscriptionId)
       .transact(xa)
       .map {
         _.map(checkUserAndGetMarkup)
-          .toRight[String](Errors.notFound)
+          .toRight[String](Errors.NotFound)
           .flatten
       }
   }

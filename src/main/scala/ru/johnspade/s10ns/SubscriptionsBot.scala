@@ -38,85 +38,92 @@ class SubscriptionsBot[F[_] : Sync : Timer : Logger](
       .handleErrorWith(e => Logger[F].error(e)(e.getMessage))
 
   override def onCallbackQuery(query: CallbackQuery): F[Unit] = {
-    val ackError = ackCb[F](query, Errors.default.some)
+    val ackError = ackCb[F](query, Errors.Default.some)
+    val tgUser = query.from.toUser(query.message.map(_.chat.id.toLong))
 
-    def route(data: String, user: User) =
+    def getUser = userRepo.getOrCreate(tgUser).transact(xa)
+
+    def route(data: String) =
       cbDataService.decode(data)
         .flatMap {
           case Ignore => ackCb[F](query)
 
           case s10ns: S10ns =>
-            s10nListController.subscriptionsCb(user, query, s10ns)
+            getUser.flatMap(s10nListController.subscriptionsCb(_, query, s10ns))
 
           case s10n: S10n =>
-            s10nListController.subscriptionCb(user, query, s10n)
+            getUser.flatMap(s10nListController.subscriptionCb(_, query, s10n))
 
           case billingPeriod: PeriodUnit =>
-            user.dialog.collect {
-              case d: CreateS10nDialog => createS10nDialogController.billingPeriodUnitCb(query, billingPeriod, user, d)
-              case d: EditS10nOneTimeDialog => editS10nDialogController.s10nBillingPeriodCb(query, billingPeriod, user, d)
-              case d: EditS10nBillingPeriodDialog => editS10nDialogController.s10nBillingPeriodCb(query, billingPeriod, user, d)
+            getUser.flatMap { user =>
+              user.dialog.collect {
+                case d: CreateS10nDialog => createS10nDialogController.billingPeriodUnitCb(query, billingPeriod, user, d)
+                case d: EditS10nOneTimeDialog => editS10nDialogController.s10nBillingPeriodCb(query, billingPeriod, user, d)
+                case d: EditS10nBillingPeriodDialog => editS10nDialogController.s10nBillingPeriodCb(query, billingPeriod, user, d)
+              }
+                .getOrElse(ackError)
             }
-              .getOrElse(ackError)
 
           case SkipIsOneTime =>
-            user.dialog.collect {
-              case d: CreateS10nDialog => createS10nDialogController.skipIsOneTimeCb(query, user, d)
-              case d: EditS10nOneTimeDialog => editS10nDialogController.removeS10nIsOneTimeCb(query, user, d)
+            getUser.flatMap { user =>
+              user.dialog.collect {
+                case d: CreateS10nDialog => createS10nDialogController.skipIsOneTimeCb(query, user, d)
+                case d: EditS10nOneTimeDialog => editS10nDialogController.removeS10nIsOneTimeCb(query, user, d)
+              }
+                .getOrElse(ackError)
+
             }
-              .getOrElse(ackError)
 
           case oneTime: OneTime =>
-            user.dialog.collect {
-              case d: CreateS10nDialog => createS10nDialogController.isOneTimeCb(query, oneTime, user, d)
-              case d: EditS10nOneTimeDialog => editS10nDialogController.s10nOneTimeCb(query, oneTime, user, d)
+            getUser.flatMap { user =>
+              user.dialog.collect {
+                case d: CreateS10nDialog => createS10nDialogController.isOneTimeCb(query, oneTime, user, d)
+                case d: EditS10nOneTimeDialog => editS10nDialogController.s10nOneTimeCb(query, oneTime, user, d)
+              }
+                .getOrElse(ackError)
             }
-              .getOrElse(ackError)
 
           case calendar: Calendar =>
             calendarController.calendarCb(query, calendar)
 
           case firstPaymentDate: FirstPayment =>
-            user.dialog.collect {
-              case d: CreateS10nDialog => createS10nDialogController.firstPaymentDateCb(query, firstPaymentDate, user, d)
-              case d: EditS10nFirstPaymentDateDialog =>
-                editS10nDialogController.s10nFirstPaymentDateCb(query, firstPaymentDate, user, d)
+            getUser.flatMap { user =>
+              user.dialog.collect {
+                case d: CreateS10nDialog => createS10nDialogController.firstPaymentDateCb(query, firstPaymentDate, user, d)
+                case d: EditS10nFirstPaymentDateDialog =>
+                  editS10nDialogController.s10nFirstPaymentDateCb(query, firstPaymentDate, user, d)
+              }
+                .getOrElse(ackError)
             }
-              .getOrElse(ackError)
 
           case removeS10n: RemoveS10n =>
-            s10nListController.removeSubscriptionCb(user, query, removeS10n)
+            getUser.flatMap(s10nListController.removeSubscriptionCb(_, query, removeS10n))
 
           case editS10n: EditS10n =>
             s10nListController.editS10nCb(query, editS10n)
 
           case editS10nName: EditS10nName =>
-            editS10nDialogController.editS10nNameCb(user, query, editS10nName)
+            getUser.flatMap(editS10nDialogController.editS10nNameCb(_, query, editS10nName))
 
           case editS10nAmount: EditS10nAmount =>
-            editS10nDialogController.editS10nAmountCb(user, query, editS10nAmount)
+            getUser.flatMap(editS10nDialogController.editS10nAmountCb(_, query, editS10nAmount))
 
           case editS10nOneTime: EditS10nOneTime =>
-            editS10nDialogController.editS10nOneTimeCb(user, query, editS10nOneTime)
+            getUser.flatMap(editS10nDialogController.editS10nOneTimeCb(_, query, editS10nOneTime))
 
           case editS10nBillingPeriod: EditS10nBillingPeriod =>
-            editS10nDialogController.editS10nBillingPeriodCb(user, query, editS10nBillingPeriod)
+            getUser.flatMap(editS10nDialogController.editS10nBillingPeriodCb(_, query, editS10nBillingPeriod))
 
           case editS10nFirstPaymentDate: EditS10nFirstPaymentDate =>
-            editS10nDialogController.editS10nFirstPaymentDateCb(user, query, editS10nFirstPaymentDate)
+            getUser.flatMap(editS10nDialogController.editS10nFirstPaymentDateCb(_, query, editS10nFirstPaymentDate))
 
           case DefCurrency =>
-            settingsController.defaultCurrencyCb(user, query)
+            getUser.flatMap(settingsController.defaultCurrencyCb(_, query))
         }
 
-    val tgUser = query.from.toUser(query.message.map(_.chat.id.toLong))
-    userRepo.getOrCreate(tgUser)
-      .transact(xa)
-      .flatMap { user =>
-        query.data.map(route(_, user))
-          .getOrElse(Monad[F].unit)
-          .handleErrorWith(e => Logger[F].error(e)(e.getMessage))
-      }
+    query.data.map(route)
+      .getOrElse(Monad[F].unit)
+      .handleErrorWith(e => Logger[F].error(e)(e.getMessage))
   }
 
   private def routeMessage(chatId: Long, from: TgUser, message: Message): F[Unit] = {
@@ -140,7 +147,7 @@ class SubscriptionsBot[F[_] : Sync : Timer : Logger](
         case d: EditS10nAmountDialog => editS10nDialogController.s10nAmountMessage(user, d, msg)
         case d: EditS10nOneTimeDialog => editS10nDialogController.s10nBillingPeriodDurationMessage(user, d, msg)
         case d: EditS10nBillingPeriodDialog => editS10nDialogController.s10nBillingPeriodDurationMessage(user, d, msg)
-        case _ => Sync[F].pure(singleTextMessage(Errors.default))
+        case _ => Sync[F].pure(singleTextMessage(Errors.Default))
       }
 
     def handleText(user: User, text: String) = {
