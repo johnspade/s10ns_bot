@@ -37,7 +37,7 @@ class CalendarService[F[_]: Sync] {
 
     val controlsRow = List(
       inlineKeyboardButton("⬅", Calendar(firstDay.minusMonths(1))),
-      inlineKeyboardButton("Skip (remove)", DropFirstPayment),
+      inlineKeyboardButton("Skip/remove", DropFirstPayment),
       inlineKeyboardButton("➡", Calendar(firstDay.plusMonths(1)))
     )
 

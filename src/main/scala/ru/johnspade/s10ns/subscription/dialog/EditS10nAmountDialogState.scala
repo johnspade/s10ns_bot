@@ -10,7 +10,6 @@ sealed abstract class EditS10nAmountDialogState(override val message: String)
   extends EnumEntry with DialogState
 
 object EditS10nAmountDialogState extends Enum[EditS10nAmountDialogState] with CirceEnum[EditS10nAmountDialogState] {
-  case object Currency extends EditS10nAmountDialogState(Messages.Currency)
   case object Amount extends EditS10nAmountDialogState(Messages.Amount)
   case object Finished extends EditS10nAmountDialogState(Messages.S10nSaved)
 
@@ -21,11 +20,6 @@ object EditS10nAmountDialogState extends Enum[EditS10nAmountDialogState] with Ci
 
     val e = event
     state match {
-      case Currency =>
-        e match {
-          case ChosenCurrency => Amount
-          case _ => state
-        }
       case Amount =>
         e match {
           case EnteredAmount => Finished
@@ -39,7 +33,6 @@ object EditS10nAmountDialogState extends Enum[EditS10nAmountDialogState] with Ci
 sealed trait EditS10nAmountDialogEvent extends EnumEntry with StateEvent
 
 object EditS10nAmountDialogEvent extends Enum[EditS10nAmountDialogEvent] with CirceEnum[EditS10nAmountDialogEvent] {
-  case object ChosenCurrency extends EditS10nAmountDialogEvent
   case object EnteredAmount extends EditS10nAmountDialogEvent
 
   override def values: IndexedSeq[EditS10nAmountDialogEvent] = findValues

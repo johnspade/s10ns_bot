@@ -27,6 +27,7 @@ case object DropFirstPayment extends CbData
 final case class RemoveS10n(subscriptionId: SubscriptionId, page: PageNumber) extends CbData
 final case class EditS10n(subscriptionId: SubscriptionId, page: PageNumber) extends CbData
 final case class EditS10nName(subscriptionId: SubscriptionId) extends CbData
+final case class EditS10nCurrency(subscriptionId: SubscriptionId) extends CbData
 final case class EditS10nAmount(subscriptionId: SubscriptionId) extends CbData
 final case class EditS10nOneTime(subscriptionId: SubscriptionId) extends CbData
 final case class EditS10nBillingPeriod(subscriptionId: SubscriptionId) extends CbData
@@ -64,6 +65,8 @@ object CbData {
     RowCodec.caseOrdered(EditS10n.apply _)(EditS10n.unapply)
   implicit val editS10nNameRowCodec: RowCodec[EditS10nName] =
     RowCodec.caseOrdered(EditS10nName.apply _)(EditS10nName.unapply)
+  implicit val editS10nCurrencyRowCodec: RowCodec[EditS10nCurrency] =
+    RowCodec.caseOrdered(EditS10nCurrency.apply _)(EditS10nCurrency.unapply)
   implicit val editS10nAmountRowCodec: RowCodec[EditS10nAmount] =
     RowCodec.caseOrdered(EditS10nAmount.apply _)(EditS10nAmount.unapply)
   implicit val editS10nOneTimeRowCodec: RowCodec[EditS10nOneTime] =

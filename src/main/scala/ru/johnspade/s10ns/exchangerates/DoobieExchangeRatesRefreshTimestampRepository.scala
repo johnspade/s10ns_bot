@@ -22,6 +22,11 @@ object DoobieExchangeRatesRefreshTimestampRepository {
     def get(): Query0[Instant] = sql"select refresh_timestamp from exchange_rates_refresh_timestamp".query[Instant]
 
     def save(timestamp: Instant): Update0 =
-      sql"update exchange_rates_refresh_timestamp set refresh_timestamp = $timestamp where id = true".update
+      sql"""
+        insert into exchange_rates_refresh_timestamp (id, refresh_timestamp)
+        values (true, $timestamp)
+        on conflict (id) do update
+        set refresh_timestamp = $timestamp
+      """.update
   }
 }

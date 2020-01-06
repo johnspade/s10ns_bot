@@ -6,7 +6,7 @@ import cats.implicits._
 import doobie.implicits._
 import doobie.util.transactor.Transactor
 import io.chrisdavenport.log4cats.Logger
-import ru.johnspade.s10ns.bot.{Calendar, CbDataService, CreateS10nDialog, DefCurrency, Dialog, EditS10n, EditS10nAmount, EditS10nAmountDialog, EditS10nBillingPeriod, EditS10nBillingPeriodDialog, EditS10nFirstPaymentDate, EditS10nFirstPaymentDateDialog, EditS10nName, EditS10nNameDialog, EditS10nOneTime, EditS10nOneTimeDialog, Errors, FirstPayment, Ignore, OneTime, PeriodUnit, RemoveS10n, S10n, S10ns, SettingsDialog, DropFirstPayment, SkipIsOneTime, StartController}
+import ru.johnspade.s10ns.bot.{Calendar, CbDataService, CreateS10nDialog, DefCurrency, Dialog, DropFirstPayment, EditS10n, EditS10nAmount, EditS10nAmountDialog, EditS10nBillingPeriod, EditS10nBillingPeriodDialog, EditS10nCurrency, EditS10nCurrencyDialog, EditS10nFirstPaymentDate, EditS10nFirstPaymentDateDialog, EditS10nName, EditS10nNameDialog, EditS10nOneTime, EditS10nOneTimeDialog, Errors, FirstPayment, Ignore, OneTime, PeriodUnit, RemoveS10n, S10n, S10ns, SettingsDialog, SkipIsOneTime, StartController}
 import ru.johnspade.s10ns.bot.engine.ReplyMessage
 import ru.johnspade.s10ns.calendar.CalendarController
 import ru.johnspade.s10ns.settings.SettingsController
@@ -118,6 +118,9 @@ class SubscriptionsBot[F[_] : Sync : Timer : Logger](
           case editS10nAmount: EditS10nAmount =>
             getUser.flatMap(editS10nDialogController.editS10nAmountCb(_, query, editS10nAmount))
 
+          case editS10nCurrency: EditS10nCurrency =>
+            getUser.flatMap(editS10nDialogController.editS10nCurrencyCb(_, query, editS10nCurrency))
+
           case editS10nOneTime: EditS10nOneTime =>
             getUser.flatMap(editS10nDialogController.editS10nOneTimeCb(_, query, editS10nOneTime))
 
@@ -154,7 +157,8 @@ class SubscriptionsBot[F[_] : Sync : Timer : Logger](
         case d: CreateS10nDialog => createS10nDialogController.message(user, d, msg)
         case d: SettingsDialog => settingsController.message(user, d, msg)
         case d: EditS10nNameDialog => editS10nDialogController.s10nNameMessage(user, d, msg)
-        case d: EditS10nAmountDialog => editS10nDialogController.s10nAmountMessage(user, d, msg)
+        case d: EditS10nAmountDialog => editS10nDialogController.s10nEditAmountMessage(user, d, msg)
+        case d: EditS10nCurrencyDialog => editS10nDialogController.s10nEditCurrencyMessage(user, d, msg)
         case d: EditS10nOneTimeDialog => editS10nDialogController.s10nBillingPeriodDurationMessage(user, d, msg)
         case d: EditS10nBillingPeriodDialog => editS10nDialogController.s10nBillingPeriodDurationMessage(user, d, msg)
         case _ => Sync[F].pure(singleTextMessage(Errors.Default))

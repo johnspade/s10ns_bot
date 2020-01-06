@@ -15,5 +15,7 @@ object BotStart {
     resizeKeyboard = Some(true)
   ))
 
-  val message: ReplyMessage = ReplyMessage("Hello from s10ns_bot!", markup = markup.some)
+  private final val Help = "Manage your subscriptions and get detailed insights of your recurring expenses."
+
+  val message: ReplyMessage = ReplyMessage(Help, markup = markup.some)
 }

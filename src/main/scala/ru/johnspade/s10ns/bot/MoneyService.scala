@@ -15,7 +15,7 @@ class MoneyService[F[_] : Sync](private val exchangeRatesService: ExchangeRatesS
       if (amount.getCurrencyUnit == CurrencyUnit.EUR)
         amount.toBigMoney
       else {
-        amount.toBigMoney.withScale(10).dividedBy(rate.bigDecimal, RoundingMode.HALF_UP)
+        amount.toBigMoney.withScale(20).dividedBy(rate.bigDecimal, RoundingMode.HALF_UP)
           .convertedTo(CurrencyUnit.EUR, BigDecimal(1).bigDecimal)
       }
 
@@ -32,7 +32,7 @@ class MoneyService[F[_] : Sync](private val exchangeRatesService: ExchangeRatesS
     def calcMonthAmount(period: BillingPeriod, amount: BigMoney) =
       amount
         .toBigMoney
-        .withScale(10)
+        .withScale(20)
         .dividedBy(period.unit.getDuration.getSeconds * period.duration, RoundingMode.HALF_UP)
         .multipliedBy(ChronoUnit.MONTHS.getDuration.getSeconds)
 
@@ -42,7 +42,7 @@ class MoneyService[F[_] : Sync](private val exchangeRatesService: ExchangeRatesS
         .map {
           case (period, money) => calcMonthAmount(period, money)
         }
-        .foldLeft(Money.zero(CurrencyUnit.EUR).toBigMoney.withScale(10))(_ plus _)
+        .foldLeft(Money.zero(CurrencyUnit.EUR).toBigMoney.withScale(20))(_ plus _)
       rates.get(defaultCurrency.getCode)
         .map(rate => convertToDefaultCurrency(sum, rate.bigDecimal).toMoney(RoundingMode.HALF_UP))
     }
@@ -54,7 +54,7 @@ class MoneyService[F[_] : Sync](private val exchangeRatesService: ExchangeRatesS
         case (Some(moneyRate), Some(currencyRate)) =>
           money
             .toBigMoney
-            .withScale(10)
+            .withScale(20)
             .dividedBy(moneyRate.bigDecimal, RoundingMode.HALF_UP)
             .convertedTo(currency, currencyRate.bigDecimal)
             .toMoney(RoundingMode.HALF_UP)

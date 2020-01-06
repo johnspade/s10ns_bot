@@ -6,9 +6,9 @@ import doobie.implicits._
 import doobie.util.transactor.Transactor
 import ru.johnspade.s10ns.bot
 import ru.johnspade.s10ns.bot.engine.{DialogEngine, ReplyMessage}
-import ru.johnspade.s10ns.bot.{EditS10nAmount, EditS10nAmountDialog, EditS10nBillingPeriod, EditS10nBillingPeriodDialog, EditS10nDialog, EditS10nFirstPaymentDate, EditS10nFirstPaymentDateDialog, EditS10nName, EditS10nNameDialog, EditS10nOneTime, EditS10nOneTimeDialog, Errors, FirstPayment, OneTime, PeriodUnit, StateMessageService}
+import ru.johnspade.s10ns.bot.{EditS10nAmount, EditS10nAmountDialog, EditS10nBillingPeriod, EditS10nBillingPeriodDialog, EditS10nCurrency, EditS10nCurrencyDialog, EditS10nDialog, EditS10nFirstPaymentDate, EditS10nFirstPaymentDateDialog, EditS10nName, EditS10nNameDialog, EditS10nOneTime, EditS10nOneTimeDialog, Errors, FirstPayment, OneTime, PeriodUnit, StateMessageService}
 import ru.johnspade.s10ns.bot.ValidatorNec._
-import ru.johnspade.s10ns.subscription.dialog.{EditS10nAmountDialogState, EditS10nBillingPeriodDialogState, EditS10nFirstPaymentDateDialogState, EditS10nNameDialogState, EditS10nOneTimeDialogState}
+import ru.johnspade.s10ns.subscription.dialog.{EditS10nAmountDialogState, EditS10nBillingPeriodDialogState, EditS10nCurrencyDialogState, EditS10nFirstPaymentDateDialogState, EditS10nNameDialogState, EditS10nOneTimeDialogState}
 import ru.johnspade.s10ns.subscription.tags._
 import ru.johnspade.s10ns.subscription.Subscription
 import ru.johnspade.s10ns.subscription.repository.SubscriptionRepository
@@ -41,25 +41,42 @@ class EditS10nDialogService[F[_] : Sync](
       .andThen(name => validateNameLength(SubscriptionName(name)))
       .traverse(editS10nDialogFsmService.saveName(user, dialog, _))
 
-  def onEditS10nAmountCb(user: User, cb: CallbackQuery, data: EditS10nAmount): F[ReplyMessage] =
+  def onEditS10nAmountCb(user: User, cb: CallbackQuery, data: EditS10nAmount): F[ReplyMessage] = {
+    val start = EditS10nAmountDialogState.Amount
     onEditS10nDialogCb(
       user = user,
       cb = cb,
       s10nId = data.subscriptionId,
-      message = stateMessageService.getMessage(EditS10nAmountDialogState.Currency),
+      message = stateMessageService.getMessage(start),
+      createDialog = EditS10nAmountDialog(start, _)
+    )
+  }
+
+  def onEditS10nCurrencyCb(user: User, cb: CallbackQuery, data: EditS10nCurrency): F[ReplyMessage] =
+    onEditS10nDialogCb(
+      user = user,
+      cb = cb,
+      s10nId = data.subscriptionId,
+      message = stateMessageService.getMessage(EditS10nCurrencyDialogState.Currency),
       createDialog =
-        s10n => EditS10nAmountDialog(
-          EditS10nAmountDialogState.Currency,
+        s10n => EditS10nCurrencyDialog(
+          EditS10nCurrencyDialogState.Currency,
           s10n
         )
     )
 
-  def saveCurrency(user: User, dialog: EditS10nAmountDialog, text: Option[String]): F[RepliesValidated] =
+  def saveAmount(user: User, dialog: EditS10nAmountDialog, text: Option[String]): F[RepliesValidated] =
+    validateText(text)
+      .andThen(validateAmountString)
+      .andThen(amount => validateAmount(amount))
+      .traverse(editS10nDialogFsmService.saveAmount(user, dialog, _))
+
+  def saveCurrency(user: User, dialog: EditS10nCurrencyDialog, text: Option[String]): F[RepliesValidated] =
     validateText(text)
       .andThen(validateCurrency)
       .traverse(editS10nDialogFsmService.saveCurrency(user, dialog, _))
 
-  def saveAmount(user: User, dialog: EditS10nAmountDialog, text: Option[String]): F[RepliesValidated] =
+  def saveAmount(user: User, dialog: EditS10nCurrencyDialog, text: Option[String]): F[RepliesValidated] =
     validateText(text)
       .andThen(validateAmountString)
       .andThen(amount => validateAmount(amount))

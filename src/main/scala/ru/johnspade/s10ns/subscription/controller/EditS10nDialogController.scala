@@ -6,8 +6,8 @@ import cats.syntax.option._
 import io.chrisdavenport.log4cats.Logger
 import ru.johnspade.s10ns.bot.engine.ReplyMessage
 import ru.johnspade.s10ns.bot.engine.TelegramOps.{ackCb, clearMarkup, handleCallback, sendReplyMessage, singleTextMessage, toReplyMessages}
-import ru.johnspade.s10ns.bot.{EditS10nAmount, EditS10nAmountDialog, EditS10nBillingPeriod, EditS10nBillingPeriodDialog, EditS10nFirstPaymentDate, EditS10nFirstPaymentDateDialog, EditS10nName, EditS10nNameDialog, EditS10nOneTime, EditS10nOneTimeDialog, Errors, FirstPayment, OneTime, PeriodUnit}
-import ru.johnspade.s10ns.subscription.dialog.{EditS10nAmountDialogState, EditS10nBillingPeriodDialogState, EditS10nNameDialogState, EditS10nOneTimeDialogState}
+import ru.johnspade.s10ns.bot.{EditS10nAmount, EditS10nAmountDialog, EditS10nBillingPeriod, EditS10nBillingPeriodDialog, EditS10nCurrency, EditS10nCurrencyDialog, EditS10nFirstPaymentDate, EditS10nFirstPaymentDateDialog, EditS10nName, EditS10nNameDialog, EditS10nOneTime, EditS10nOneTimeDialog, Errors, FirstPayment, OneTime, PeriodUnit}
+import ru.johnspade.s10ns.subscription.dialog.{EditS10nAmountDialogState, EditS10nBillingPeriodDialogState, EditS10nCurrencyDialogState, EditS10nNameDialogState, EditS10nOneTimeDialogState}
 import ru.johnspade.s10ns.subscription.service.EditS10nDialogService
 import ru.johnspade.s10ns.user.User
 import telegramium.bots.client.Api
@@ -29,11 +29,21 @@ class EditS10nDialogController[F[_] : Sync : Logger : Timer](
   def editS10nAmountCb(user: User, cb: CallbackQuery, data: EditS10nAmount)(implicit bot: Api[F]): F[Unit] =
     editS10nDialogService.onEditS10nAmountCb(user, cb, data).flatMap(reply(cb, _))
 
-  def s10nAmountMessage(user: User, dialog: EditS10nAmountDialog, message: Message): F[List[ReplyMessage]] =
+  def editS10nCurrencyCb(user: User, cb: CallbackQuery, data: EditS10nCurrency)(implicit bot: Api[F]): F[Unit] =
+    editS10nDialogService.onEditS10nCurrencyCb(user, cb, data).flatMap(reply(cb, _))
+
+  def s10nEditAmountMessage(user: User, dialog: EditS10nAmountDialog, message: Message): F[List[ReplyMessage]] =
     dialog.state match {
-      case EditS10nAmountDialogState.Currency =>
-        editS10nDialogService.saveCurrency(user, dialog, message.text).map(toReplyMessages)
       case EditS10nAmountDialogState.Amount =>
+        editS10nDialogService.saveAmount(user, dialog, message.text).map(toReplyMessages)
+      case _ => defaultError
+    }
+
+  def s10nEditCurrencyMessage(user: User, dialog: EditS10nCurrencyDialog, message: Message): F[List[ReplyMessage]] =
+    dialog.state match {
+      case EditS10nCurrencyDialogState.Currency =>
+        editS10nDialogService.saveCurrency(user, dialog, message.text).map(toReplyMessages)
+      case EditS10nCurrencyDialogState.Amount =>
         editS10nDialogService.saveAmount(user, dialog, message.text).map(toReplyMessages)
       case _ => defaultError
     }

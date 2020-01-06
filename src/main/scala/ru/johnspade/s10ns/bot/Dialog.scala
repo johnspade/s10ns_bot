@@ -3,7 +3,7 @@ package ru.johnspade.s10ns.bot
 import ru.johnspade.s10ns.bot.engine.{DialogState, StateEvent}
 import ru.johnspade.s10ns.settings.{SettingsDialogEvent, SettingsDialogState}
 import ru.johnspade.s10ns.subscription.{Subscription, SubscriptionDraft}
-import ru.johnspade.s10ns.subscription.dialog.{CreateS10nDialogEvent, CreateS10nDialogState, EditS10nAmountDialogEvent, EditS10nAmountDialogState, EditS10nBillingPeriodDialogState, EditS10nBillingPeriodEvent, EditS10nFirstPaymentDateDialogEvent, EditS10nFirstPaymentDateDialogState, EditS10nNameDialogEvent, EditS10nNameDialogState, EditS10nOneTimeDialogEvent, EditS10nOneTimeDialogState}
+import ru.johnspade.s10ns.subscription.dialog.{CreateS10nDialogEvent, CreateS10nDialogState, EditS10nAmountDialogEvent, EditS10nAmountDialogState, EditS10nBillingPeriodDialogState, EditS10nBillingPeriodEvent, EditS10nCurrencyDialogEvent, EditS10nCurrencyDialogState, EditS10nFirstPaymentDateDialogEvent, EditS10nFirstPaymentDateDialogState, EditS10nNameDialogEvent, EditS10nNameDialogState, EditS10nOneTimeDialogEvent, EditS10nOneTimeDialogState}
 
 sealed abstract class Dialog { self =>
   type S <: DialogState
@@ -59,13 +59,25 @@ final case class EditS10nNameDialog(
 final case class EditS10nAmountDialog(
   override val state: EditS10nAmountDialogState,
   override val draft: Subscription
-) extends Dialog with EditS10nDialog {
-  type S = EditS10nAmountDialogState
-  type E = EditS10nAmountDialogEvent
+) extends EditS10nDialog {
+  override type S = EditS10nAmountDialogState
+  override type E = EditS10nAmountDialogEvent
 
   override val finished: EditS10nAmountDialogState = EditS10nAmountDialogState.Finished
   override def transition(event: EditS10nAmountDialogEvent): EditS10nAmountDialog =
     copy(state = EditS10nAmountDialogState.transition(state, event))
+}
+
+final case class EditS10nCurrencyDialog(
+  override val state: EditS10nCurrencyDialogState,
+  override val draft: Subscription
+) extends Dialog with EditS10nDialog {
+  override type S = EditS10nCurrencyDialogState
+  override type E = EditS10nCurrencyDialogEvent
+
+  override val finished: EditS10nCurrencyDialogState = EditS10nCurrencyDialogState.Finished
+  override def transition(event: EditS10nCurrencyDialogEvent): EditS10nCurrencyDialog =
+    copy(state = EditS10nCurrencyDialogState.transition(state, event))
 }
 
 final case class EditS10nOneTimeDialog(

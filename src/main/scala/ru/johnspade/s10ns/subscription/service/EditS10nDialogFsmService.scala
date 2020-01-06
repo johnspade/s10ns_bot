@@ -6,11 +6,11 @@ import com.softwaremill.quicklens._
 import doobie.implicits._
 import doobie.util.transactor.Transactor
 import org.joda.money.{CurrencyUnit, Money}
-import ru.johnspade.s10ns.bot.{EditS10nAmountDialog, EditS10nBillingPeriodDialog, EditS10nDialog, EditS10nFirstPaymentDateDialog, EditS10nNameDialog, EditS10nOneTimeDialog, Errors, StateMessageService}
+import ru.johnspade.s10ns.bot.{EditS10nAmountDialog, EditS10nBillingPeriodDialog, EditS10nCurrencyDialog, EditS10nDialog, EditS10nFirstPaymentDateDialog, EditS10nNameDialog, EditS10nOneTimeDialog, Errors, StateMessageService}
 import ru.johnspade.s10ns.bot.engine.{DialogEngine, ReplyMessage}
 import ru.johnspade.s10ns.subscription.tags._
 import ru.johnspade.s10ns.bot.engine.TelegramOps.singleTextMessage
-import ru.johnspade.s10ns.subscription.dialog.{EditS10nAmountDialogEvent, EditS10nBillingPeriodEvent, EditS10nFirstPaymentDateDialogEvent, EditS10nNameDialogEvent, EditS10nOneTimeDialogEvent}
+import ru.johnspade.s10ns.subscription.dialog.{EditS10nAmountDialogEvent, EditS10nBillingPeriodEvent, EditS10nCurrencyDialogEvent, EditS10nFirstPaymentDateDialogEvent, EditS10nNameDialogEvent, EditS10nOneTimeDialogEvent}
 import ru.johnspade.s10ns.subscription.repository.SubscriptionRepository
 import ru.johnspade.s10ns.subscription.{BillingPeriod, Subscription}
 import ru.johnspade.s10ns.user.{User, UserRepository}
@@ -27,14 +27,19 @@ class EditS10nDialogFsmService[F[_] : Sync](
     transition(user, updatedDialog)(EditS10nNameDialogEvent.EnteredName, stateMessageService.getTextMessage)
   }
 
-  def saveCurrency(user: User, dialog: EditS10nAmountDialog, currency: CurrencyUnit): F[List[ReplyMessage]] = {
-    val updatedDialog = dialog.modify(_.draft.amount).setTo(Money.zero(currency))
-    transition(user, updatedDialog)(EditS10nAmountDialogEvent.ChosenCurrency, stateMessageService.getTextMessage)
-  }
-
   def saveAmount(user: User, dialog: EditS10nAmountDialog, amount: BigDecimal): F[List[ReplyMessage]] = {
     val updatedDialog = dialog.modify(_.draft.amount).setTo(Money.of(dialog.draft.amount.getCurrencyUnit, amount.bigDecimal))
-    transition(user, updatedDialog)(EditS10nAmountDialogEvent.EnteredAmount, stateMessageService.getTextMessage)
+    transition(user, updatedDialog)(EditS10nAmountDialogEvent.EnteredAmount, stateMessageService.getMessage)
+  }
+
+  def saveCurrency(user: User, dialog: EditS10nCurrencyDialog, currency: CurrencyUnit): F[List[ReplyMessage]] = {
+    val updatedDialog = dialog.modify(_.draft.amount).setTo(Money.zero(currency))
+    transition(user, updatedDialog)(EditS10nCurrencyDialogEvent.ChosenCurrency, stateMessageService.getMessage)
+  }
+
+  def saveAmount(user: User, dialog: EditS10nCurrencyDialog, amount: BigDecimal): F[List[ReplyMessage]] = {
+    val updatedDialog = dialog.modify(_.draft.amount).setTo(Money.of(dialog.draft.amount.getCurrencyUnit, amount.bigDecimal))
+    transition(user, updatedDialog)(EditS10nCurrencyDialogEvent.EnteredAmount, stateMessageService.getMessage)
   }
 
   def removeIsOneTime(user: User, dialog: EditS10nOneTimeDialog): F[List[ReplyMessage]] = {

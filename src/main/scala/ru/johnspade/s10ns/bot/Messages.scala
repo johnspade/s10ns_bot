@@ -5,7 +5,7 @@ object Messages {
   final val Currency = "Currency:"
   final val Amount = "Amount:"
   final val BillingPeriodUnit = "Billing period unit:"
-  final val BillingPeriodDuration = "Billing period duration:"
+  final val BillingPeriodDuration = "Billing period duration (1, 2...):"
   final val FirstPaymentDate = "First payment date:"
   final val IsOneTime = "Recurring/one time:"
   final val S10nSaved = "Saved."

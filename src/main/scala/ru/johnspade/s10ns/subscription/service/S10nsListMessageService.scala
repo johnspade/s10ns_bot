@@ -10,7 +10,7 @@ import org.joda.money.format.MoneyFormatterBuilder
 import org.joda.money.{CurrencyUnit, Money}
 import ru.johnspade.s10ns.bot.engine.ReplyMessage
 import ru.johnspade.s10ns.bot.engine.TelegramOps.inlineKeyboardButton
-import ru.johnspade.s10ns.bot.{EditS10n, EditS10nAmount, EditS10nBillingPeriod, EditS10nFirstPaymentDate, EditS10nName, EditS10nOneTime, MoneyService, RemoveS10n, S10n, S10ns}
+import ru.johnspade.s10ns.bot.{EditS10n, EditS10nAmount, EditS10nBillingPeriod, EditS10nCurrency, EditS10nFirstPaymentDate, EditS10nName, EditS10nOneTime, MoneyService, RemoveS10n, S10n, S10ns}
 import ru.johnspade.s10ns.subscription.tags.{FirstPaymentDate, PageNumber}
 import ru.johnspade.s10ns.subscription.{BillingPeriod, Subscription}
 import ru.johnspade.s10ns.user.User
@@ -89,7 +89,7 @@ class S10nsListMessageService[F[_] : Sync](
       val number = if (period.duration == 1) ""
       else s" ${period.duration}"
       val unitName = period.unit.toString.toLowerCase.reverse.replaceFirst("s", "").reverse
-      s"Billing period: every$number $unitName"
+      s"Billing period: every$number $unitName" // todo 'every 21 day'
     }
 
     def calcWithPeriod(f: (FirstPaymentDate, Instant, BillingPeriod) => String) =
@@ -137,7 +137,8 @@ class S10nsListMessageService[F[_] : Sync](
 
   def createEditS10nMarkup(s10n: Subscription, page: PageNumber): InlineKeyboardMarkup = {
     val nameButton = inlineKeyboardButton("Edit name", EditS10nName(s10n.id))
-    val currencyButton = inlineKeyboardButton("Edit currency", EditS10nAmount(s10n.id))
+    val amountButton = inlineKeyboardButton("Edit amount", EditS10nAmount(s10n.id))
+    val currencyButton = inlineKeyboardButton("Edit currency/amount", EditS10nCurrency(s10n.id))
     val oneTimeButton = inlineKeyboardButton("Recurring/one time", EditS10nOneTime(s10n.id))
     val billingPeriodButton = if (s10n.oneTime.getOrElse(false)) List.empty
     else List(inlineKeyboardButton("Edit billing period", EditS10nBillingPeriod(s10n.id)))
@@ -145,6 +146,7 @@ class S10nsListMessageService[F[_] : Sync](
     val backButton = inlineKeyboardButton("Back", S10n(s10n.id, page))
     InlineKeyboardMarkup(List(
       List(nameButton),
+      List(amountButton),
       List(currencyButton),
       List(oneTimeButton),
       billingPeriodButton,
