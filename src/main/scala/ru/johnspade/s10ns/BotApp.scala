@@ -22,7 +22,7 @@ import ru.johnspade.s10ns.exchangerates.{DoobieExchangeRatesRefreshTimestampRepo
 import ru.johnspade.s10ns.settings.{SettingsController, SettingsService}
 import ru.johnspade.s10ns.subscription.controller.{CreateS10nDialogController, EditS10nDialogController, SubscriptionListController}
 import ru.johnspade.s10ns.subscription.repository.DoobieSubscriptionRepository
-import ru.johnspade.s10ns.subscription.service.{CreateS10nDialogFsmService, CreateS10nDialogService, EditS10nDialogFsmService, EditS10nDialogService, S10nsListMessageService, SubscriptionListService}
+import ru.johnspade.s10ns.subscription.service.{CreateS10nDialogFsmService, CreateS10nDialogService, EditS10nDialogFsmService, EditS10nDialogService, S10nInfoService, S10nsListMessageService, SubscriptionListService}
 import ru.johnspade.s10ns.user.DoobieUserRepository
 import telegramium.bots.client.ApiHttp4sImp
 
@@ -96,7 +96,8 @@ object BotApp extends IOApp {
           exchangeRatesCache
         )
         moneyService = new MoneyService[F](exchangeRatesService)
-        s10nsListService = new S10nsListMessageService[F](moneyService)
+        s10nInfoService = new S10nInfoService[F](moneyService)
+        s10nsListService = new S10nsListMessageService[F](moneyService, s10nInfoService)
         createS10nDialogFsmService = new CreateS10nDialogFsmService[F](
           s10nRepo,
           userRepo,

@@ -54,7 +54,8 @@ class SubscriptionListController[F[_] : Sync : Logger](
       cb.message.map(msg => ChatIntId(msg.chat.id)),
       cb.message.map(_.messageId),
       text = reply.text,
-      replyMarkup = markup
+      replyMarkup = markup,
+      parseMode = reply.parseMode.map(_.value)
     )
     bot.editMessageText(editMessageTextReq).void
   }

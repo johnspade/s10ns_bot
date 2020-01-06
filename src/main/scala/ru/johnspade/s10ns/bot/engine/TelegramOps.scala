@@ -25,9 +25,15 @@ object TelegramOps {
       )
   }
 
-  def sendReplyMessage[F[_] : Sync](msg: Message, reply: ReplyMessage)(implicit bot: Api[F]): F[Unit] =
-    bot.sendMessage(SendMessageReq(ChatIntId(msg.chat.id), reply.text, replyMarkup = reply.markup))
-      .void
+  def sendReplyMessage[F[_] : Sync](msg: Message, reply: ReplyMessage)(implicit bot: Api[F]): F[Unit] = {
+    val request = SendMessageReq(
+      ChatIntId(msg.chat.id),
+      reply.text,
+      replyMarkup = reply.markup,
+      parseMode = reply.parseMode.map(_.value)
+    )
+    bot.sendMessage(request).void
+  }
 
   def ackCb[F[_] : Sync](cb: CallbackQuery, text: Option[String] = None)(implicit bot: Api[F]): F[Unit] =
     bot.answerCallbackQuery(AnswerCallbackQueryReq(cb.id, text)).void
