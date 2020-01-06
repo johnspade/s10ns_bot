@@ -8,7 +8,9 @@ import ru.johnspade.s10ns.user.tags._
 final case class BillingPeriod(
   duration: BillingPeriodDuration,
   unit: BillingPeriodUnit
-)
+) {
+  def seconds: Long = unit.getDuration.getSeconds * duration
+}
 
 case class Subscription(
   id: SubscriptionId,

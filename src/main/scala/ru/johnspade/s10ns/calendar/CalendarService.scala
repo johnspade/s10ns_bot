@@ -4,7 +4,7 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
 import cats.effect.Sync
-import ru.johnspade.s10ns.bot.{Calendar, FirstPayment, Ignore}
+import ru.johnspade.s10ns.bot.{Calendar, FirstPayment, Ignore, DropFirstPayment}
 import ru.johnspade.s10ns.subscription.tags._
 import telegramium.bots.{InlineKeyboardButton, InlineKeyboardMarkup}
 import ru.johnspade.s10ns.bot.engine.TelegramOps.inlineKeyboardButton
@@ -37,6 +37,7 @@ class CalendarService[F[_]: Sync] {
 
     val controlsRow = List(
       inlineKeyboardButton("⬅", Calendar(firstDay.minusMonths(1))),
+      inlineKeyboardButton("Skip (remove)", DropFirstPayment),
       inlineKeyboardButton("➡", Calendar(firstDay.plusMonths(1)))
     )
 

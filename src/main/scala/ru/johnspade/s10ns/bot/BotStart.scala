@@ -6,10 +6,11 @@ import telegramium.bots.{KeyboardButton, MarkupReplyKeyboard, ReplyKeyboardMarku
 
 object BotStart {
   val markup: MarkupReplyKeyboard = MarkupReplyKeyboard(ReplyKeyboardMarkup(
-    List( // todo Settings
+    List(
       List(KeyboardButton("\uD83D\uDCCB List")),
       List(KeyboardButton("➕ Create subscription (default currency)")),
-      List(KeyboardButton("\uD83D\uDCB2 Create subscription"))
+      List(KeyboardButton("\uD83D\uDCB2 Create subscription")),
+      List(KeyboardButton("⚙️ Settings"))
     ),
     resizeKeyboard = Some(true)
   ))

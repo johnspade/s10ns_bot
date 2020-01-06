@@ -1,17 +1,18 @@
 package ru.johnspade.s10ns.subscription.service
 
 import java.time.format.DateTimeFormatter
+import java.time.{Duration, Instant, ZoneOffset}
 
 import cats.Monad
 import cats.effect.Sync
 import cats.implicits._
 import org.joda.money.format.MoneyFormatterBuilder
 import org.joda.money.{CurrencyUnit, Money}
-import ru.johnspade.s10ns.bot.{EditS10n, EditS10nAmount, EditS10nBillingPeriod, EditS10nFirstPaymentDate, EditS10nName, EditS10nOneTime, MoneyService, RemoveS10n, S10n, S10ns}
 import ru.johnspade.s10ns.bot.engine.ReplyMessage
-import ru.johnspade.s10ns.subscription.tags.PageNumber
 import ru.johnspade.s10ns.bot.engine.TelegramOps.inlineKeyboardButton
-import ru.johnspade.s10ns.subscription.Subscription
+import ru.johnspade.s10ns.bot.{EditS10n, EditS10nAmount, EditS10nBillingPeriod, EditS10nFirstPaymentDate, EditS10nName, EditS10nOneTime, MoneyService, RemoveS10n, S10n, S10ns}
+import ru.johnspade.s10ns.subscription.tags.{FirstPaymentDate, PageNumber}
+import ru.johnspade.s10ns.subscription.{BillingPeriod, Subscription}
 import ru.johnspade.s10ns.user.User
 import telegramium.bots.{InlineKeyboardButton, InlineKeyboardMarkup, MarkupInlineKeyboard}
 
@@ -90,23 +91,48 @@ class S10nsListMessageService[F[_] : Sync](
       val unitName = period.unit.toString.toLowerCase.reverse.replaceFirst("s", "").reverse
       s"Billing period: every$number $unitName"
     }
-    val nextPayment = Option.empty[String] // todo
+
+    def calcWithPeriod(f: (FirstPaymentDate, Instant, BillingPeriod) => String) =
+      s10n.firstPaymentDate.flatTraverse { start =>
+        s10n.billingPeriod.traverse { billingPeriod =>
+          Sync[F].delay(Instant.now).map { now =>
+            f(start, now, billingPeriod)
+          }
+        }
+      }
+
+    def toInstant(start: FirstPaymentDate) = start.atStartOfDay().toInstant(ZoneOffset.UTC)
+    def secondsPassed(start: FirstPaymentDate, now: Instant) = Duration.between(toInstant(start), now).getSeconds
+
+    val nextPayment = calcWithPeriod { (start, now, billingPeriod) =>
+      val nextPeriod = now.plusSeconds(billingPeriod.seconds - (secondsPassed(start, now) % billingPeriod.seconds))
+      val nextPaymentDate = nextPeriod.atZone(ZoneOffset.UTC).toLocalDate.plusDays(1)
+      s"Next payment: ${DateTimeFormatter.ISO_DATE.format(nextPaymentDate)}"
+    }
     val firstPaymentDate = s10n.firstPaymentDate.map { date =>
       s"First payment: ${DateTimeFormatter.ISO_DATE.format(date)}"
     }
-    val paidInTotal = Option.empty[String] // todo
-    amountInStandardCurrency.map { amountStd =>
-      val text = Seq(name.some, amount.some, amountStd, billingPeriod, nextPayment, firstPaymentDate, paidInTotal)
+    val paidInTotal = calcWithPeriod { (start, now, billingPeriod) =>
+      val periodsPassed = secondsPassed(start, now) / billingPeriod.seconds + 1
+      s"Paid in total: ${MoneyFormatter.print(s10n.amount.multipliedBy(periodsPassed))}"
+    }
+
+    def createMessage(amountStd: Option[String], nextPayment: Option[String], total: Option[String]) = {
+      val text = Seq(name.some, amount.some, amountStd, billingPeriod, nextPayment, firstPaymentDate, total)
         .flatten
         .mkString("\n")
-      val editButton =
-        inlineKeyboardButton("Edit", EditS10n(s10n.id, page))
-      val removeButton =
-        inlineKeyboardButton("Remove", RemoveS10n(s10n.id, page))
+      val editButton = inlineKeyboardButton("Edit", EditS10n(s10n.id, page))
+      val removeButton = inlineKeyboardButton("Remove", RemoveS10n(s10n.id, page))
       val backButton = inlineKeyboardButton("List", S10ns(page))
       val buttonsList = List(List(editButton), List(removeButton), List(backButton))
       ReplyMessage(text, MarkupInlineKeyboard(InlineKeyboardMarkup(buttonsList)).some)
     }
+
+    for {
+      amountStd <- amountInStandardCurrency
+      total <- paidInTotal
+      next <- nextPayment
+    } yield createMessage(amountStd, total, next)
   }
 
   def createEditS10nMarkup(s10n: Subscription, page: PageNumber): InlineKeyboardMarkup = {
