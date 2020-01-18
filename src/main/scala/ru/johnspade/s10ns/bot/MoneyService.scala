@@ -3,6 +3,7 @@ package ru.johnspade.s10ns.bot
 import java.math.RoundingMode
 import java.time.temporal.ChronoUnit
 
+import cats.Monad
 import cats.effect.Sync
 import cats.implicits._
 import org.joda.money.format.{MoneyFormatter, MoneyFormatterBuilder}
@@ -10,7 +11,7 @@ import org.joda.money.{BigMoney, CurrencyUnit, Money}
 import ru.johnspade.s10ns.exchangerates.ExchangeRatesService
 import ru.johnspade.s10ns.subscription.{BillingPeriod, Subscription}
 
-class MoneyService[F[_] : Sync](private val exchangeRatesService: ExchangeRatesService[F]) {
+class MoneyService[F[_] : Sync, D[_] : Monad](private val exchangeRatesService: ExchangeRatesService[F, D]) {
   def sum(subscriptions: Seq[Subscription], defaultCurrency: CurrencyUnit): F[Option[Money]] = {
     def convertToEuro(amount: Money, rate: BigDecimal): BigMoney =
       if (amount.getCurrencyUnit == CurrencyUnit.EUR)

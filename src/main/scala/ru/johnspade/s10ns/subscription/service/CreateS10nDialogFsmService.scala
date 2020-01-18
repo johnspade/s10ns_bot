@@ -2,8 +2,7 @@ package ru.johnspade.s10ns.subscription.service
 
 import cats.effect.Sync
 import cats.implicits._
-import doobie.implicits._
-import doobie.util.transactor.Transactor
+import cats.{Monad, ~>}
 import io.chrisdavenport.log4cats.Logger
 import org.joda.money.{CurrencyUnit, Money}
 import ru.johnspade.s10ns.bot.engine.{DialogEngine, ReplyMessage}
@@ -13,13 +12,13 @@ import ru.johnspade.s10ns.subscription.repository.SubscriptionRepository
 import ru.johnspade.s10ns.subscription.tags._
 import ru.johnspade.s10ns.user.{User, UserRepository}
 
-class CreateS10nDialogFsmService[F[_] : Sync : Logger](
-  private val subscriptionRepo: SubscriptionRepository,
-  private val userRepo: UserRepository,
+class CreateS10nDialogFsmService[F[_] : Sync : Logger, D[_] : Monad](
+  private val subscriptionRepo: SubscriptionRepository[D],
+  private val userRepo: UserRepository[D],
   private val stateMessageService: StateMessageService[F],
-  private val dialogEngine: DialogEngine[F],
-  private val s10nsListMessageService: S10nsListMessageService[F]
-)(private implicit val xa: Transactor[F]) {
+  private val dialogEngine: DialogEngine[F, D],
+  private val s10nsListMessageService: S10nsListMessageService[F, D]
+)(private implicit val transact: D ~> F) {
 
   def saveName(user: User, dialog: CreateS10nDialog, name: SubscriptionName): F[List[ReplyMessage]] = {
     val draft = dialog.draft.copy(name = name)
@@ -70,19 +69,19 @@ class CreateS10nDialogFsmService[F[_] : Sync : Logger](
     val updatedDialog = dialog.copy(state = CreateS10nDialogState.transition(dialog.state, event))
     updatedDialog.state match {
       case finished @ CreateS10nDialogState.Finished =>
-        subscriptionRepo.create(updatedDialog.draft).flatMap { s10n =>
-          dialogEngine.reset(user, finished.message)
-            .map((_, s10n))
+        transact {
+          subscriptionRepo.create(updatedDialog.draft).flatMap { s10n =>
+            dialogEngine.reset(user, finished.message)
+              .map((_, s10n))
+          }
         }
-          .transact(xa)
           .flatMap { p =>
             s10nsListMessageService.createSubscriptionMessage(user, p._2, PageNumber(0))
               .map(List(p._1, _))
           }
       case _ =>
         val userWithUpdatedDialog = user.copy(dialog = updatedDialog.some)
-        userRepo.createOrUpdate(userWithUpdatedDialog)
-          .transact(xa) *>
+        transact(userRepo.createOrUpdate(userWithUpdatedDialog)) *>
           stateMessageService.getMessage(updatedDialog.state)
             .map(List(_))
     }

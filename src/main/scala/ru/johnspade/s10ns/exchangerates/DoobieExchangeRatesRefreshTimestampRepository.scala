@@ -9,7 +9,7 @@ import doobie.implicits._
 import doobie.util.log.LogHandler
 import ru.johnspade.s10ns.exchangerates.DoobieExchangeRatesRefreshTimestampRepository.ExchangeRatesRefreshTimestampSql
 
-class DoobieExchangeRatesRefreshTimestampRepository extends ExchangeRatesRefreshTimestampRepository {
+class DoobieExchangeRatesRefreshTimestampRepository extends ExchangeRatesRefreshTimestampRepository[ConnectionIO] {
   override def save(timestamp: Instant): ConnectionIO[Unit] = ExchangeRatesRefreshTimestampSql.save(timestamp).run.void
 
   override def get(): ConnectionIO[Option[Instant]] = ExchangeRatesRefreshTimestampSql.get().option

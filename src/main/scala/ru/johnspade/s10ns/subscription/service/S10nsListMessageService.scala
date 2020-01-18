@@ -1,5 +1,6 @@
 package ru.johnspade.s10ns.subscription.service
 
+import cats.Monad
 import cats.effect.Sync
 import cats.implicits._
 import org.joda.money.{CurrencyUnit, Money}
@@ -11,9 +12,9 @@ import ru.johnspade.s10ns.subscription.{BillingPeriod, Subscription}
 import ru.johnspade.s10ns.user.User
 import telegramium.bots.{InlineKeyboardButton, InlineKeyboardMarkup, MarkupInlineKeyboard}
 
-class S10nsListMessageService[F[_] : Sync](
-  private val moneyService: MoneyService[F],
-  private val s10nInfoService: S10nInfoService[F]
+class S10nsListMessageService[F[_] : Sync, D[_] : Monad](
+  private val moneyService: MoneyService[F, D],
+  private val s10nInfoService: S10nInfoService[F, D]
 ) {
   private val DefaultPageSize = 10
 

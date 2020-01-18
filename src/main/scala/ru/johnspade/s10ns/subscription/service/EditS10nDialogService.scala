@@ -2,25 +2,24 @@ package ru.johnspade.s10ns.subscription.service
 
 import cats.effect.Sync
 import cats.implicits._
-import doobie.implicits._
-import doobie.util.transactor.Transactor
+import cats.{Monad, ~>}
 import ru.johnspade.s10ns.bot
+import ru.johnspade.s10ns.bot.ValidatorNec._
 import ru.johnspade.s10ns.bot.engine.{DialogEngine, ReplyMessage}
 import ru.johnspade.s10ns.bot.{EditS10nAmount, EditS10nAmountDialog, EditS10nBillingPeriod, EditS10nBillingPeriodDialog, EditS10nCurrency, EditS10nCurrencyDialog, EditS10nDialog, EditS10nFirstPaymentDate, EditS10nFirstPaymentDateDialog, EditS10nName, EditS10nNameDialog, EditS10nOneTime, EditS10nOneTimeDialog, Errors, FirstPayment, OneTime, PeriodUnit, StateMessageService}
-import ru.johnspade.s10ns.bot.ValidatorNec._
-import ru.johnspade.s10ns.subscription.dialog.{EditS10nAmountDialogState, EditS10nBillingPeriodDialogState, EditS10nCurrencyDialogState, EditS10nFirstPaymentDateDialogState, EditS10nNameDialogState, EditS10nOneTimeDialogState}
-import ru.johnspade.s10ns.subscription.tags._
 import ru.johnspade.s10ns.subscription.Subscription
+import ru.johnspade.s10ns.subscription.dialog.{EditS10nAmountDialogState, EditS10nBillingPeriodDialogState, EditS10nCurrencyDialogState, EditS10nFirstPaymentDateDialogState, EditS10nNameDialogState, EditS10nOneTimeDialogState}
 import ru.johnspade.s10ns.subscription.repository.SubscriptionRepository
+import ru.johnspade.s10ns.subscription.tags._
 import ru.johnspade.s10ns.user.User
 import telegramium.bots.CallbackQuery
 
-class EditS10nDialogService[F[_] : Sync](
-  private val s10nRepo: SubscriptionRepository,
-  private val editS10nDialogFsmService: EditS10nDialogFsmService[F],
+class EditS10nDialogService[F[_] : Sync, D[_] : Monad](
+  private val s10nRepo: SubscriptionRepository[D],
+  private val editS10nDialogFsmService: EditS10nDialogFsmService[F, D],
   private val stateMessageService: StateMessageService[F],
-  private val dialogEngine: DialogEngine[F]
-)(private implicit val xa: Transactor[F]) {
+  private val dialogEngine: DialogEngine[F, D]
+)(private implicit val transact: D ~> F) {
   type RepliesValidated = ValidationResult[List[ReplyMessage]]
 
   def onEditS10nNameCb(user: User, cb: CallbackQuery, data: EditS10nName): F[ReplyMessage] =
@@ -175,7 +174,7 @@ class EditS10nDialogService[F[_] : Sync](
     }
 
     for {
-      s10nOpt <- s10nRepo.getById(s10nId).transact(xa)
+      s10nOpt <- transact(s10nRepo.getById(s10nId))
       replyOpt <- s10nOpt.traverse(saveAndReply)
     } yield replyOpt.getOrElse(ReplyMessage(Errors.NotFound))
   }

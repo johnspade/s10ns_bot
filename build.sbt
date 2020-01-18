@@ -47,7 +47,8 @@ libraryDependencies ++= Seq(
   "org.rudogma" %% "supertagged" % "1.4",
   "org.flywaydb" % "flyway-core" % "6.1.1",
   "com.propensive" %% "magnolia" % "0.12.3",
-  "com.softwaremill.quicklens" %% "quicklens" % "1.4.12"
+  "com.softwaremill.quicklens" %% "quicklens" % "1.4.12",
+  "org.scalatest" %% "scalatest" % "3.1.0" % "test"
 )
 
 addCompilerPlugin("com.olegpy" %% "better-monadic-for" % "0.3.1")

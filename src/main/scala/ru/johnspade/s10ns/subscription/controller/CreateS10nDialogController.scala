@@ -1,5 +1,6 @@
 package ru.johnspade.s10ns.subscription.controller
 
+import cats.Monad
 import cats.effect.{Sync, Timer}
 import cats.implicits._
 import io.chrisdavenport.log4cats.Logger
@@ -11,8 +12,8 @@ import ru.johnspade.s10ns.user.User
 import telegramium.bots.client.Api
 import telegramium.bots.{CallbackQuery, Message}
 
-class CreateS10nDialogController[F[_] : Sync : Logger : Timer](
-  private val createS10nDialogService: CreateS10nDialogService[F]
+class CreateS10nDialogController[F[_] : Sync : Logger : Timer, D[_] : Monad](
+  private val createS10nDialogService: CreateS10nDialogService[F, D]
 ) {
   def createCommand(user: User): F[ReplyMessage] = createS10nDialogService.onCreateCommand(user)
 

@@ -1,5 +1,6 @@
 package ru.johnspade.s10ns.settings
 
+import cats.Applicative
 import cats.effect.Sync
 import cats.implicits._
 import ru.johnspade.s10ns.bot.{DefCurrency, SettingsDialog, StateMessageService}
@@ -9,8 +10,8 @@ import ru.johnspade.s10ns.bot.engine.TelegramOps.singleInlineKeyboardButton
 import ru.johnspade.s10ns.user.User
 import telegramium.bots.{InlineKeyboardMarkup, MarkupInlineKeyboard}
 
-class SettingsService[F[_] : Sync](
-  private val dialogEngine: DialogEngine[F],
+class SettingsService[F[_] : Sync, D[_] : Applicative](
+  private val dialogEngine: DialogEngine[F, D],
   private val stateMessageService: StateMessageService[F]
 ) {
   def startDefaultCurrencyDialog(user: User): F[ReplyMessage] = {

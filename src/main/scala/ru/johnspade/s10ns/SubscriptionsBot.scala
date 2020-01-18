@@ -1,33 +1,31 @@
 package ru.johnspade.s10ns
 
-import cats.Monad
 import cats.effect.{Sync, Timer}
 import cats.implicits._
-import doobie.implicits._
-import doobie.util.transactor.Transactor
+import cats.{Monad, ~>}
 import io.chrisdavenport.log4cats.Logger
-import ru.johnspade.s10ns.bot.{Calendar, CbDataService, CreateS10nDialog, DefCurrency, Dialog, DropFirstPayment, EditS10n, EditS10nAmount, EditS10nAmountDialog, EditS10nBillingPeriod, EditS10nBillingPeriodDialog, EditS10nCurrency, EditS10nCurrencyDialog, EditS10nFirstPaymentDate, EditS10nFirstPaymentDateDialog, EditS10nName, EditS10nNameDialog, EditS10nOneTime, EditS10nOneTimeDialog, Errors, FirstPayment, Ignore, OneTime, PeriodUnit, RemoveS10n, S10n, S10ns, SettingsDialog, SkipIsOneTime, StartController}
 import ru.johnspade.s10ns.bot.engine.ReplyMessage
+import ru.johnspade.s10ns.bot.engine.TelegramOps.{TelegramUserOps, ackCb, sendReplyMessages, singleTextMessage}
+import ru.johnspade.s10ns.bot.{Calendar, CbDataService, CreateS10nDialog, DefCurrency, Dialog, DropFirstPayment, EditS10n, EditS10nAmount, EditS10nAmountDialog, EditS10nBillingPeriod, EditS10nBillingPeriodDialog, EditS10nCurrency, EditS10nCurrencyDialog, EditS10nFirstPaymentDate, EditS10nFirstPaymentDateDialog, EditS10nName, EditS10nNameDialog, EditS10nOneTime, EditS10nOneTimeDialog, Errors, FirstPayment, Ignore, OneTime, PeriodUnit, RemoveS10n, S10n, S10ns, SettingsDialog, SkipIsOneTime, StartController}
 import ru.johnspade.s10ns.calendar.CalendarController
 import ru.johnspade.s10ns.settings.SettingsController
-import ru.johnspade.s10ns.bot.engine.TelegramOps.{TelegramUserOps, ackCb, sendReplyMessages, singleTextMessage}
 import ru.johnspade.s10ns.subscription.controller.{CreateS10nDialogController, EditS10nDialogController, SubscriptionListController}
 import ru.johnspade.s10ns.user.{User, UserRepository}
 import telegramium.bots.client.Api
 import telegramium.bots.high.LongPollBot
 import telegramium.bots.{CallbackQuery, Message, User => TgUser}
 
-class SubscriptionsBot[F[_] : Sync : Timer : Logger](
+class SubscriptionsBot[F[_] : Sync : Timer : Logger, D[_] : Monad](
   private val bot: Api[F],
-  private val userRepo: UserRepository,
-  private val s10nListController: SubscriptionListController[F],
-  private val createS10nDialogController: CreateS10nDialogController[F],
-  private val editS10nDialogController: EditS10nDialogController[F],
+  private val userRepo: UserRepository[D],
+  private val s10nListController: SubscriptionListController[F, D],
+  private val createS10nDialogController: CreateS10nDialogController[F, D],
+  private val editS10nDialogController: EditS10nDialogController[F, D],
   private val calendarController: CalendarController[F],
-  private val settingsController: SettingsController[F],
-  private val startController: StartController[F],
+  private val settingsController: SettingsController[F, D],
+  private val startController: StartController[F, D],
   private val cbDataService: CbDataService[F]
-)(private implicit val xa: Transactor[F]) extends LongPollBot[F](bot) {
+)(private implicit val transact: D ~> F) extends LongPollBot[F](bot) {
   private implicit val api: Api[F] = bot
 
   override def onMessage(msg: Message): F[Unit] =
@@ -41,7 +39,7 @@ class SubscriptionsBot[F[_] : Sync : Timer : Logger](
     val ackError = ackCb[F](query, Errors.Default.some)
     val tgUser = query.from.toUser(query.message.map(_.chat.id.toLong))
 
-    def getUser = userRepo.getOrCreate(tgUser).transact(xa)
+    def getUser = transact(userRepo.getOrCreate(tgUser))
 
     def route(data: String) =
       cbDataService.decode(data)
@@ -191,8 +189,7 @@ class SubscriptionsBot[F[_] : Sync : Timer : Logger](
     }
 
     val tgUser = from.toUser(chatId.some)
-    userRepo.getOrCreate(tgUser)
-      .transact(xa)
+    transact(userRepo.getOrCreate(tgUser))
       .flatMap { user =>
         msg.text match {
           case Some(txt) =>

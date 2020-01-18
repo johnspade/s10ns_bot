@@ -1,5 +1,6 @@
 package ru.johnspade.s10ns.subscription.service
 
+import cats.{Applicative, Monad, ~>}
 import cats.effect.Sync
 import cats.implicits._
 import com.softwaremill.quicklens._
@@ -15,13 +16,13 @@ import ru.johnspade.s10ns.subscription.repository.SubscriptionRepository
 import ru.johnspade.s10ns.subscription.{BillingPeriod, Subscription}
 import ru.johnspade.s10ns.user.{User, UserRepository}
 
-class EditS10nDialogFsmService[F[_] : Sync](
-  private val s10nsListMessageService: S10nsListMessageService[F],
+class EditS10nDialogFsmService[F[_] : Sync, D[_] : Monad](
+  private val s10nsListMessageService: S10nsListMessageService[F, D],
   private val stateMessageService: StateMessageService[F],
-  private val userRepo: UserRepository,
-  private val s10nRepo: SubscriptionRepository,
-  private val dialogEngine: DialogEngine[F]
-)(private implicit val xa: Transactor[F]) {
+  private val userRepo: UserRepository[D],
+  private val s10nRepo: SubscriptionRepository[D],
+  private val dialogEngine: DialogEngine[F, D]
+)(private implicit val transact: D ~> F) {
   def saveName(user: User, dialog: EditS10nNameDialog, name: SubscriptionName): F[List[ReplyMessage]] = {
     val updatedDialog = dialog.modify(_.draft.name).setTo(name)
     transition(user, updatedDialog)(EditS10nNameDialogEvent.EnteredName, stateMessageService.getTextMessage)
@@ -52,7 +53,8 @@ class EditS10nDialogFsmService[F[_] : Sync](
   def saveIsOneTime(user: User, dialog: EditS10nOneTimeDialog, oneTime: OneTimeSubscription): F[List[ReplyMessage]] = {
     val updatedDialog = dialog
       .modify(_.draft.oneTime).setTo(oneTime.some)
-      .modify(_.draft.billingPeriod).setTo(if (oneTime) None else dialog.draft.billingPeriod)
+      .modify(_.draft.billingPeriod).setTo(if (oneTime) None
+    else dialog.draft.billingPeriod)
     val event = if (oneTime) EditS10nOneTimeDialogEvent.ChosenOneTime
     else {
       if (dialog.draft.billingPeriod.isDefined)
@@ -114,7 +116,7 @@ class EditS10nDialogFsmService[F[_] : Sync](
     transition(user, updatedDialog)(EditS10nFirstPaymentDateDialogEvent.RemovedFirstPaymentDate, stateMessageService.getMessage)
   }
 
-  def saveFirstPaymentDate(user: User, dialog: EditS10nFirstPaymentDateDialog, date: FirstPaymentDate): F[List[ReplyMessage]] ={
+  def saveFirstPaymentDate(user: User, dialog: EditS10nFirstPaymentDateDialog, date: FirstPaymentDate): F[List[ReplyMessage]] = {
     val updatedDialog = dialog.modify(_.draft.firstPaymentDate).setTo(date.some)
     transition(user, updatedDialog)(EditS10nFirstPaymentDateDialogEvent.ChosenFirstPaymentDate, stateMessageService.getMessage)
   }
@@ -126,18 +128,19 @@ class EditS10nDialogFsmService[F[_] : Sync](
       onFinish(user, dialog.draft, dialog.finished.message)
     else {
       val userWithUpdatedDialog = user.copy(dialog = updatedDialog.some)
-      userRepo.createOrUpdate(userWithUpdatedDialog).transact(xa) *>
+      transact(userRepo.createOrUpdate(userWithUpdatedDialog)) *>
         getMessage(updatedDialog.state).map(List(_))
     }
   }
 
   private def onFinish(user: User, draft: Subscription, message: String) = {
-    val replyOpt = s10nRepo.update(draft)
-      .flatMap(_.traverse { s10n =>
-        dialogEngine.reset(user, message)
-          .map((_, s10n))
-      })
-      .transact(xa)
+    val replyOpt = transact {
+      s10nRepo.update(draft)
+        .flatMap(_.traverse { s10n =>
+          dialogEngine.reset(user, message)
+            .map((_, s10n))
+        })
+    }
     for {
       reply <- replyOpt
       replies <- reply.traverse { p =>

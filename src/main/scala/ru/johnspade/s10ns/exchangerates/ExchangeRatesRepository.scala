@@ -1,11 +1,9 @@
 package ru.johnspade.s10ns.exchangerates
 
-import doobie.free.connection.ConnectionIO
+trait ExchangeRatesRepository[D[_]] {
+  def save(rates: Map[String, BigDecimal]): D[Unit]
 
-trait ExchangeRatesRepository {
-  def save(rates: Map[String, BigDecimal]): ConnectionIO[Unit]
+  def get(): D[Map[String, BigDecimal]]
 
-  def get(): ConnectionIO[Map[String, BigDecimal]]
-
-  def clear(): ConnectionIO[Unit]
+  def clear(): D[Unit]
 }

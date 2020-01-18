@@ -9,5 +9,5 @@ case class User(
   firstName: FirstName,
   chatId: Option[ChatId],
   defaultCurrency: CurrencyUnit = CurrencyUnit.EUR,
-  dialog: Option[Dialog]
+  dialog: Option[Dialog] = None
 )

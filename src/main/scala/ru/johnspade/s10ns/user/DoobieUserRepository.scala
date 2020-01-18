@@ -16,7 +16,7 @@ import ru.johnspade.s10ns.bot.Dialog
 import ru.johnspade.s10ns.user.DoobieUserRepository.UserSql
 import ru.johnspade.s10ns.user.tags._
 
-class DoobieUserRepository extends UserRepository {
+class DoobieUserRepository extends UserRepository[ConnectionIO] {
   override def create(user: User): ConnectionIO[User] =
     UserSql
       .create(user)
@@ -108,5 +108,3 @@ object DoobieUserRepository {
 
   private implicit val currencyUnitMeta: Meta[CurrencyUnit] = Meta[String].timap(CurrencyUnit.of)(_.getCode)
 }
-
-

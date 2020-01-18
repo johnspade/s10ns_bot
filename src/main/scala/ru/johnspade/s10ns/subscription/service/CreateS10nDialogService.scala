@@ -2,23 +2,23 @@ package ru.johnspade.s10ns.subscription.service
 
 import cats.effect.Sync
 import cats.implicits._
-import doobie.util.transactor.Transactor
+import cats.{Monad, ~>}
 import ru.johnspade.s10ns.bot
+import ru.johnspade.s10ns.bot.ValidatorNec.{ValidationResult, validateAmount, validateAmountString, validateCurrency, validateDuration, validateDurationString, validateNameLength, validateText}
 import ru.johnspade.s10ns.bot.engine.{DialogEngine, ReplyMessage}
 import ru.johnspade.s10ns.bot.{CreateS10nDialog, FirstPayment, OneTime, PeriodUnit, StateMessageService}
-import ru.johnspade.s10ns.bot.ValidatorNec.{ValidationResult, validateAmount, validateAmountString, validateCurrency, validateDuration, validateDurationString, validateNameLength, validateText}
-import ru.johnspade.s10ns.subscription.tags._
 import ru.johnspade.s10ns.subscription.SubscriptionDraft
 import ru.johnspade.s10ns.subscription.dialog.CreateS10nDialogState
+import ru.johnspade.s10ns.subscription.tags._
 import ru.johnspade.s10ns.user.{User, UserRepository}
 import telegramium.bots.CallbackQuery
 
-class CreateS10nDialogService[F[_] : Sync](
-  private val userRepo: UserRepository,
-  private val createS10nDialogFsmService: CreateS10nDialogFsmService[F],
+class CreateS10nDialogService[F[_] : Sync, D[_] : Monad](
+  private val userRepo: UserRepository[D],
+  private val createS10nDialogFsmService: CreateS10nDialogFsmService[F, D],
   private val stateMessageService: StateMessageService[F],
-  private val dialogEngine: DialogEngine[F]
-)(private implicit val xa: Transactor[F]) {
+  private val dialogEngine: DialogEngine[F, D]
+)(private implicit val transact: D ~> F) {
   def onCreateCommand(user: User): F[ReplyMessage] = {
     val state = CreateS10nDialogState.Currency
     val dialog = CreateS10nDialog(

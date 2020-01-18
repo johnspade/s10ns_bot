@@ -16,7 +16,7 @@ import ru.johnspade.s10ns.subscription.{Subscription, SubscriptionDraft}
 import ru.johnspade.s10ns.user.tags._
 import ru.johnspade.s10ns.subscription.repository.DoobieSubscriptionRepository.SubscriptionSql
 
-class DoobieSubscriptionRepository extends SubscriptionRepository {
+class DoobieSubscriptionRepository extends SubscriptionRepository[ConnectionIO] {
   override def create(draft: SubscriptionDraft): ConnectionIO[Subscription] =
     SubscriptionSql
       .create(draft)

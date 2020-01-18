@@ -4,8 +4,7 @@ import java.time.Instant
 
 import cats.effect.{Sync, Timer}
 import cats.implicits._
-import doobie.implicits._
-import doobie.util.transactor.Transactor
+import cats.{Monad, ~>}
 import io.chrisdavenport.log4cats.Logger
 import retry.CatsEffect._
 import retry.RetryDetails.{GivingUp, WillDelayAndRetry}
@@ -13,20 +12,21 @@ import retry._
 
 import scala.concurrent.duration._
 
-class ExchangeRatesService[F[_] : Sync : Logger : Timer](
+class ExchangeRatesService[F[_] : Sync : Logger : Timer, D[_] : Monad](
   private val fixerApi: FixerApi[F],
-  private val exchangeRatesRepository: ExchangeRatesRepository,
-  private val exchangeRatesRefreshTimestampRepo: ExchangeRatesRefreshTimestampRepository,
+  private val exchangeRatesRepository: ExchangeRatesRepository[D],
+  private val exchangeRatesRefreshTimestampRepo: ExchangeRatesRefreshTimestampRepository[D],
   private val cache: ExchangeRatesCache[F]
-)(private implicit val xa: Transactor[F]) {
+)(private implicit val transact: D ~> F) {
   private val retryPolicy = RetryPolicies.limitRetries[F](3) join RetryPolicies.exponentialBackoff[F](1.minute)
 
   def saveRates(): F[Unit] = {
     def saveToDb(rates: ExchangeRates): F[Unit] =
-      exchangeRatesRepository.clear()
-        .productR(exchangeRatesRepository.save(rates.rates))
-        .productR(exchangeRatesRefreshTimestampRepo.save(Instant.ofEpochSecond(rates.timestamp)))
-        .transact(xa)
+      transact {
+        exchangeRatesRepository.clear()
+          .productR(exchangeRatesRepository.save(rates.rates))
+          .productR(exchangeRatesRefreshTimestampRepo.save(Instant.ofEpochSecond(rates.timestamp)))
+      }
 
     def logError(err: Throwable, details: RetryDetails): F[Unit] = details match {
       case WillDelayAndRetry(_, retriesSoFar: Int, _) =>

@@ -1,6 +1,6 @@
 package ru.johnspade.s10ns.settings
 
-import cats.Monad
+import cats.{Applicative, Monad}
 import cats.effect.Sync
 import cats.implicits._
 import io.chrisdavenport.log4cats.Logger
@@ -11,8 +11,8 @@ import ru.johnspade.s10ns.user.User
 import telegramium.bots.client.Api
 import telegramium.bots.{CallbackQuery, Message}
 
-class SettingsController[F[_] : Sync : Logger](
-  private val settingsService: SettingsService[F]
+class SettingsController[F[_] : Sync : Logger, D[_] : Applicative](
+  private val settingsService: SettingsService[F, D]
 ) {
   def message(user: User, dialog: SettingsDialog, message: Message): F[List[ReplyMessage]] =
     (dialog.state match {

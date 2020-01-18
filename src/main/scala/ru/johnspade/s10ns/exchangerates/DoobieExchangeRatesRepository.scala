@@ -8,7 +8,7 @@ import doobie.util.log.LogHandler
 import doobie.util.query.Query0
 import ru.johnspade.s10ns.exchangerates.DoobieExchangeRatesRepository.ExchangeRatesSql
 
-class DoobieExchangeRatesRepository extends ExchangeRatesRepository {
+class DoobieExchangeRatesRepository extends ExchangeRatesRepository[ConnectionIO] {
   override def save(rates: Map[String, BigDecimal]): ConnectionIO[Unit] =
     Update[(String, BigDecimal)](ExchangeRatesSql.Save).updateMany(rates.toList).void
 
