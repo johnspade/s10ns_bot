@@ -17,7 +17,7 @@ class ExchangeRatesService[F[_] : Sync : Logger : Timer, D[_] : Monad](
   private val exchangeRatesRepository: ExchangeRatesRepository[D],
   private val exchangeRatesRefreshTimestampRepo: ExchangeRatesRefreshTimestampRepository[D],
   private val cache: ExchangeRatesCache[F]
-)(private implicit val transact: D ~> F) {
+)(private implicit val transact: D ~> F) extends ExchangeRatesStorage[F] {
   private val retryPolicy = RetryPolicies.limitRetries[F](3) join RetryPolicies.exponentialBackoff[F](1.minute)
 
   def saveRates(): F[Unit] = {
@@ -46,5 +46,5 @@ class ExchangeRatesService[F[_] : Sync : Logger : Timer, D[_] : Monad](
     }.handleError(_ => ())
   }
 
-  def getRates: F[Map[String, BigDecimal]] = cache.get
+  override def getRates: F[Map[String, BigDecimal]] = cache.get
 }

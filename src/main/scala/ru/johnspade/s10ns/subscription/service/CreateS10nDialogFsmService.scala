@@ -17,7 +17,7 @@ class CreateS10nDialogFsmService[F[_] : Sync : Logger, D[_] : Monad](
   private val userRepo: UserRepository[D],
   private val stateMessageService: StateMessageService[F],
   private val dialogEngine: DialogEngine[F, D],
-  private val s10nsListMessageService: S10nsListMessageService[F, D]
+  private val s10nsListMessageService: S10nsListMessageService[F]
 )(private implicit val transact: D ~> F) {
 
   def saveName(user: User, dialog: CreateS10nDialog, name: SubscriptionName): F[List[ReplyMessage]] = {

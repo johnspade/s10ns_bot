@@ -14,7 +14,7 @@ import telegramium.bots.{CallbackQuery, InlineKeyboardMarkup}
 
 class SubscriptionListService[F[_] : Sync, D[_] : Monad](
   private val s10nRepo: SubscriptionRepository[D],
-  private val s10nsListService: S10nsListMessageService[F, D]
+  private val s10nsListService: S10nsListMessageService[F]
 )(private implicit val transact: D ~> F) {
   def onSubscriptionsCb(user: User, cb: CallbackQuery, data: S10ns): F[ReplyMessage] = {
     for {

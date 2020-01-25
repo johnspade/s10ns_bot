@@ -100,9 +100,9 @@ object BotApp extends IOApp {
           exchangeRatesRefreshTimestampRepo,
           exchangeRatesCache
         )
-        moneyService = new MoneyService[F, D](exchangeRatesService)
-        s10nInfoService = new S10nInfoService[F, D](moneyService)
-        s10nsListService = new S10nsListMessageService[F, D](moneyService, s10nInfoService)
+        moneyService = new MoneyService[F](exchangeRatesService)
+        s10nInfoService = new S10nInfoService[F](moneyService)
+        s10nsListService = new S10nsListMessageService[F](moneyService, s10nInfoService)
         createS10nDialogFsmService = new CreateS10nDialogFsmService[F, D](
           s10nRepo,
           userRepo,

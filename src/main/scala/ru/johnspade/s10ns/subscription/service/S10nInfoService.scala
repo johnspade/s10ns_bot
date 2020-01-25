@@ -12,8 +12,8 @@ import ru.johnspade.s10ns.bot.MoneyService
 import ru.johnspade.s10ns.subscription.BillingPeriod
 import ru.johnspade.s10ns.subscription.tags.{FirstPaymentDate, SubscriptionName}
 
-class S10nInfoService[F[_] : Sync : Clock, D[_] : Monad](
-  private val moneyService: MoneyService[F, D]
+class S10nInfoService[F[_] : Sync : Clock](
+  private val moneyService: MoneyService[F]
 ) {
   def getName(name: SubscriptionName): String = s"*$name*"
 

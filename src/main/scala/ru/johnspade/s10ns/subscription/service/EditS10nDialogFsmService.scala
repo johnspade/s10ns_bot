@@ -17,7 +17,7 @@ import ru.johnspade.s10ns.subscription.{BillingPeriod, Subscription}
 import ru.johnspade.s10ns.user.{User, UserRepository}
 
 class EditS10nDialogFsmService[F[_] : Sync, D[_] : Monad](
-  private val s10nsListMessageService: S10nsListMessageService[F, D],
+  private val s10nsListMessageService: S10nsListMessageService[F],
   private val stateMessageService: StateMessageService[F],
   private val userRepo: UserRepository[D],
   private val s10nRepo: SubscriptionRepository[D],

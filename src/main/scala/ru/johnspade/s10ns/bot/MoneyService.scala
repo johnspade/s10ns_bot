@@ -3,15 +3,14 @@ package ru.johnspade.s10ns.bot
 import java.math.RoundingMode
 import java.time.temporal.ChronoUnit
 
-import cats.Monad
 import cats.effect.Sync
 import cats.implicits._
 import org.joda.money.format.{MoneyFormatter, MoneyFormatterBuilder}
 import org.joda.money.{BigMoney, CurrencyUnit, Money}
-import ru.johnspade.s10ns.exchangerates.ExchangeRatesService
+import ru.johnspade.s10ns.exchangerates.ExchangeRatesStorage
 import ru.johnspade.s10ns.subscription.{BillingPeriod, Subscription}
 
-class MoneyService[F[_] : Sync, D[_] : Monad](private val exchangeRatesService: ExchangeRatesService[F, D]) {
+class MoneyService[F[_] : Sync](private val exchangeRatesStorage: ExchangeRatesStorage[F]) {
   def sum(subscriptions: Seq[Subscription], defaultCurrency: CurrencyUnit): F[Option[Money]] = {
     def convertToEuro(amount: Money, rate: BigDecimal): BigMoney =
       if (amount.getCurrencyUnit == CurrencyUnit.EUR)
@@ -38,7 +37,7 @@ class MoneyService[F[_] : Sync, D[_] : Monad](private val exchangeRatesService: 
         .dividedBy(period.unit.getDuration.getSeconds * period.duration, RoundingMode.HALF_UP)
         .multipliedBy(ChronoUnit.MONTHS.getDuration.getSeconds)
 
-    exchangeRatesService.getRates.map { rates =>
+    exchangeRatesStorage.getRates.map { rates =>
       val sum = subscriptions
         .flatMap(s => getSubscriptionAmountEuro(s, rates))
         .map {
@@ -51,7 +50,7 @@ class MoneyService[F[_] : Sync, D[_] : Monad](private val exchangeRatesService: 
   }
 
   def convert(money: Money, currency: CurrencyUnit): F[Option[Money]] =
-    exchangeRatesService.getRates.map { rates =>
+    exchangeRatesStorage.getRates.map { rates =>
       (rates.get(money.getCurrencyUnit.getCode), rates.get(currency.getCode)) match {
         case (Some(moneyRate), Some(currencyRate)) =>
           money
