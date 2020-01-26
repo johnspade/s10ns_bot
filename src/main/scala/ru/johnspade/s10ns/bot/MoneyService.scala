@@ -6,7 +6,7 @@ import java.time.temporal.ChronoUnit
 import cats.effect.Sync
 import cats.implicits._
 import org.joda.money.format.{MoneyFormatter, MoneyFormatterBuilder}
-import org.joda.money.{BigMoney, CurrencyUnit, Money}
+import org.joda.money.{CurrencyUnit, Money}
 import ru.johnspade.s10ns.exchangerates.ExchangeRatesStorage
 import ru.johnspade.s10ns.subscription.{BillingPeriod, Subscription}
 
@@ -39,16 +39,21 @@ class MoneyService[F[_] : Sync](private val exchangeRatesStorage: ExchangeRatesS
     }
   }
 
-  def convert(money: Money, currency: CurrencyUnit): F[Option[Money]] =
-    exchangeRatesStorage.getRates.map { rates =>
-      (rates.get(money.getCurrencyUnit.getCode), rates.get(currency.getCode)) match {
-        case (Some(moneyRate), Some(currencyRate)) =>
-          val scale = max(moneyRate.scale, currencyRate.scale)
-          val rate = currencyRate.bigDecimal.divide(moneyRate.bigDecimal, scale, RoundingMode.HALF_EVEN)
-          money.convertedTo(currency, rate, RoundingMode.HALF_EVEN).some
-        case _ => Option.empty[Money]
-      }
+  def convert(amount: Money, currency: CurrencyUnit): F[Option[Money]] = {
+    def calcRateAndConvert(moneyRate: BigDecimal, targetRate: BigDecimal) = {
+      val scale = max(moneyRate.scale, targetRate.scale)
+      val rate = targetRate.bigDecimal.divide(moneyRate.bigDecimal, scale, RoundingMode.HALF_EVEN)
+      amount.convertedTo(currency, rate, RoundingMode.HALF_EVEN).some
     }
+
+    exchangeRatesStorage.getRates
+      .map { rates =>
+        (rates.get(amount.getCurrencyUnit.getCode), rates.get(currency.getCode)) match {
+          case (Some(moneyRate), Some(currencyRate)) => calcRateAndConvert(moneyRate, currencyRate)
+          case _ => Option.empty[Money]
+        }
+      }
+  }
 
   val MoneyFormatter: MoneyFormatter =
     new MoneyFormatterBuilder()

@@ -17,10 +17,9 @@ val PureconfigVersion = "0.12.1"
 val CatsRetryVersion = "0.3.1"
 val KantanVersion = "0.6.0"
 
-lazy val telegramiumHigh = ProjectRef(uri("https://github.com/apimorphism/telegramium.git#master"), "telegramium-high")
-lazy val root = project.in(file(".")).dependsOn(telegramiumHigh)
-
 libraryDependencies ++= Seq(
+  "io.github.apimorphism" %% "telegramium-core" % "1.0.0-RC1",
+  "io.github.apimorphism" %% "telegramium-high" % "1.0.0-RC1",
   "com.softwaremill.sttp" %% "core" % SttpVersion,
   "com.softwaremill.sttp" %% "async-http-client-backend-cats" % SttpVersion,
   "com.softwaremill.sttp" %% "circe" % SttpVersion,
