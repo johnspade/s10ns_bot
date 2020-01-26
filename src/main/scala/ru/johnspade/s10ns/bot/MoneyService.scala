@@ -10,42 +10,32 @@ import org.joda.money.{BigMoney, CurrencyUnit, Money}
 import ru.johnspade.s10ns.exchangerates.ExchangeRatesStorage
 import ru.johnspade.s10ns.subscription.{BillingPeriod, Subscription}
 
+import scala.math.max
+
 class MoneyService[F[_] : Sync](private val exchangeRatesStorage: ExchangeRatesStorage[F]) {
-  def sum(subscriptions: Seq[Subscription], defaultCurrency: CurrencyUnit): F[Option[Money]] = {
-    def convertToEuro(amount: Money, rate: BigDecimal): BigMoney =
-      if (amount.getCurrencyUnit == CurrencyUnit.EUR)
-        amount.toBigMoney
-      else {
-        amount.toBigMoney.withScale(20).dividedBy(rate.bigDecimal, RoundingMode.HALF_UP)
-          .convertedTo(CurrencyUnit.EUR, BigDecimal(1).bigDecimal)
+  def sum(subscriptions: List[Subscription], defaultCurrency: CurrencyUnit): F[Money] = {
+    def getAmountInDefCurrencyAndPeriod(s10n: Subscription, rates: Map[String, BigDecimal]) =
+      s10n.billingPeriod.flatTraverse { period =>
+        convert(s10n.amount, defaultCurrency)
+          .map(_.map((period, _)))
       }
 
-    def convertToDefaultCurrency(amount: BigMoney, rate: BigDecimal) =
-      amount.convertedTo(defaultCurrency, rate.bigDecimal)
-
-    def getSubscriptionAmountEuro(s: Subscription, rates: Map[String, BigDecimal]) =
-      s.billingPeriod.flatMap { period =>
-        rates.get(s.amount.getCurrencyUnit.getCode).map { rate =>
-          (period, convertToEuro(s.amount, rate))
-        }
-      }
-
-    def calcMonthAmount(period: BillingPeriod, amount: BigMoney) =
+    def calcMonthAmount(period: BillingPeriod, amount: Money) =
       amount
-        .toBigMoney
-        .withScale(20)
-        .dividedBy(period.unit.getDuration.getSeconds * period.duration, RoundingMode.HALF_UP)
         .multipliedBy(ChronoUnit.MONTHS.getDuration.getSeconds)
+        .dividedBy(period.unit.getDuration.getSeconds * period.duration, RoundingMode.HALF_EVEN)
 
-    exchangeRatesStorage.getRates.map { rates =>
-      val sum = subscriptions
-        .flatMap(s => getSubscriptionAmountEuro(s, rates))
+    exchangeRatesStorage.getRates.flatMap { rates =>
+      subscriptions
+        .traverse(getAmountInDefCurrencyAndPeriod(_, rates))
         .map {
-          case (period, money) => calcMonthAmount(period, money)
+          _.flatten
+            .map {
+              case (period, amount) =>
+                calcMonthAmount(period, amount)
+            }
+            .foldLeft(Money.zero(defaultCurrency))(_ plus _)
         }
-        .foldLeft(Money.zero(CurrencyUnit.EUR).toBigMoney.withScale(20))(_ plus _)
-      rates.get(defaultCurrency.getCode)
-        .map(rate => convertToDefaultCurrency(sum, rate.bigDecimal).toMoney(RoundingMode.HALF_UP))
     }
   }
 
@@ -53,13 +43,9 @@ class MoneyService[F[_] : Sync](private val exchangeRatesStorage: ExchangeRatesS
     exchangeRatesStorage.getRates.map { rates =>
       (rates.get(money.getCurrencyUnit.getCode), rates.get(currency.getCode)) match {
         case (Some(moneyRate), Some(currencyRate)) =>
-          money
-            .toBigMoney
-            .withScale(20)
-            .dividedBy(moneyRate.bigDecimal, RoundingMode.HALF_UP)
-            .convertedTo(currency, currencyRate.bigDecimal)
-            .toMoney(RoundingMode.HALF_UP)
-            .some
+          val scale = max(moneyRate.scale, currencyRate.scale)
+          val rate = currencyRate.bigDecimal.divide(moneyRate.bigDecimal, scale, RoundingMode.HALF_EVEN)
+          money.convertedTo(currency, rate, RoundingMode.HALF_EVEN).some
         case _ => Option.empty[Money]
       }
     }

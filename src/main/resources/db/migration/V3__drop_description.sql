@@ -1,0 +1,1 @@
+alter table subscriptions drop column description;

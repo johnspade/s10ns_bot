@@ -59,13 +59,13 @@ object DoobieSubscriptionRepository {
     }
 
     def get(id: SubscriptionId): Query0[Subscription] = sql"""
-        select id, user_id, name, amount, currency, description, one_time, period_duration, period_unit, first_payment_date
+        select id, user_id, name, amount, currency, one_time, period_duration, period_unit, first_payment_date
         from subscriptions
         where id = $id
       """.query[Subscription]
 
     def getByUserId(userId: UserId): Query0[Subscription] = sql"""
-        select id, user_id, name, amount, currency, description, one_time, period_duration, period_unit, first_payment_date
+        select id, user_id, name, amount, currency, one_time, period_duration, period_unit, first_payment_date
         from subscriptions
         where user_id = $userId
       """.query[Subscription]

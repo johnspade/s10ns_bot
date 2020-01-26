@@ -17,7 +17,6 @@ case class Subscription(
   userId: UserId,
   name: SubscriptionName,
   amount: Money,
-  description: Option[SubscriptionDescription],
   oneTime: Option[OneTimeSubscription],
   billingPeriod: Option[BillingPeriod],
   firstPaymentDate: Option[FirstPaymentDate]
@@ -30,7 +29,6 @@ object Subscription {
       userId = draft.userId,
       name = draft.name,
       amount = Money.ofMinor(draft.currency, draft.amount),
-      description = draft.description,
       oneTime = draft.oneTime,
       billingPeriod = draft.periodDuration.flatMap { duration =>
         draft.periodUnit.map(BillingPeriod(duration, _))
@@ -44,7 +42,6 @@ case class SubscriptionDraft(
   name: SubscriptionName,
   currency: CurrencyUnit,
   amount: SubscriptionAmount,
-  description: Option[SubscriptionDescription],
   oneTime: Option[OneTimeSubscription],
   periodDuration: Option[BillingPeriodDuration],
   periodUnit: Option[BillingPeriodUnit],
@@ -58,7 +55,6 @@ object SubscriptionDraft {
       name = SubscriptionName(""),
       currency = currency,
       amount = SubscriptionAmount(0L),
-      description = None,
       oneTime = None,
       periodDuration = None,
       periodUnit = None,

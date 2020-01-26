@@ -15,9 +15,6 @@ object tags {
   object SubscriptionAmount extends Tagged[Long]
   type SubscriptionAmount = SubscriptionAmount.Type
 
-  object SubscriptionDescription extends Tagged[String]
-  type SubscriptionDescription = SubscriptionDescription.Type
-
   object OneTimeSubscription extends Tagged[Boolean]
   type OneTimeSubscription = OneTimeSubscription.Type
 

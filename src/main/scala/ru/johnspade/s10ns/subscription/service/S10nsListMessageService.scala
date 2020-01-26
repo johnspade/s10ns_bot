@@ -19,8 +19,8 @@ class S10nsListMessageService[F[_] : Sync](
 
   def createSubscriptionsPage(subscriptions: List[Subscription], page: PageNumber, defaultCurrency: CurrencyUnit):
   F[ReplyMessage] = {
-    def createText(indexedSubscriptions: List[(Subscription, Int)], sum: Option[Money]) = {
-      val sumString = sum.map(s => moneyService.MoneyFormatter.print(s) + "\n").orEmpty
+    def createText(indexedSubscriptions: List[(Subscription, Int)], sum: Money) = {
+      val sumString = moneyService.MoneyFormatter.print(sum) + "\n"
       val list = indexedSubscriptions
         .map {
           case (s, i) => s"$i. ${s.name} – ${moneyService.MoneyFormatter.print(s.amount)}"
