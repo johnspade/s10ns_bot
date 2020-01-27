@@ -32,6 +32,7 @@ libraryDependencies ++= Seq(
   "org.tpolecat" %% "doobie-core" % DoobieVersion,
   "org.tpolecat" %% "doobie-postgres" % DoobieVersion,
   "org.tpolecat" %% "doobie-hikari" % DoobieVersion,
+  "org.tpolecat" %% "doobie-scalatest" % DoobieVersion,
   "com.beachape" %% "enumeratum" % "1.5.13",
   "com.beachape" %% "enumeratum-circe" % "1.5.20",
   "com.beachape" %% "enumeratum-doobie" % "1.5.15",
@@ -47,7 +48,9 @@ libraryDependencies ++= Seq(
   "org.flywaydb" % "flyway-core" % "6.1.1",
   "com.propensive" %% "magnolia" % "0.12.3",
   "com.softwaremill.quicklens" %% "quicklens" % "1.4.12",
-  "org.scalatest" %% "scalatest" % "3.1.0" % "test"
+  "org.scalatest" %% "scalatest" % "3.1.0" % "test",
+  "com.dimafeng" %% "testcontainers-scala-postgresql" % "0.35.0" % "test",
+  "com.softwaremill.diffx" %% "diffx-scalatest" % "0.3.16" % "test"
 )
 
 addCompilerPlugin("com.olegpy" %% "better-monadic-for" % "0.3.1")

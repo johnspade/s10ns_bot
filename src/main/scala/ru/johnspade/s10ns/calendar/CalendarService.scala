@@ -3,20 +3,19 @@ package ru.johnspade.s10ns.calendar
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
-import cats.effect.Sync
-import ru.johnspade.s10ns.bot.{Calendar, FirstPayment, Ignore, DropFirstPayment}
+import ru.johnspade.s10ns.bot.engine.TelegramOps.inlineKeyboardButton
+import ru.johnspade.s10ns.bot.{Calendar, DropFirstPayment, FirstPayment, Ignore}
 import ru.johnspade.s10ns.subscription.tags._
 import telegramium.bots.{InlineKeyboardButton, InlineKeyboardMarkup}
-import ru.johnspade.s10ns.bot.engine.TelegramOps.inlineKeyboardButton
 
-class CalendarService[F[_]: Sync] {
+class CalendarService {
   private val monthFormatter = DateTimeFormatter.ofPattern("MMM yyyy")
   private val weekRow = Array("M", "T", "W", "T", "F", "S", "S").map(createIgnoredButton).toList
   private val LengthOfWeek = 7
 
   private def createIgnoredButton(text: String): InlineKeyboardButton = inlineKeyboardButton(text, Ignore)
 
-  def generateKeyboard(date: LocalDate): F[InlineKeyboardMarkup] = {
+  def generateKeyboard(date: LocalDate): InlineKeyboardMarkup = {
     def createPlaceholders(count: Int): List[InlineKeyboardButton] = List.fill(count)(createIgnoredButton(" "))
 
     val firstDay = date.withDayOfMonth(1)
@@ -41,6 +40,6 @@ class CalendarService[F[_]: Sync] {
       inlineKeyboardButton("➡", Calendar(firstDay.plusMonths(1)))
     )
 
-    Sync[F].delay(InlineKeyboardMarkup((headerRow :: weekRow :: calendarRows) :+ controlsRow))
+    InlineKeyboardMarkup((headerRow :: weekRow :: calendarRows) :+ controlsRow)
   }
 }

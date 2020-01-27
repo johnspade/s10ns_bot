@@ -44,7 +44,7 @@ class DoobieSubscriptionRepository extends SubscriptionRepository[ConnectionIO] 
 }
 
 object DoobieSubscriptionRepository {
-  private object SubscriptionSql {
+  object SubscriptionSql {
     private implicit val han: LogHandler = LogHandler.jdkLogHandler
 
     def create(draft: SubscriptionDraft): Update0 = {

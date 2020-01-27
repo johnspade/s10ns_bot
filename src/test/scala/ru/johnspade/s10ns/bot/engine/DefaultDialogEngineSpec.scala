@@ -12,9 +12,9 @@ import ru.johnspade.s10ns.user.tags.{ChatId, FirstName, UserId}
 import ru.johnspade.s10ns.user.{InMemoryUserRepository, User}
 import telegramium.bots.{MarkupRemoveKeyboard, ReplyKeyboardRemove}
 
-class DialogEngineSpec extends AnyFlatSpec with Matchers {
+class DefaultDialogEngineSpec extends AnyFlatSpec with Matchers {
   private val userRepo = new InMemoryUserRepository
-  private val dialogEngine = new DialogEngine[IO, Id](userRepo)
+  private val dialogEngine = new DefaultDialogEngine[IO, Id](userRepo)
 
   private val user = User(UserId(1337L), FirstName("John"), ChatId(911L).some)
   private val dialog = SettingsDialog(SettingsDialogState.DefaultCurrency)

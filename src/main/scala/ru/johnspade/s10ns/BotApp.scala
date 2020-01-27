@@ -16,14 +16,14 @@ import org.http4s.client.blaze.BlazeClientBuilder
 import pureconfig.ConfigSource
 import pureconfig.generic.auto._
 import pureconfig.module.catseffect._
-import ru.johnspade.s10ns.bot.engine.DialogEngine
+import ru.johnspade.s10ns.bot.engine.DefaultDialogEngine
 import ru.johnspade.s10ns.bot.{CbDataService, Config, MoneyService, StartController, StateMessageService}
 import ru.johnspade.s10ns.calendar.{CalendarController, CalendarService}
-import ru.johnspade.s10ns.exchangerates.{DoobieExchangeRatesRefreshTimestampRepository, DoobieExchangeRatesRepository, ExchangeRatesCache, ExchangeRatesJobService, ExchangeRatesRefreshTimestampRepository, ExchangeRatesRepository, ExchangeRatesService, FixerApiInterpreter}
-import ru.johnspade.s10ns.settings.{SettingsController, SettingsService}
+import ru.johnspade.s10ns.exchangerates.{DoobieExchangeRatesRefreshTimestampRepository, DoobieExchangeRatesRepository, ExchangeRatesCache, DefaultExchangeRatesJobService, ExchangeRatesRefreshTimestampRepository, ExchangeRatesRepository, DefaultExchangeRatesService, FixerApiInterpreter}
+import ru.johnspade.s10ns.settings.{DefaultSettingsService, SettingsController}
 import ru.johnspade.s10ns.subscription.controller.{CreateS10nDialogController, EditS10nDialogController, SubscriptionListController}
 import ru.johnspade.s10ns.subscription.repository.{DoobieSubscriptionRepository, SubscriptionRepository}
-import ru.johnspade.s10ns.subscription.service.{CreateS10nDialogFsmService, CreateS10nDialogService, EditS10nDialogFsmService, EditS10nDialogService, S10nInfoService, S10nsListMessageService, SubscriptionListService}
+import ru.johnspade.s10ns.subscription.service.{DefaultCreateS10nDialogFsmService, DefaultCreateS10nDialogService, DefaultEditS10nDialogFsmService, DefaultEditS10nDialogService, S10nInfoService, S10nsListMessageService, DefaultSubscriptionListService}
 import ru.johnspade.s10ns.user.{DoobieUserRepository, UserRepository}
 import telegramium.bots.client.ApiHttp4sImp
 
@@ -57,12 +57,12 @@ object BotApp extends IOApp {
 
     def startBot[F[_] : Sync : ConcurrentEffect : ContextShift : Logger : Timer](
       token: String,
-      s10nListController: SubscriptionListController[F, D],
-      createS10nDialogController: CreateS10nDialogController[F, D],
-      editS10nDialogController: EditS10nDialogController[F, D],
-      settingsController: SettingsController[F, D],
+      s10nListController: SubscriptionListController[F],
+      createS10nDialogController: CreateS10nDialogController[F],
+      editS10nDialogController: EditS10nDialogController[F],
+      settingsController: SettingsController[F],
       calendarController: CalendarController[F],
-      startController: StartController[F, D],
+      startController: StartController[F],
       cbDataService: CbDataService[F]
     )(implicit transact: D ~> F) =
       BlazeClientBuilder[F](ExecutionContext.global).resource.use { httpClient =>
@@ -85,16 +85,16 @@ object BotApp extends IOApp {
     def init[F[_] : ConcurrentEffect : ContextShift : Timer](conf: Config, transact: D ~> F) = {
       implicit val xa: D ~> F = transact
       implicit val sttpBackend: SttpBackend[F, Nothing] = AsyncHttpClientCatsBackend[F]()
-      val calendarService = new CalendarService[F]
+      val calendarService = new CalendarService
       val stateMessageService = new StateMessageService[F](calendarService)
 
       for {
         implicit0(logger: Logger[F]) <- Slf4jLogger.create[F]
         exchangeRates <- transact(exchangeRatesRepo.get())
         exchangeRatesCache <- ExchangeRatesCache.create[F](exchangeRates)
-        dialogEngine = new DialogEngine[F, D](userRepo)
+        dialogEngine = new DefaultDialogEngine[F, D](userRepo)
         fixerApi = new FixerApiInterpreter[F](conf.fixer.token)
-        exchangeRatesService = new ExchangeRatesService[F, D](
+        exchangeRatesService = new DefaultExchangeRatesService[F, D](
           fixerApi,
           exchangeRatesRepo,
           exchangeRatesRefreshTimestampRepo,
@@ -103,7 +103,7 @@ object BotApp extends IOApp {
         moneyService = new MoneyService[F](exchangeRatesService)
         s10nInfoService = new S10nInfoService[F](moneyService)
         s10nsListService = new S10nsListMessageService[F](moneyService, s10nInfoService)
-        createS10nDialogFsmService = new CreateS10nDialogFsmService[F, D](
+        createS10nDialogFsmService = new DefaultCreateS10nDialogFsmService[F, D](
           s10nRepo,
           userRepo,
           stateMessageService,
@@ -111,34 +111,34 @@ object BotApp extends IOApp {
           s10nsListService
         )
         cbDataService = new CbDataService[F]
-        editS10nDialogFsmService = new EditS10nDialogFsmService[F, D](
+        editS10nDialogFsmService = new DefaultEditS10nDialogFsmService[F, D](
           s10nsListService,
           stateMessageService,
           userRepo,
           s10nRepo,
           dialogEngine
         )
-        editS10nDialogService = new EditS10nDialogService[F, D](
+        editS10nDialogService = new DefaultEditS10nDialogService[F, D](
           s10nRepo,
           editS10nDialogFsmService,
           stateMessageService,
           dialogEngine
         )
-        s10nCbService = new SubscriptionListService[F, D](s10nRepo, s10nsListService)
-        createS10nDialogService = new CreateS10nDialogService[F, D](
+        s10nCbService = new DefaultSubscriptionListService[F, D](s10nRepo, s10nsListService)
+        createS10nDialogService = new DefaultCreateS10nDialogService[F, D](
           userRepo,
           createS10nDialogFsmService,
           stateMessageService,
           dialogEngine
         )
-        settingsService = new SettingsService[F, D](dialogEngine, stateMessageService)
-        exchangeRatesJobService = new ExchangeRatesJobService[F, D](exchangeRatesService, exchangeRatesRefreshTimestampRepo)
-        s10nListController = new SubscriptionListController[F, D](s10nCbService)
-        createS10nDialogController = new CreateS10nDialogController[F, D](createS10nDialogService)
-        editS10nDialogController = new EditS10nDialogController[F, D](editS10nDialogService)
-        settingsController = new SettingsController[F, D](settingsService)
+        settingsService = new DefaultSettingsService[F](dialogEngine, stateMessageService)
+        exchangeRatesJobService = new DefaultExchangeRatesJobService[F, D](exchangeRatesService, exchangeRatesRefreshTimestampRepo)
+        s10nListController = new SubscriptionListController[F](s10nCbService)
+        createS10nDialogController = new CreateS10nDialogController[F](createS10nDialogService)
+        editS10nDialogController = new EditS10nDialogController[F](editS10nDialogService)
+        settingsController = new SettingsController[F](settingsService)
         calendarController = new CalendarController[F](calendarService)
-        startController = new StartController[F, D](dialogEngine)
+        startController = new StartController[F](dialogEngine)
         _ <- exchangeRatesJobService.startExchangeRatesJob()
         _ <- startBot[F](
           conf.telegram.token,

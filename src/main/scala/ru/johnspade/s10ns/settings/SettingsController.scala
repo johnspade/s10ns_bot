@@ -11,8 +11,8 @@ import ru.johnspade.s10ns.user.User
 import telegramium.bots.client.Api
 import telegramium.bots.{CallbackQuery, Message}
 
-class SettingsController[F[_] : Sync : Logger, D[_] : Applicative](
-  private val settingsService: SettingsService[F, D]
+class SettingsController[F[_] : Sync : Logger](
+  private val settingsService: SettingsService[F]
 ) {
   def message(user: User, dialog: SettingsDialog, message: Message): F[List[ReplyMessage]] =
     (dialog.state match {

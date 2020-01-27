@@ -13,8 +13,8 @@ import ru.johnspade.s10ns.user.User
 import telegramium.bots.client.{Api, EditMessageReplyMarkupReq, EditMessageTextReq}
 import telegramium.bots.{CallbackQuery, ChatIntId, InlineKeyboardMarkup, MarkupInlineKeyboard}
 
-class SubscriptionListController[F[_] : Sync : Logger, D[_] : Monad](
-  private val s10nListService: SubscriptionListService[F, D]
+class SubscriptionListController[F[_] : Sync : Logger](
+  private val s10nListService: SubscriptionListService[F]
 ) {
   def subscriptionsCb(user: User, cb: CallbackQuery, data: S10ns)(implicit bot: Api[F]): F[Unit] =
     s10nListService.onSubscriptionsCb(user, cb, data)

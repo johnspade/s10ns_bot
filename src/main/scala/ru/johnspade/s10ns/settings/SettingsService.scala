@@ -1,42 +1,12 @@
 package ru.johnspade.s10ns.settings
-
-import cats.Applicative
-import cats.effect.Sync
-import cats.implicits._
-import ru.johnspade.s10ns.bot.{DefCurrency, SettingsDialog, StateMessageService}
-import ru.johnspade.s10ns.bot.engine.{DialogEngine, ReplyMessage}
-import ru.johnspade.s10ns.bot.ValidatorNec._
-import ru.johnspade.s10ns.bot.engine.TelegramOps.singleInlineKeyboardButton
+import ru.johnspade.s10ns.bot.ValidatorNec
+import ru.johnspade.s10ns.bot.engine.ReplyMessage
 import ru.johnspade.s10ns.user.User
-import telegramium.bots.{InlineKeyboardMarkup, MarkupInlineKeyboard}
 
-class SettingsService[F[_] : Sync, D[_] : Applicative](
-  private val dialogEngine: DialogEngine[F, D],
-  private val stateMessageService: StateMessageService[F]
-) {
-  def startDefaultCurrencyDialog(user: User): F[ReplyMessage] = {
-    val start = SettingsDialogState.DefaultCurrency
-    val dialog = SettingsDialog(state = start)
-    stateMessageService.getMessage(start).flatMap {
-      dialogEngine.startDialog(user, dialog, _)
-    }
-  }
+trait SettingsService[F[_]] {
+  def startDefaultCurrencyDialog(user: User): F[ReplyMessage]
 
-  def saveDefaultCurrency(user: User, text: Option[String]): F[ValidationResult[ReplyMessage]] =
-    validateText(text.map(_.trim.toUpperCase))
-      .andThen(validateCurrency)
-      .map { currency =>
-        dialogEngine.resetAndCommit(user.copy(defaultCurrency = currency), "Default currency set")
-      }
-      .sequence
+  def saveDefaultCurrency(user: User, text: Option[String]): F[ValidatorNec.ValidationResult[ReplyMessage]]
 
-  val onSettingsCommand: F[ReplyMessage] =
-    Sync[F].pure {
-      ReplyMessage(
-        "Settings",
-        MarkupInlineKeyboard(InlineKeyboardMarkup(
-          singleInlineKeyboardButton("Default currency", DefCurrency)
-        )).some
-      )
-    }
+  def onSettingsCommand: F[ReplyMessage]
 }

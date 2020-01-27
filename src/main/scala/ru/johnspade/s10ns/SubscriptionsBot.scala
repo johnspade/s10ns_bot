@@ -18,12 +18,12 @@ import telegramium.bots.{CallbackQuery, Message, User => TgUser}
 class SubscriptionsBot[F[_] : Sync : Timer : Logger, D[_] : Monad](
   private val bot: Api[F],
   private val userRepo: UserRepository[D],
-  private val s10nListController: SubscriptionListController[F, D],
-  private val createS10nDialogController: CreateS10nDialogController[F, D],
-  private val editS10nDialogController: EditS10nDialogController[F, D],
+  private val s10nListController: SubscriptionListController[F],
+  private val createS10nDialogController: CreateS10nDialogController[F],
+  private val editS10nDialogController: EditS10nDialogController[F],
   private val calendarController: CalendarController[F],
-  private val settingsController: SettingsController[F, D],
-  private val startController: StartController[F, D],
+  private val settingsController: SettingsController[F],
+  private val startController: StartController[F],
   private val cbDataService: CbDataService[F]
 )(private implicit val transact: D ~> F) extends LongPollBot[F](bot) {
   private implicit val api: Api[F] = bot

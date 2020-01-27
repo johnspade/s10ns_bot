@@ -16,7 +16,7 @@ class DoobieExchangeRatesRefreshTimestampRepository extends ExchangeRatesRefresh
 }
 
 object DoobieExchangeRatesRefreshTimestampRepository {
-  private object ExchangeRatesRefreshTimestampSql {
+  object ExchangeRatesRefreshTimestampSql {
     private implicit val han: LogHandler = LogHandler.jdkLogHandler
 
     def get(): Query0[Instant] = sql"select refresh_timestamp from exchange_rates_refresh_timestamp".query[Instant]

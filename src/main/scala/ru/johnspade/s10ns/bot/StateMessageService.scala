@@ -14,17 +14,13 @@ import ru.johnspade.s10ns.subscription.dialog.{CreateS10nDialogState, EditS10nAm
 import ru.johnspade.s10ns.subscription.tags._
 import telegramium.bots.{InlineKeyboardMarkup, KeyboardButton, KeyboardMarkup, MarkupInlineKeyboard, MarkupReplyKeyboard, ReplyKeyboardMarkup}
 
-class StateMessageService[F[_] : Sync](private val calendarService: CalendarService[F]) {
+class StateMessageService[F[_] : Sync](private val calendarService: CalendarService) {
   def getMessage(state: CreateS10nDialogState): F[ReplyMessage] =
     state match {
       case CreateS10nDialogState.Currency => getMessagePure(state, MarkupReplyKeyboard(CurrencyReplyMarkup).some)
       case CreateS10nDialogState.BillingPeriodUnit => getMessagePure(state, MarkupInlineKeyboard(BillingPeriodUnitReplyMarkup).some)
       case CreateS10nDialogState.IsOneTime => getMessagePure(state, MarkupInlineKeyboard(isOneTimeReplyMarkup("Skip")).some)
-      case CreateS10nDialogState.FirstPaymentDate =>
-        for {
-          date <- Sync[F].delay(LocalDate.now)
-          kb <- calendarService.generateKeyboard(date)
-        } yield ReplyMessage(state.message, MarkupInlineKeyboard(kb).some)
+      case CreateS10nDialogState.FirstPaymentDate => createMessageWithCalendar(state.message)
       case CreateS10nDialogState.Finished => getMessagePure(state, BotStart.markup.some)
       case _ => getMessagePure(state)
     }
@@ -62,11 +58,7 @@ class StateMessageService[F[_] : Sync](private val calendarService: CalendarServ
 
   def getMessage(state: EditS10nFirstPaymentDateDialogState): F[ReplyMessage] =
     state match {
-      case EditS10nFirstPaymentDateDialogState.FirstPaymentDate =>
-        for {
-          date <- Sync[F].delay(LocalDate.now)
-          kb <- calendarService.generateKeyboard(date)
-        } yield ReplyMessage(state.message, MarkupInlineKeyboard(kb).some)
+      case EditS10nFirstPaymentDateDialogState.FirstPaymentDate => createMessageWithCalendar(state.message)
       case EditS10nFirstPaymentDateDialogState.Finished => getMessagePure(state)
     }
 
@@ -107,4 +99,11 @@ class StateMessageService[F[_] : Sync](private val calendarService: CalendarServ
     oneTimeKeyboard = Some(true),
     resizeKeyboard = Some(true)
   )
+
+  private def createMessageWithCalendar(text: String) =
+    Sync[F].delay(LocalDate.now)
+      .map { date =>
+        val kb = calendarService.generateKeyboard(date)
+        ReplyMessage(text, MarkupInlineKeyboard(kb).some)
+      }
 }

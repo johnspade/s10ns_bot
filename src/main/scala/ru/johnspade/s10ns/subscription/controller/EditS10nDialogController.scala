@@ -1,6 +1,5 @@
 package ru.johnspade.s10ns.subscription.controller
 
-import cats.Monad
 import cats.Monad.ops._
 import cats.effect.{Sync, Timer}
 import cats.syntax.option._
@@ -14,8 +13,8 @@ import ru.johnspade.s10ns.user.User
 import telegramium.bots.client.Api
 import telegramium.bots.{CallbackQuery, Message}
 
-class EditS10nDialogController[F[_] : Sync : Logger : Timer, D[_] : Monad](
-  private val editS10nDialogService: EditS10nDialogService[F, D]
+class EditS10nDialogController[F[_] : Sync : Logger : Timer](
+  private val editS10nDialogService: EditS10nDialogService[F]
 ) {
   def editS10nNameCb(user: User, cb: CallbackQuery, data: EditS10nName)(implicit bot: Api[F]): F[Unit] =
     editS10nDialogService.onEditS10nNameCb(user, cb, data).flatMap(reply(cb, _))

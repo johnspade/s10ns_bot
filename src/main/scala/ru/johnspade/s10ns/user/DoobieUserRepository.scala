@@ -42,8 +42,8 @@ class DoobieUserRepository extends UserRepository[ConnectionIO] {
 }
 
 object DoobieUserRepository {
-  private object UserSql {
-    private implicit val han: LogHandler = LogHandler.jdkLogHandler
+  object UserSql {
+    private implicit val han: LogHandler = LogHandler.jdkLogHandler // todo remove
 
     def create(user: User): Update0 =
       sql"""
