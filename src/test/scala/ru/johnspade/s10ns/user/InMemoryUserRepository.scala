@@ -10,7 +10,7 @@ class InMemoryUserRepository extends UserRepository[Id] {
   val users: TrieMap[UserId, User] = TrieMap.empty
 
   override def create(user: User): User = {
-    users.put(user.id, user).get
+    users.put(user.id, user)
     user
   }
 

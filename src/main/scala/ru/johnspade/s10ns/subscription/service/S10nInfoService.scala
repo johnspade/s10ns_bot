@@ -8,6 +8,7 @@ import cats.Monad
 import cats.effect.{Clock, Sync}
 import cats.implicits._
 import org.joda.money.{CurrencyUnit, Money}
+import ru.johnspade.s10ns.bot.Formatters.MoneyFormatter
 import ru.johnspade.s10ns.bot.MoneyService
 import ru.johnspade.s10ns.subscription.BillingPeriod
 import ru.johnspade.s10ns.subscription.tags.{FirstPaymentDate, SubscriptionName}
@@ -17,19 +18,19 @@ class S10nInfoService[F[_] : Sync : Clock](
 ) {
   def getName(name: SubscriptionName): String = s"*$name*"
 
-  def getAmount(amount: Money): String = moneyService.MoneyFormatter.print(amount)
+  def getAmount(amount: Money): String = MoneyFormatter.print(amount)
 
   def getAmountInDefaultCurrency(amount: Money, defaultCurrency: CurrencyUnit): F[Option[String]] = {
     val converted =
       if (amount.getCurrencyUnit == defaultCurrency) Monad[F].pure(Option.empty[Money])
       else moneyService.convert(amount, defaultCurrency)
-    converted.map(_.map(a => s"≈${moneyService.MoneyFormatter.print(a)}"))
+    converted.map(_.map(a => s"≈${MoneyFormatter.print(a)}"))
   }
 
   def getBillingPeriod(period: BillingPeriod): String = {
     val number = if (period.duration == 1) ""
     else s" ${period.duration}"
-    val unitName = period.unit.toString.toLowerCase.reverse.replaceFirst("s", "").reverse
+    val unitName = period.unit.toString.toLowerCase
     s"_Billing period:_ every$number $unitName"
   }
 
@@ -43,7 +44,7 @@ class S10nInfoService[F[_] : Sync : Clock](
   def getPaidInTotal(amount: Money, start: FirstPaymentDate, billingPeriod: BillingPeriod): F[String] =
     nowClock.map { now =>
       val periodsPassed = secondsPassed(start, now) / billingPeriod.seconds + 1
-      s"_Paid in total:_ ${moneyService.MoneyFormatter.print(amount.multipliedBy(periodsPassed))}"
+      s"_Paid in total:_ ${MoneyFormatter.print(amount.multipliedBy(periodsPassed))}"
     }
 
   def getFirstPaymentDate(start: FirstPaymentDate): String = s"_First payment:_ ${DateTimeFormatter.ISO_DATE.format(start)}"

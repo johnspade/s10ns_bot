@@ -53,8 +53,7 @@ class DefaultEditS10nDialogFsmService[F[_] : Sync, D[_] : Monad](
   override def saveIsOneTime(user: User, dialog: EditS10nOneTimeDialog, oneTime: OneTimeSubscription): F[List[ReplyMessage]] = {
     val updatedDialog = dialog
       .modify(_.draft.oneTime).setTo(oneTime.some)
-      .modify(_.draft.billingPeriod).setTo(if (oneTime) None
-    else dialog.draft.billingPeriod)
+      .modify(_.draft.billingPeriod).setTo(if (oneTime) None else dialog.draft.billingPeriod)
     val event = if (oneTime) EditS10nOneTimeDialogEvent.ChosenOneTime
     else {
       if (dialog.draft.billingPeriod.isDefined)

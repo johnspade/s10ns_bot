@@ -1,4 +1,5 @@
 package ru.johnspade.s10ns.subscription.service
+
 import org.joda.money.CurrencyUnit
 import ru.johnspade.s10ns.bot.CreateS10nDialog
 import ru.johnspade.s10ns.bot.engine.ReplyMessage

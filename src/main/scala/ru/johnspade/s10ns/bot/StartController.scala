@@ -1,13 +1,13 @@
 package ru.johnspade.s10ns.bot
 
-import cats.effect.Sync
+import cats.Applicative
 import ru.johnspade.s10ns.bot.engine.{DialogEngine, ReplyMessage}
 import ru.johnspade.s10ns.user.User
 
-class StartController[F[_] : Sync](
+class StartController[F[_] : Applicative](
   private val dialogEngine: DialogEngine[F]
 ) {
   def startCommand(from: User): F[ReplyMessage] = dialogEngine.sayHi(from)
 
-  val helpCommand: F[ReplyMessage] = Sync[F].pure(BotStart.message)
+  val helpCommand: F[ReplyMessage] = Applicative[F].pure(BotStart.message)
 }

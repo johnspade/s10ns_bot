@@ -3,6 +3,7 @@ package ru.johnspade.s10ns.subscription.service
 import cats.effect.Sync
 import cats.implicits._
 import org.joda.money.{CurrencyUnit, Money}
+import ru.johnspade.s10ns.bot.Formatters.MoneyFormatter
 import ru.johnspade.s10ns.bot.engine.TelegramOps.inlineKeyboardButton
 import ru.johnspade.s10ns.bot.engine.{MessageParseMode, ReplyMessage}
 import ru.johnspade.s10ns.bot.{EditS10n, EditS10nAmount, EditS10nBillingPeriod, EditS10nCurrency, EditS10nFirstPaymentDate, EditS10nName, EditS10nOneTime, MoneyService, RemoveS10n, S10n, S10ns}
@@ -20,10 +21,10 @@ class S10nsListMessageService[F[_] : Sync](
   def createSubscriptionsPage(subscriptions: List[Subscription], page: PageNumber, defaultCurrency: CurrencyUnit):
   F[ReplyMessage] = {
     def createText(indexedSubscriptions: List[(Subscription, Int)], sum: Money) = {
-      val sumString = moneyService.MoneyFormatter.print(sum) + "\n"
+      val sumString = MoneyFormatter.print(sum) + "\n"
       val list = indexedSubscriptions
         .map {
-          case (s, i) => s"$i. ${s.name} – ${moneyService.MoneyFormatter.print(s.amount)}"
+          case (s, i) => s"$i. ${s.name} – ${MoneyFormatter.print(s.amount)}"
         }
         .mkString("\n")
       s"$sumString\n$list"

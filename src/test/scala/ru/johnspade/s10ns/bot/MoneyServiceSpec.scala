@@ -6,7 +6,7 @@ import cats.effect.IO
 import org.joda.money.{CurrencyUnit, Money}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import ru.johnspade.s10ns.exchangerates.ExchangeRatesStorage
+import ru.johnspade.s10ns.exchangerates.{ExchangeRatesStorage, InMemoryExchangeRatesStorage}
 import cats.implicits._
 import com.softwaremill.quicklens._
 import ru.johnspade.s10ns.subscription.{BillingPeriod, Subscription}
@@ -14,14 +14,7 @@ import ru.johnspade.s10ns.subscription.tags.{BillingPeriodDuration, BillingPerio
 import ru.johnspade.s10ns.user.tags.UserId
 
 class MoneyServiceSpec extends AnyFlatSpec with Matchers {
-  private val exchangeRatesStorage: ExchangeRatesStorage[IO] = new ExchangeRatesStorage[IO] {
-    override val getRates: IO[Map[String, BigDecimal]] = IO(Map(
-      "EUR" -> BigDecimal(1),
-      "RUB" -> BigDecimal(69.479142),
-      "USD" -> BigDecimal(1.116732),
-      "RWF" -> BigDecimal(1055.766139)
-    ))
-  }
+  private val exchangeRatesStorage: ExchangeRatesStorage[IO] = new InMemoryExchangeRatesStorage
   private val moneyService = new MoneyService[IO](exchangeRatesStorage)
 
   private val rub = CurrencyUnit.of("RUB")

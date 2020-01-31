@@ -5,7 +5,6 @@ import java.time.temporal.ChronoUnit
 
 import cats.effect.Sync
 import cats.implicits._
-import org.joda.money.format.{MoneyFormatter, MoneyFormatterBuilder}
 import org.joda.money.{CurrencyUnit, Money}
 import ru.johnspade.s10ns.exchangerates.ExchangeRatesStorage
 import ru.johnspade.s10ns.subscription.{BillingPeriod, Subscription}
@@ -54,11 +53,4 @@ class MoneyService[F[_] : Sync](private val exchangeRatesStorage: ExchangeRatesS
         }
       }
   }
-
-  val MoneyFormatter: MoneyFormatter =
-    new MoneyFormatterBuilder()
-      .appendAmount()
-      .appendLiteral(" ")
-      .appendCurrencySymbolLocalized()
-      .toFormatter
 }
