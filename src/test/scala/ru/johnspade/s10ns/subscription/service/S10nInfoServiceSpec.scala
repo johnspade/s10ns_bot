@@ -51,8 +51,8 @@ class S10nInfoServiceSpec extends AnyFlatSpec with Matchers with OptionValues {
   }
 
   "getPaidInTotal" should "calculate paid in total" in {
-    s10nInfoService.getPaidInTotal(amount, FirstPaymentDate(LocalDate.now.minusDays(periodDuration * 2)), billingPeriod).unsafeRunSync shouldBe
-      "_Paid in total:_ 26.74 $"
+    s10nInfoService.getPaidInTotal(amount, FirstPaymentDate(LocalDate.now.minusDays(periodDuration * 2)), billingPeriod)
+      .unsafeRunSync shouldBe "_Paid in total:_ 26.74 $"
   }
 
   "getFirstPaymentDate" should "print a first payment date" in {
