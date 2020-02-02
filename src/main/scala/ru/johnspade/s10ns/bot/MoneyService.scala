@@ -22,7 +22,7 @@ class MoneyService[F[_] : Sync](private val exchangeRatesStorage: ExchangeRatesS
     def calcMonthAmount(period: BillingPeriod, amount: Money) =
       amount
         .multipliedBy(ChronoUnit.MONTHS.getDuration.getSeconds)
-        .dividedBy(period.unit.getDuration.getSeconds * period.duration, RoundingMode.HALF_EVEN)
+        .dividedBy(period.unit.chronoUnit.getDuration.getSeconds * period.duration, RoundingMode.HALF_EVEN)
 
     exchangeRatesStorage.getRates
       .flatMap { rates =>

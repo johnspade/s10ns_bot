@@ -1,7 +1,6 @@
 package ru.johnspade.s10ns.bot
 
 import java.time.LocalDate
-import java.time.temporal.ChronoUnit
 
 import cats.effect.Sync
 import cats.implicits._
@@ -10,6 +9,7 @@ import ru.johnspade.s10ns.bot.engine.TelegramOps.inlineKeyboardButton
 import ru.johnspade.s10ns.bot.engine.{DialogState, ReplyMessage}
 import ru.johnspade.s10ns.calendar.CalendarService
 import ru.johnspade.s10ns.settings.SettingsDialogState
+import ru.johnspade.s10ns.subscription.BillingPeriodUnit
 import ru.johnspade.s10ns.subscription.dialog.{CreateS10nDialogState, EditS10nAmountDialogState, EditS10nBillingPeriodDialogState, EditS10nCurrencyDialogState, EditS10nFirstPaymentDateDialogState, EditS10nOneTimeDialogState}
 import ru.johnspade.s10ns.subscription.tags._
 import telegramium.bots.{InlineKeyboardMarkup, KeyboardButton, KeyboardMarkup, MarkupInlineKeyboard, MarkupReplyKeyboard, ReplyKeyboardMarkup}
@@ -69,8 +69,8 @@ class StateMessageService[F[_] : Sync](private val calendarService: CalendarServ
     Sync[F].pure(ReplyMessage(state.message, markup))
 
   private val BillingPeriodUnitReplyMarkup = InlineKeyboardMarkup(
-    List(List(ChronoUnit.DAYS, ChronoUnit.WEEKS, ChronoUnit.MONTHS, ChronoUnit.YEARS).map { unit =>
-      inlineKeyboardButton(unit.toString, PeriodUnit(BillingPeriodUnit(unit)))
+    List(List(BillingPeriodUnit.Day, BillingPeriodUnit.Week, BillingPeriodUnit.Month, BillingPeriodUnit.Year).map { unit =>
+      inlineKeyboardButton(unit.chronoUnit.toString, PeriodUnit(unit))
     })
   )
 

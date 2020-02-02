@@ -3,7 +3,8 @@ package ru.johnspade.s10ns.subscription.service
 import org.joda.money.CurrencyUnit
 import ru.johnspade.s10ns.bot.CreateS10nDialog
 import ru.johnspade.s10ns.bot.engine.ReplyMessage
-import ru.johnspade.s10ns.subscription.tags.{BillingPeriodDuration, BillingPeriodUnit, FirstPaymentDate, OneTimeSubscription, SubscriptionName}
+import ru.johnspade.s10ns.subscription.BillingPeriodUnit
+import ru.johnspade.s10ns.subscription.tags.{BillingPeriodDuration, FirstPaymentDate, OneTimeSubscription, SubscriptionName}
 import ru.johnspade.s10ns.user.User
 
 trait CreateS10nDialogFsmService[F[_]] {

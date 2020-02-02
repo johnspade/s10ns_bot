@@ -44,10 +44,12 @@ libraryDependencies ++= Seq(
   "com.github.cb372" %% "cats-retry-cats-effect" % CatsRetryVersion,
   "com.nrinaudo" %% "kantan.csv" % KantanVersion,
   "com.nrinaudo" %% "kantan.csv-java8" % KantanVersion,
+  "com.nrinaudo" %% "kantan.csv-enumeratum" % KantanVersion,
   "org.rudogma" %% "supertagged" % "1.4",
   "org.flywaydb" % "flyway-core" % "6.1.1",
   "com.propensive" %% "magnolia" % "0.12.3",
   "com.softwaremill.quicklens" %% "quicklens" % "1.4.12",
+  "com.ibm.icu" % "icu4j" % "65.1",
   "org.scalatest" %% "scalatest" % "3.1.0" % "test",
   "com.dimafeng" %% "testcontainers-scala-postgresql" % "0.35.0" % "test",
   "com.softwaremill.diffx" %% "diffx-scalatest" % "0.3.16" % "test"

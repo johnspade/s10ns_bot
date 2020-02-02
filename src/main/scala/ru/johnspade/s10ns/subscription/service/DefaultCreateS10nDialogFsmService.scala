@@ -7,6 +7,7 @@ import io.chrisdavenport.log4cats.Logger
 import org.joda.money.{CurrencyUnit, Money}
 import ru.johnspade.s10ns.bot.engine.{ReplyMessage, TransactionalDialogEngine}
 import ru.johnspade.s10ns.bot.{CreateS10nDialog, StateMessageService}
+import ru.johnspade.s10ns.subscription.BillingPeriodUnit
 import ru.johnspade.s10ns.subscription.dialog.{CreateS10nDialogEvent, CreateS10nDialogState}
 import ru.johnspade.s10ns.subscription.repository.SubscriptionRepository
 import ru.johnspade.s10ns.subscription.tags._
@@ -76,7 +77,7 @@ class DefaultCreateS10nDialogFsmService[F[_] : Sync : Logger, D[_] : Monad](
           }
         }
           .flatMap { p =>
-            s10nsListMessageService.createSubscriptionMessage(user, p._2, PageNumber(0))
+            s10nsListMessageService.createSubscriptionMessage(user.defaultCurrency, p._2, PageNumber(0))
               .map(List(p._1, _))
           }
       case _ =>

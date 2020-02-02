@@ -35,7 +35,7 @@ class DefaultSubscriptionListService[F[_] : Sync, D[_] : Monad](
     def checkUserAndGetMessage(subscription: Subscription) =
       Either.cond(
         subscription.userId == user.id,
-        s10nsListService.createSubscriptionMessage(user, subscription, data.page),
+        s10nsListService.createSubscriptionMessage(user.defaultCurrency, subscription, data.page),
         Errors.AccessDenied
       )
         .sequence

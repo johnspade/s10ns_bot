@@ -13,7 +13,7 @@ import ru.johnspade.s10ns.subscription.tags._
 import ru.johnspade.s10ns.bot.engine.TelegramOps.singleTextMessage
 import ru.johnspade.s10ns.subscription.dialog.{EditS10nAmountDialogEvent, EditS10nBillingPeriodEvent, EditS10nCurrencyDialogEvent, EditS10nFirstPaymentDateDialogEvent, EditS10nNameDialogEvent, EditS10nOneTimeDialogEvent}
 import ru.johnspade.s10ns.subscription.repository.SubscriptionRepository
-import ru.johnspade.s10ns.subscription.{BillingPeriod, Subscription}
+import ru.johnspade.s10ns.subscription.{BillingPeriod, BillingPeriodUnit, Subscription}
 import ru.johnspade.s10ns.user.{User, UserRepository}
 
 class DefaultEditS10nDialogFsmService[F[_] : Sync, D[_] : Monad](
@@ -143,7 +143,7 @@ class DefaultEditS10nDialogFsmService[F[_] : Sync, D[_] : Monad](
     for {
       reply <- replyOpt
       replies <- reply.traverse { p =>
-        s10nsListMessageService.createSubscriptionMessage(user, p._2, PageNumber(0)).map(List(p._1, _))
+        s10nsListMessageService.createSubscriptionMessage(user.defaultCurrency, p._2, PageNumber(0)).map(List(p._1, _))
       }
     } yield replies.getOrElse(singleTextMessage(Errors.NotFound))
   }

@@ -9,7 +9,6 @@ import ru.johnspade.s10ns.bot.engine.{MessageParseMode, ReplyMessage}
 import ru.johnspade.s10ns.bot.{EditS10n, EditS10nAmount, EditS10nBillingPeriod, EditS10nCurrency, EditS10nFirstPaymentDate, EditS10nName, EditS10nOneTime, MoneyService, RemoveS10n, S10n, S10ns}
 import ru.johnspade.s10ns.subscription.tags.{FirstPaymentDate, PageNumber}
 import ru.johnspade.s10ns.subscription.{BillingPeriod, Subscription}
-import ru.johnspade.s10ns.user.User
 import telegramium.bots.{InlineKeyboardButton, InlineKeyboardMarkup, MarkupInlineKeyboard}
 
 class S10nsListMessageService[F[_] : Sync](
@@ -38,13 +37,13 @@ class S10nsListMessageService[F[_] : Sync](
           case (s, i) => inlineKeyboardButton(i.toString, S10n(s.id, page))
         })
 
-    def createNavButtons(indexedSubscriptions: List[(Subscription, Int)]): List[InlineKeyboardButton] = {
+    def createNavButtons(listSize: Int) = {
       val pageLastElementNumber = DefaultPageSize * (page + 1)
       val leftButton = inlineKeyboardButton("⬅", S10ns(PageNumber(page - 1)))
       val rightButton = inlineKeyboardButton("➡", S10ns(PageNumber(page + 1)))
       List(
         (pageLastElementNumber > DefaultPageSize, leftButton),
-        (pageLastElementNumber < indexedSubscriptions.size, rightButton)
+        (pageLastElementNumber < listSize, rightButton)
       )
         .filter(_._1)
         .map(_._2)
@@ -54,23 +53,22 @@ class S10nsListMessageService[F[_] : Sync](
       moneyService.sum(subscriptions, defaultCurrency).map { sum =>
         val from = page * DefaultPageSize
         val until = from + DefaultPageSize
-        val indexedS10ns = subscriptions.zipWithIndex.map {
+        val indexedS10nsPage = subscriptions.slice(from, until).zipWithIndex.map {
           case (s, i) => (s, i + 1)
         }
-        val indexedS10nsPage = indexedS10ns.slice(from, until)
         val text = createText(indexedS10nsPage, sum)
         val subscriptionButtons = createSubscriptionButtons(indexedS10nsPage)
-        val arrowButtons = createNavButtons(indexedS10ns)
+        val arrowButtons = createNavButtons(subscriptions.size)
         ReplyMessage(text, MarkupInlineKeyboard(InlineKeyboardMarkup(subscriptionButtons :+ arrowButtons)).some)
       }
 
     createReplyMessage(subscriptions)
   }
 
-  def createSubscriptionMessage(user: User, s10n: Subscription, page: PageNumber): F[ReplyMessage] = {
+  def createSubscriptionMessage(defaultCurrency: CurrencyUnit, s10n: Subscription, page: PageNumber): F[ReplyMessage] = {
     val name = s10nInfoService.getName(s10n.name)
     val amount = s10nInfoService.getAmount(s10n.amount)
-    val amountInDefaultCurrency = s10nInfoService.getAmountInDefaultCurrency(s10n.amount, user.defaultCurrency)
+    val amountInDefaultCurrency = s10nInfoService.getAmountInDefaultCurrency(s10n.amount, defaultCurrency)
     val billingPeriod = s10n.billingPeriod.map(s10nInfoService.getBillingPeriod)
 
     def calcWithPeriod(f: (FirstPaymentDate, BillingPeriod) => F[String]) =

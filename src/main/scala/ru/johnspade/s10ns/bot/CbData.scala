@@ -1,15 +1,16 @@
 package ru.johnspade.s10ns.bot
 
 import java.time.LocalDate
-import java.time.temporal.ChronoUnit
 
 import kantan.csv._
 import kantan.csv.java8._
 import kantan.csv.ops._
 import ru.johnspade.s10ns.bot.CbData._
 import ru.johnspade.s10ns.csv.MagnoliaRowEncoder._
+import ru.johnspade.s10ns.subscription.BillingPeriodUnit
 import ru.johnspade.s10ns.subscription.tags._
 import supertagged.{@@, lifterF}
+import kantan.csv.enumeratum._
 
 sealed abstract class CbData extends Product with Serializable {
   def toCsv: String = this.writeCsvRow(csvConfig)
@@ -41,9 +42,6 @@ object CbData {
     lifterF[CellEncoder].lift
   implicit def liftedCellDecoder[T, U](implicit cellDecoder: CellDecoder[T]): CellDecoder[T @@ U] =
     lifterF[CellDecoder].lift
-
-  implicit val chronoUnitCellCodec: CellCodec[ChronoUnit] =
-    CellCodec.from(s => DecodeResult(ChronoUnit.valueOf(s)))(_.name)
 
   private def caseObjectRowCodec[T <: CbData](data: T): RowCodec[T] = RowCodec.from(_ => Right(data))(_ => Seq.empty)
 

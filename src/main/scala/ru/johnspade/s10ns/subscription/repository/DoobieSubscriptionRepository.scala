@@ -1,7 +1,5 @@
 package ru.johnspade.s10ns.subscription.repository
 
-import java.time.temporal.ChronoUnit
-
 import doobie.free.connection
 import doobie.free.connection.ConnectionIO
 import doobie.implicits._
@@ -9,12 +7,12 @@ import doobie.postgres.implicits._
 import doobie.util.log.LogHandler
 import doobie.util.query.Query0
 import doobie.util.update.Update0
-import doobie.util.{Meta, Read, Write}
+import doobie.util.{Read, Write}
 import org.joda.money.{CurrencyUnit, Money}
+import ru.johnspade.s10ns.subscription.repository.DoobieSubscriptionRepository.SubscriptionSql
 import ru.johnspade.s10ns.subscription.tags._
 import ru.johnspade.s10ns.subscription.{Subscription, SubscriptionDraft}
 import ru.johnspade.s10ns.user.tags._
-import ru.johnspade.s10ns.subscription.repository.DoobieSubscriptionRepository.SubscriptionSql
 
 class DoobieSubscriptionRepository extends SubscriptionRepository[ConnectionIO] {
   override def create(draft: SubscriptionDraft): ConnectionIO[Subscription] =
@@ -96,7 +94,4 @@ object DoobieSubscriptionRepository {
     }
   private implicit val moneyWrite: Write[Money] =
     Write[(Long, String)].contramap(m => (m.getAmountMinorLong, m.getCurrencyUnit.getCode))
-  private implicit val chronoUnitMeta: Meta[ChronoUnit] = Meta[String].timap(ChronoUnit.valueOf)(_.name())
 }
-
-
