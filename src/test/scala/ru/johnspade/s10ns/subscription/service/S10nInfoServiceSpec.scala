@@ -38,13 +38,37 @@ class S10nInfoServiceSpec extends AnyFlatSpec with Matchers with OptionValues {
     s10nInfoService.getAmountInDefaultCurrency(amount, CurrencyUnit.EUR).unsafeRunSync.value shouldBe "≈11.97 EUR"
   }
 
-  "getBillingPeriod" should "output a billing period" in {
-    s10nInfoService.getBillingPeriod(billingPeriod) shouldBe "_Billing period:_ every 17 days"
+  "getBillingPeriod" should "output a billing period with plural count of chrono units" in {
+    val billingPeriodDays = BillingPeriod(BillingPeriodDuration(18), BillingPeriodUnit.Day)
+    s10nInfoService.getBillingPeriod(billingPeriodDays) shouldBe "_Billing period:_ every 18 days"
+
+    val billingPeriodWeeks = BillingPeriod(BillingPeriodDuration(3), BillingPeriodUnit.Week)
+    s10nInfoService.getBillingPeriod(billingPeriodWeeks) shouldBe "_Billing period:_ every 3 weeks"
+
+    val billingPeriodMonths = BillingPeriod(BillingPeriodDuration(2), BillingPeriodUnit.Month)
+    s10nInfoService.getBillingPeriod(billingPeriodMonths) shouldBe "_Billing period:_ every 2 months"
+
+    val billingPeriodYears = BillingPeriod(BillingPeriodDuration(5), BillingPeriodUnit.Year)
+    s10nInfoService.getBillingPeriod(billingPeriodYears) shouldBe "_Billing period:_ every 5 years"
+  }
+
+  it should "output a billing period with a single chrono unit" in {
+    val billingPeriodDay = BillingPeriod(BillingPeriodDuration(1), BillingPeriodUnit.Day)
+    s10nInfoService.getBillingPeriod(billingPeriodDay) shouldBe "_Billing period:_ every 1 day"
+
+    val billingPeriodWeek = BillingPeriod(BillingPeriodDuration(1), BillingPeriodUnit.Week)
+    s10nInfoService.getBillingPeriod(billingPeriodWeek) shouldBe "_Billing period:_ every 1 week"
+
+    val billingPeriodMonth = BillingPeriod(BillingPeriodDuration(1), BillingPeriodUnit.Month)
+    s10nInfoService.getBillingPeriod(billingPeriodMonth) shouldBe "_Billing period:_ every 1 month"
+
+    val billingPeriodYear = BillingPeriod(BillingPeriodDuration(1), BillingPeriodUnit.Year)
+    s10nInfoService.getBillingPeriod(billingPeriodYear) shouldBe "_Billing period:_ every 1 year"
   }
 
   "getNextPaymentDate" should "calculate a next payment date" in {
     s10nInfoService.getNextPaymentDate(firstPaymentDate, billingPeriod).unsafeRunSync shouldBe
-      s"_Next payment:_ ${DateTimeFormatter.ISO_DATE.format(firstPaymentDate.plusDays(periodDuration + 1))}"
+      s"_Next payment:_ ${DateTimeFormatter.ISO_DATE.format(firstPaymentDate.plusDays(periodDuration))}"
   }
 
   "getPaidInTotal" should "calculate paid in total" in {

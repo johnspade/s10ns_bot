@@ -36,23 +36,27 @@ class S10nInfoService[F[_] : Sync : Clock](
   }
 
   def getNextPaymentDate(start: FirstPaymentDate, billingPeriod: BillingPeriod): F[String] = {
+    import billingPeriod.duration
     import billingPeriod.unit.chronoUnit
 
     nowClock.map { now =>
-      val nextPaymentDate = start.plus(
-        chronoUnit.between(start, now.atZone(ZoneOffset.UTC).toLocalDate) + billingPeriod.duration + 1,
-        chronoUnit
-      )
+      val today = now.atZone(ZoneOffset.UTC).toLocalDate
+      val unitsPassed = chronoUnit.between(start, today)
+      val cycleEnd = if (unitsPassed < duration) start.plus(duration, chronoUnit)
+      else start.plus(chronoUnit.between(start, today) / duration, chronoUnit)
+      val nextPaymentDate = if (cycleEnd isBefore today) cycleEnd.plus(duration, chronoUnit) else cycleEnd
       s"_Next payment:_ ${DateTimeFormatter.ISO_DATE.format(nextPaymentDate)}"
     }
   }
 
   def getPaidInTotal(amount: Money, start: FirstPaymentDate, billingPeriod: BillingPeriod): F[String] = {
+    import billingPeriod.duration
     import billingPeriod.unit.chronoUnit
 
     nowClock.map { now =>
-      val periodsPassed = chronoUnit.between(start, now.atZone(ZoneOffset.UTC).toLocalDate) / billingPeriod.duration + 1
-      s"_Paid in total:_ ${MoneyFormatter.print(amount.multipliedBy(periodsPassed))}"
+      val unitsPassed = chronoUnit.between(start, now.atZone(ZoneOffset.UTC).toLocalDate)
+      val paymentsCount = unitsPassed / duration + 1
+      s"_Paid in total:_ ${MoneyFormatter.print(amount.multipliedBy(paymentsCount))}"
     }
   }
 

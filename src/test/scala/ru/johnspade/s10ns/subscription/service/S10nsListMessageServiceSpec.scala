@@ -2,7 +2,6 @@ package ru.johnspade.s10ns.subscription.service
 
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
-import java.time.temporal.ChronoUnit
 
 import cats.effect.{Clock, IO}
 import cats.syntax.option._
@@ -123,8 +122,7 @@ class S10nsListMessageServiceSpec extends AnyFlatSpec with Matchers with OptionV
   it should "generate a message with subscription's info" in {
     val page = PageNumber(0)
     val message = s10nsListMessageService.createSubscriptionMessage(CurrencyUnit.EUR, s10n1, page).unsafeRunSync
-    val expectedNextPayment = firstPaymentDate.plusMonths(ChronoUnit.MONTHS.between(firstPaymentDate, LocalDate.now) + 1)
-    println(expectedNextPayment)
+    val expectedNextPayment = LocalDate.now
     message.text shouldBe
       s"""|*Netflix*
           |
