@@ -26,7 +26,7 @@ class S10nsListMessageServiceSpec extends AnyFlatSpec with Matchers with OptionV
   private val moneyService = new MoneyService[IO](new InMemoryExchangeRatesStorage)
   private val s10nsListMessageService = new S10nsListMessageService[IO](moneyService, new S10nInfoService[IO](moneyService))
 
-  private val firstPaymentDate = LocalDate.now.minusMonths(1)
+  private val firstPaymentDate = LocalDate.now.minusDays(35)
   private val s10n1 = Subscription(
     SubscriptionId(1L),
     UserId(0L),
@@ -122,7 +122,7 @@ class S10nsListMessageServiceSpec extends AnyFlatSpec with Matchers with OptionV
   it should "generate a message with subscription's info" in {
     val page = PageNumber(0)
     val message = s10nsListMessageService.createSubscriptionMessage(CurrencyUnit.EUR, s10n1, page).unsafeRunSync
-    val expectedNextPayment = LocalDate.now
+    val expectedNextPayment = firstPaymentDate.plusMonths(2)
     message.text shouldBe
       s"""|*Netflix*
           |
@@ -132,7 +132,7 @@ class S10nsListMessageServiceSpec extends AnyFlatSpec with Matchers with OptionV
           |_Billing period:_ every 1 month
           |_Next payment:_ $expectedNextPayment
           |_First payment:_ ${DateTimeFormatter.ISO_DATE.format(firstPaymentDate)}
-          |_Paid in total:_ 13.37 $$""".stripMargin
+          |_Paid in total:_ 26.74 $$""".stripMargin
     checkS10nMessageMarkup(message.markup, s10n1.id, page)
   }
 

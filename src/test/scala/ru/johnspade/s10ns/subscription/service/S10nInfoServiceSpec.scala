@@ -22,7 +22,7 @@ class S10nInfoServiceSpec extends AnyFlatSpec with Matchers with OptionValues {
   private val s10nInfoService = new S10nInfoService[IO](moneyService)
 
   private val amount = Money.of(CurrencyUnit.USD, 13.37)
-  private val periodDuration = 17
+  private val periodDuration = 2
   private val billingPeriod = BillingPeriod(BillingPeriodDuration(periodDuration), BillingPeriodUnit.Day)
   private val firstPaymentDate = FirstPaymentDate(LocalDate.now.minusDays(1))
 
@@ -71,9 +71,21 @@ class S10nInfoServiceSpec extends AnyFlatSpec with Matchers with OptionValues {
       s"_Next payment:_ ${DateTimeFormatter.ISO_DATE.format(firstPaymentDate.plusDays(periodDuration))}"
   }
 
+  it should "calculate a next payment date in future" in {
+    val firstPaymentDate = FirstPaymentDate(LocalDate.now.plusMonths(1))
+    s10nInfoService.getNextPaymentDate(firstPaymentDate, BillingPeriod(BillingPeriodDuration(1), BillingPeriodUnit.Month))
+      .unsafeRunSync shouldBe s"_Next payment:_ ${DateTimeFormatter.ISO_DATE.format(firstPaymentDate)}"
+  }
+
   "getPaidInTotal" should "calculate paid in total" in {
-    s10nInfoService.getPaidInTotal(amount, FirstPaymentDate(LocalDate.now.minusDays(periodDuration * 2)), billingPeriod)
+    val firstPaymentDate = FirstPaymentDate(LocalDate.now.minusDays(periodDuration + 1))
+    s10nInfoService.getPaidInTotal(amount, firstPaymentDate, billingPeriod)
       .unsafeRunSync shouldBe "_Paid in total:_ 26.74 $"
+  }
+
+  it should "not calculate paid in total for future subscriptions" in {
+    s10nInfoService.getPaidInTotal(amount, FirstPaymentDate(LocalDate.now.plusMonths(1)), billingPeriod)
+      .unsafeRunSync shouldBe "_Paid in total:_ 0.00 $"
   }
 
   "getFirstPaymentDate" should "print a first payment date" in {

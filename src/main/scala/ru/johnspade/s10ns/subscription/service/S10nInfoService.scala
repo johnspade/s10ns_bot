@@ -41,10 +41,14 @@ class S10nInfoService[F[_] : Sync : Clock](
 
     nowClock.map { now =>
       val today = now.atZone(ZoneOffset.UTC).toLocalDate
-      val unitsPassed = chronoUnit.between(start, today)
-      val cycleEnd = if (unitsPassed < duration) start.plus(duration, chronoUnit)
-      else start.plus(chronoUnit.between(start, today) / duration, chronoUnit)
-      val nextPaymentDate = if (cycleEnd isBefore today) cycleEnd.plus(duration, chronoUnit) else cycleEnd
+      val nextPaymentDate = if (!today.isAfter(start)) start
+      else {
+        val unitsPassed = chronoUnit.between(start, today)
+        val periodsPassed = unitsPassed / duration
+        val cycleEnd = if (unitsPassed < duration) start.plus(duration, chronoUnit)
+        else start.plus(duration * (periodsPassed + 1), chronoUnit)
+        if (cycleEnd isBefore today) cycleEnd.plus(duration, chronoUnit) else cycleEnd
+      }
       s"_Next payment:_ ${DateTimeFormatter.ISO_DATE.format(nextPaymentDate)}"
     }
   }
@@ -54,8 +58,15 @@ class S10nInfoService[F[_] : Sync : Clock](
     import billingPeriod.unit.chronoUnit
 
     nowClock.map { now =>
-      val unitsPassed = chronoUnit.between(start, now.atZone(ZoneOffset.UTC).toLocalDate)
-      val paymentsCount = unitsPassed / duration + 1
+      val today = now.atZone(ZoneOffset.UTC).toLocalDate
+      val paymentsCount = if (!today.isAfter(start)) 0
+      else {
+        val unitsPassed = chronoUnit.between(start, today)
+        val periodsPassed = unitsPassed / duration
+        val cycleEnd = if (unitsPassed < duration) start.plus(duration, chronoUnit)
+        else start.plus(duration * (periodsPassed + 1), chronoUnit)
+        if (cycleEnd isAfter today) periodsPassed + 1 else periodsPassed
+      }
       s"_Paid in total:_ ${MoneyFormatter.print(amount.multipliedBy(paymentsCount))}"
     }
   }
