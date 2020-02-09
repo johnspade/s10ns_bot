@@ -50,9 +50,10 @@ libraryDependencies ++= Seq(
   "com.propensive" %% "magnolia" % "0.12.3",
   "com.softwaremill.quicklens" %% "quicklens" % "1.4.12",
   "com.ibm.icu" % "icu4j" % "65.1",
-  "org.scalatest" %% "scalatest" % "3.1.0" % "test",
-  "com.dimafeng" %% "testcontainers-scala-postgresql" % "0.35.0" % "test",
-  "com.softwaremill.diffx" %% "diffx-scalatest" % "0.3.16" % "test"
+  "org.scalatest" %% "scalatest" % "3.1.0" % Test,
+  "com.dimafeng" %% "testcontainers-scala-postgresql" % "0.35.0" % Test,
+  "com.softwaremill.diffx" %% "diffx-scalatest" % "0.3.16" % Test,
+  "org.scalamock" %% "scalamock" % "4.4.0" % Test
 )
 
 addCompilerPlugin("com.olegpy" %% "better-monadic-for" % "0.3.1")
