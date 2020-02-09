@@ -11,7 +11,6 @@ import ru.johnspade.s10ns.subscription.SubscriptionDraft
 import ru.johnspade.s10ns.subscription.dialog.CreateS10nDialogState
 import ru.johnspade.s10ns.subscription.tags._
 import ru.johnspade.s10ns.user.{User, UserRepository}
-import telegramium.bots.CallbackQuery
 
 class DefaultCreateS10nDialogService[F[_] : Sync, D[_] : Monad](
   private val userRepo: UserRepository[D],
@@ -60,18 +59,18 @@ class DefaultCreateS10nDialogService[F[_] : Sync, D[_] : Monad](
         .traverse(createS10nDialogFsmService.saveBillingPeriodDuration(user, dialog, _))
   }
 
-  override def onBillingPeriodUnitCb(cb: CallbackQuery, data: PeriodUnit, user: User, dialog: CreateS10nDialog): F[List[ReplyMessage]] =
+  override def onBillingPeriodUnitCb(data: PeriodUnit, user: User, dialog: CreateS10nDialog): F[List[ReplyMessage]] =
     createS10nDialogFsmService.saveBillingPeriodUnit(user, dialog, data.unit)
 
-  override def onSkipIsOneTimeCb(cb: CallbackQuery, user: User, dialog: CreateS10nDialog): F[List[ReplyMessage]] =
+  override def onSkipIsOneTimeCb(user: User, dialog: CreateS10nDialog): F[List[ReplyMessage]] =
     createS10nDialogFsmService.skipIsOneTime(user, dialog)
 
-  override def onIsOneTimeCallback(cb: CallbackQuery, data: OneTime, user: User, dialog: CreateS10nDialog): F[List[ReplyMessage]] =
+  override def onIsOneTimeCallback(data: OneTime, user: User, dialog: CreateS10nDialog): F[List[ReplyMessage]] =
     createS10nDialogFsmService.saveIsOneTime(user, dialog, data.oneTime)
 
-  override def onSkipFirstPaymentDateCb(cb: CallbackQuery, user: User, dialog: CreateS10nDialog): F[List[ReplyMessage]] =
+  override def onSkipFirstPaymentDateCb(user: User, dialog: CreateS10nDialog): F[List[ReplyMessage]] =
     createS10nDialogFsmService.skipFirstPaymentDate(user, dialog)
 
-  override def onFirstPaymentDateCallback(cb: CallbackQuery, data: FirstPayment, user: User, dialog: CreateS10nDialog): F[List[ReplyMessage]] =
+  override def onFirstPaymentDateCallback(data: FirstPayment, user: User, dialog: CreateS10nDialog): F[List[ReplyMessage]] =
     createS10nDialogFsmService.saveFirstPaymentDate(user, dialog, data.date)
 }
