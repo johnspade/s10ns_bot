@@ -52,10 +52,10 @@ class S10nsListMessageServiceSpec extends AnyFlatSpec with Matchers with OptionV
     val page = s10nsListMessageService.createSubscriptionsPage(List(s10n1, s10n2), PageNumber(0), CurrencyUnit.EUR)
       .unsafeRunSync
     page.text shouldBe
-      """|17.27 EUR
+      """|17.27 €
          |
          |1. Netflix – 13.37 $
-         |2. Spotify – 5.30 EUR""".stripMargin
+         |2. Spotify – 5.30 €""".stripMargin
     page.markup.value should matchTo[KeyboardMarkup] {
       MarkupInlineKeyboard(InlineKeyboardMarkup(List(
         List(
@@ -71,9 +71,9 @@ class S10nsListMessageServiceSpec extends AnyFlatSpec with Matchers with OptionV
     val page = s10nsListMessageService.createSubscriptionsPage(createS10ns(21), PageNumber(1), CurrencyUnit.EUR)
       .unsafeRunSync
     page.text shouldBe
-      s"""|0.00 EUR
+      s"""|0.00 €
           |
-          |${List.tabulate(10)(n => s"${n + 1}. s10n${n + 10} – 1.00 EUR").mkString("\n")}""".stripMargin
+          |${List.tabulate(10)(n => s"${n + 1}. s10n${n + 10} – 1.00 €").mkString("\n")}""".stripMargin
     page.markup.value should matchTo[KeyboardMarkup] {
       MarkupInlineKeyboard(InlineKeyboardMarkup(List(
         List.tabulate(5)(n => inlineKeyboardButton((n + 1).toString, S10n(SubscriptionId(n + 10.toLong), PageNumber(1)))),
@@ -90,9 +90,9 @@ class S10nsListMessageServiceSpec extends AnyFlatSpec with Matchers with OptionV
     val page = s10nsListMessageService.createSubscriptionsPage(createS10ns(11), PageNumber(1), CurrencyUnit.EUR)
       .unsafeRunSync
     page.text shouldBe
-      s"""|0.00 EUR
+      s"""|0.00 €
           |
-          |1. s10n10 – 1.00 EUR""".stripMargin
+          |1. s10n10 – 1.00 €""".stripMargin
     page.markup.value should matchTo[KeyboardMarkup] {
       MarkupInlineKeyboard(InlineKeyboardMarkup(List(
         List(inlineKeyboardButton("1", S10n(SubscriptionId(10L), PageNumber(1)))),
@@ -105,9 +105,9 @@ class S10nsListMessageServiceSpec extends AnyFlatSpec with Matchers with OptionV
     val page = s10nsListMessageService.createSubscriptionsPage(createS10ns(11), PageNumber(0), CurrencyUnit.EUR)
       .unsafeRunSync
     page.text shouldBe
-      s"""|0.00 EUR
+      s"""|0.00 €
           |
-          |${List.tabulate(10)(n => s"${n + 1}. s10n$n – 1.00 EUR").mkString("\n")}""".stripMargin
+          |${List.tabulate(10)(n => s"${n + 1}. s10n$n – 1.00 €").mkString("\n")}""".stripMargin
     page.markup.value should matchTo[KeyboardMarkup] {
       MarkupInlineKeyboard(InlineKeyboardMarkup(List(
         List.tabulate(5)(n => inlineKeyboardButton((n + 1).toString, S10n(SubscriptionId(n.toLong), PageNumber(0)))),
@@ -127,7 +127,7 @@ class S10nsListMessageServiceSpec extends AnyFlatSpec with Matchers with OptionV
       s"""|*Netflix*
           |
           |13.37 $$
-          |≈11.97 EUR
+          |≈11.97 €
           |
           |_Billing period:_ every 1 month
           |_Next payment:_ $expectedNextPayment
@@ -151,7 +151,7 @@ class S10nsListMessageServiceSpec extends AnyFlatSpec with Matchers with OptionV
     message.text shouldBe
       s"""|*s10n*
           |
-          |1.00 EUR
+          |1.00 €
           |""".stripMargin
     checkS10nMessageMarkup(message.markup, subscription.id, page)
   }
@@ -172,7 +172,7 @@ class S10nsListMessageServiceSpec extends AnyFlatSpec with Matchers with OptionV
     message.text shouldBe
       s"""|*s10n*
           |
-          |1.00 EUR
+          |1.00 €
           |
           |_First payment:_ ${DateTimeFormatter.ISO_DATE.format(firstPaymentDate)}""".stripMargin
     checkS10nMessageMarkup(message.markup, subscription.id, page)

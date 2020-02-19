@@ -48,7 +48,7 @@ class DefaultCreateS10nDialogFsmServiceSpec extends AnyFlatSpec with Matchers wi
   private val finish = List(
     ReplyMessage("Saved.", BotStart.markup.some),
     ReplyMessage(
-      "**\n\n0.00 EUR\n",
+      "**\n\n0.00 €\n",
       MarkupInlineKeyboard(InlineKeyboardMarkup(List(
         List(inlineKeyboardButton("Edit", EditS10n(SubscriptionId(0L), PageNumber(0)))),
         List(inlineKeyboardButton("Remove", RemoveS10n(SubscriptionId(0L), PageNumber(0)))),

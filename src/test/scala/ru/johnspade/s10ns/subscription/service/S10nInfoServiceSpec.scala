@@ -35,7 +35,7 @@ class S10nInfoServiceSpec extends AnyFlatSpec with Matchers with OptionValues {
   }
 
   "getAmountInDefaultCurrency" should "convert the amount to default currency" in {
-    s10nInfoService.getAmountInDefaultCurrency(amount, CurrencyUnit.EUR).unsafeRunSync.value shouldBe "≈11.97 EUR"
+    s10nInfoService.getAmountInDefaultCurrency(amount, CurrencyUnit.EUR).unsafeRunSync.value shouldBe "≈11.97 €"
   }
 
   "getBillingPeriod" should "output a billing period with plural count of chrono units" in {

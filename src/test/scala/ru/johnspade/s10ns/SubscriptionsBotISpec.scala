@@ -88,12 +88,12 @@ class SubscriptionsBotISpec
     verifySendMessage(
       s"""*Netflix*
          |
-         |11.36 EUR
+         |11.36 €
          |
          |_Billing period:_ every 1 month
          |_Next payment:_ $today
          |_First payment:_ $today
-         |_Paid in total:_ 0.00 EUR""".stripMargin,
+         |_Paid in total:_ 0.00 €""".stripMargin,
       MarkupInlineKeyboard(InlineKeyboardMarkup(List(
         List(inlineKeyboardButton("Edit", EditS10n(SubscriptionId(1L), PageNumber(0)))),
         List(inlineKeyboardButton("Remove", RemoveS10n(SubscriptionId(1L), PageNumber(0)))),
