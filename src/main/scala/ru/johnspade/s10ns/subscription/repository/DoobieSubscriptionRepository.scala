@@ -4,7 +4,6 @@ import doobie.free.connection
 import doobie.free.connection.ConnectionIO
 import doobie.implicits._
 import doobie.postgres.implicits._
-import doobie.util.log.LogHandler
 import doobie.util.query.Query0
 import doobie.util.update.Update0
 import doobie.util.{Read, Write}
@@ -43,8 +42,6 @@ class DoobieSubscriptionRepository extends SubscriptionRepository[ConnectionIO] 
 
 object DoobieSubscriptionRepository {
   object SubscriptionSql {
-    private implicit val han: LogHandler = LogHandler.jdkLogHandler
-
     def create(draft: SubscriptionDraft): Update0 = {
       import draft._
 

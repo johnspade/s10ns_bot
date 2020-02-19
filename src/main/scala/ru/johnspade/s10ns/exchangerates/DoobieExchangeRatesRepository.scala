@@ -4,7 +4,6 @@ import cats.implicits._
 import doobie._
 import doobie.free.connection.ConnectionIO
 import doobie.implicits._
-import doobie.util.log.LogHandler
 import doobie.util.query.Query0
 import ru.johnspade.s10ns.exchangerates.DoobieExchangeRatesRepository.ExchangeRatesSql
 
@@ -19,8 +18,6 @@ class DoobieExchangeRatesRepository extends ExchangeRatesRepository[ConnectionIO
 
 object DoobieExchangeRatesRepository {
   object ExchangeRatesSql {
-    private implicit val han: LogHandler = LogHandler.jdkLogHandler
-
     def get(): Query0[(String, BigDecimal)] = sql"""select currency, rate from exchange_rates""".query[(String, BigDecimal)]
 
     val save: Update[(String, BigDecimal)] =

@@ -1,6 +1,6 @@
 package ru.johnspade.s10ns.exchangerates
 
-import java.time.{Instant, LocalDate, LocalDateTime, LocalTime, ZoneId}
+import java.time.{Instant, LocalDate, LocalDateTime, LocalTime, ZoneId, ZoneOffset}
 import java.util.concurrent.TimeUnit
 
 import cats.effect.{Clock, Concurrent, Sync, Timer}
@@ -27,7 +27,7 @@ class DefaultExchangeRatesJobService[F[_] : Concurrent : Clock : Timer : Logger,
         case _ => Sync[F].unit
       }
       midnight <- Sync[F].delay {
-        LocalDateTime.of(LocalDate.now, LocalTime.MIDNIGHT).plusDays(1).atZone(ZoneId.systemDefault()).toInstant.toEpochMilli
+        LocalDateTime.of(LocalDate.now(ZoneOffset.UTC), LocalTime.MIDNIGHT).plusDays(1).atZone(ZoneId.systemDefault()).toInstant.toEpochMilli
       }
       _ <- Concurrent[F].start(
         initRates >> Timer[F].sleep((midnight - now).millis) >> repeatDaily(exchangeRatesService.saveRates())

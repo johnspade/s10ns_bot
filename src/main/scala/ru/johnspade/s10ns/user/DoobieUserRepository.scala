@@ -7,7 +7,6 @@ import doobie.free.connection
 import doobie.free.connection.ConnectionIO
 import doobie.implicits._
 import doobie.util.Meta
-import doobie.util.log.LogHandler
 import doobie.util.query.Query0
 import doobie.util.update.Update0
 import org.joda.money.{CurrencyUnit, Money}
@@ -43,8 +42,6 @@ class DoobieUserRepository extends UserRepository[ConnectionIO] {
 
 object DoobieUserRepository {
   object UserSql {
-    private implicit val han: LogHandler = LogHandler.jdkLogHandler // todo remove
-
     def create(user: User): Update0 =
       sql"""
         insert into users (id, first_name, chat_id, default_currency, dialog)
@@ -68,11 +65,11 @@ object DoobieUserRepository {
       """.update
   }
 
-  import io.circe.parser._
-  import io.circe.generic.extras.auto._
-  import io.circe.generic.extras.Configuration
-  import io.circe.syntax._
   import cats.syntax.either._
+  import io.circe.generic.extras.Configuration
+  import io.circe.generic.extras.auto._
+  import io.circe.parser._
+  import io.circe.syntax._
 
   private implicit val jsonConfig: Configuration = Configuration.default.withDiscriminator("discriminator")
 

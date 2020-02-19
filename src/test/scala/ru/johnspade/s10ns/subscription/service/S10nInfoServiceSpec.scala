@@ -1,7 +1,7 @@
 package ru.johnspade.s10ns.subscription.service
 
-import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+import java.time.{LocalDate, ZoneOffset}
 
 import cats.effect.{Clock, IO}
 import org.joda.money.{CurrencyUnit, Money}
@@ -24,7 +24,7 @@ class S10nInfoServiceSpec extends AnyFlatSpec with Matchers with OptionValues {
   private val amount = Money.of(CurrencyUnit.USD, 13.37)
   private val periodDuration = 2
   private val billingPeriod = BillingPeriod(BillingPeriodDuration(periodDuration), BillingPeriodUnit.Day)
-  private val firstPaymentDate = FirstPaymentDate(LocalDate.now.minusDays(1))
+  private val firstPaymentDate = FirstPaymentDate(LocalDate.now(ZoneOffset.UTC).minusDays(1))
 
   "getName" should "get subscription's name" in {
     s10nInfoService.getName(SubscriptionName("Netflix")) shouldBe "*Netflix*"
@@ -67,24 +67,30 @@ class S10nInfoServiceSpec extends AnyFlatSpec with Matchers with OptionValues {
   }
 
   "getNextPaymentDate" should "calculate a next payment date" in {
-    s10nInfoService.getNextPaymentDate(firstPaymentDate, billingPeriod).unsafeRunSync shouldBe
-      s"_Next payment:_ ${DateTimeFormatter.ISO_DATE.format(firstPaymentDate.plusDays(periodDuration))}"
+    val result = s10nInfoService.getNextPaymentDate(firstPaymentDate, billingPeriod).unsafeRunSync
+    result shouldBe s"_Next payment:_ ${DateTimeFormatter.ISO_DATE.format(firstPaymentDate.plusDays(periodDuration))}"
   }
 
   it should "calculate a next payment date in future" in {
-    val firstPaymentDate = FirstPaymentDate(LocalDate.now.plusMonths(1))
+    val firstPaymentDate = FirstPaymentDate(LocalDate.now(ZoneOffset.UTC).plusMonths(2))
+    s10nInfoService.getNextPaymentDate(firstPaymentDate, BillingPeriod(BillingPeriodDuration(1), BillingPeriodUnit.Month))
+      .unsafeRunSync shouldBe s"_Next payment:_ ${DateTimeFormatter.ISO_DATE.format(firstPaymentDate)}"
+  }
+
+  it should "calculate that you have to pay today" in {
+    val firstPaymentDate = FirstPaymentDate(LocalDate.now(ZoneOffset.UTC))
     s10nInfoService.getNextPaymentDate(firstPaymentDate, BillingPeriod(BillingPeriodDuration(1), BillingPeriodUnit.Month))
       .unsafeRunSync shouldBe s"_Next payment:_ ${DateTimeFormatter.ISO_DATE.format(firstPaymentDate)}"
   }
 
   "getPaidInTotal" should "calculate paid in total" in {
-    val firstPaymentDate = FirstPaymentDate(LocalDate.now.minusDays(periodDuration + 1))
+    val firstPaymentDate = FirstPaymentDate(LocalDate.now(ZoneOffset.UTC).minusDays(periodDuration + 1))
     s10nInfoService.getPaidInTotal(amount, firstPaymentDate, billingPeriod)
       .unsafeRunSync shouldBe "_Paid in total:_ 26.74 $"
   }
 
   it should "not calculate paid in total for future subscriptions" in {
-    s10nInfoService.getPaidInTotal(amount, FirstPaymentDate(LocalDate.now.plusMonths(1)), billingPeriod)
+    s10nInfoService.getPaidInTotal(amount, FirstPaymentDate(LocalDate.now(ZoneOffset.UTC).plusMonths(1)), billingPeriod)
       .unsafeRunSync shouldBe "_Paid in total:_ 0.00 $"
   }
 

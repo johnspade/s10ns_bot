@@ -14,12 +14,12 @@ import telegramium.bots.{CallbackQuery, InlineKeyboardMarkup}
 
 class DefaultSubscriptionListService[F[_] : Sync, D[_] : Monad](
   private val s10nRepo: SubscriptionRepository[D],
-  private val s10nsListService: S10nsListMessageService[F]
+  private val s10nsListMessageService: S10nsListMessageService[F]
 )(private implicit val transact: D ~> F) extends SubscriptionListService[F] {
   override def onSubscriptionsCb(user: User, cb: CallbackQuery, data: S10ns): F[ReplyMessage] = {
     for {
       s10ns <- transact(s10nRepo.getByUserId(user.id))
-      reply <- s10nsListService.createSubscriptionsPage(s10ns, data.page, user.defaultCurrency)
+      reply <- s10nsListMessageService.createSubscriptionsPage(s10ns, data.page, user.defaultCurrency)
     } yield reply
   }
 
@@ -27,7 +27,7 @@ class DefaultSubscriptionListService[F[_] : Sync, D[_] : Monad](
     for {
       _ <- transact(s10nRepo.remove(data.subscriptionId))
       s10ns <- transact(s10nRepo.getByUserId(user.id))
-      reply <- s10nsListService.createSubscriptionsPage(s10ns, data.page, user.defaultCurrency)
+      reply <- s10nsListMessageService.createSubscriptionsPage(s10ns, data.page, user.defaultCurrency)
     } yield reply
   }
 
@@ -35,7 +35,7 @@ class DefaultSubscriptionListService[F[_] : Sync, D[_] : Monad](
     def checkUserAndGetMessage(subscription: Subscription) =
       Either.cond(
         subscription.userId == user.id,
-        s10nsListService.createSubscriptionMessage(user.defaultCurrency, subscription, data.page),
+        s10nsListMessageService.createSubscriptionMessage(user.defaultCurrency, subscription, data.page),
         Errors.AccessDenied
       )
         .sequence
@@ -49,14 +49,14 @@ class DefaultSubscriptionListService[F[_] : Sync, D[_] : Monad](
   override def onListCommand(from: User, page: PageNumber): F[ReplyMessage] =
     transact(s10nRepo.getByUserId(from.id))
       .flatMap {
-        s10nsListService.createSubscriptionsPage(_, page, from.defaultCurrency)
+        s10nsListMessageService.createSubscriptionsPage(_, page, from.defaultCurrency)
       }
 
   override def onEditS10nCb(cb: CallbackQuery, data: EditS10n): F[Either[String, InlineKeyboardMarkup]] = {
     def checkUserAndGetMarkup(subscription: Subscription) =
       Either.cond(
         subscription.userId == UserId(cb.from.id.toLong),
-        s10nsListService.createEditS10nMarkup(subscription, data.page),
+        s10nsListMessageService.createEditS10nMarkup(subscription, data.page),
         Errors.AccessDenied
       )
 

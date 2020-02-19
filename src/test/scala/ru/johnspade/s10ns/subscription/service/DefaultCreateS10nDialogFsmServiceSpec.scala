@@ -1,6 +1,6 @@
 package ru.johnspade.s10ns.subscription.service
 
-import java.time.LocalDate
+import java.time.{LocalDate, ZoneOffset}
 
 import cats.Id
 import cats.effect.{Clock, IO}
@@ -95,7 +95,7 @@ class DefaultCreateS10nDialogFsmServiceSpec extends AnyFlatSpec with Matchers wi
       matchTo {
         List(ReplyMessage(
           "First payment date:",
-          markup = MarkupInlineKeyboard((new CalendarService).generateKeyboard(LocalDate.now)).some
+          markup = MarkupInlineKeyboard((new CalendarService).generateKeyboard(LocalDate.now(ZoneOffset.UTC))).some
         ))
       }
   }
@@ -137,7 +137,7 @@ class DefaultCreateS10nDialogFsmServiceSpec extends AnyFlatSpec with Matchers wi
     createS10nDialogFsmService.saveIsOneTime(user, dialog, OneTimeSubscription(true)).unsafeRunSync should matchTo {
       List(ReplyMessage(
         "First payment date:",
-        markup = MarkupInlineKeyboard((new CalendarService).generateKeyboard(LocalDate.now)).some
+        markup = MarkupInlineKeyboard((new CalendarService).generateKeyboard(LocalDate.now(ZoneOffset.UTC))).some
       ))
     }
   }
@@ -153,7 +153,7 @@ class DefaultCreateS10nDialogFsmServiceSpec extends AnyFlatSpec with Matchers wi
     (mockS10nRepo.create _).expects(*).returns(s10n)
 
     val dialog = CreateS10nDialog(CreateS10nDialogState.FirstPaymentDate, draft)
-    createS10nDialogFsmService.saveFirstPaymentDate(user, dialog, FirstPaymentDate(LocalDate.now)).unsafeRunSync should
+    createS10nDialogFsmService.saveFirstPaymentDate(user, dialog, FirstPaymentDate(LocalDate.now(ZoneOffset.UTC))).unsafeRunSync should
       matchTo(finish)
   }
 }

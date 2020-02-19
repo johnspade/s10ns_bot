@@ -36,7 +36,7 @@ class SubscriptionsBot[F[_] : Sync : Timer : Logger, D[_] : Monad](
       .handleErrorWith(e => Logger[F].error(e)(e.getMessage))
 
   override def onCallbackQuery(query: CallbackQuery): F[Unit] = {
-    val ackError = ackCb[F](query, Errors.Default.some)
+    def ackError = ackCb[F](query, Errors.Default.some)
     val tgUser = query.from.toUser(query.message.map(_.chat.id.toLong))
 
     def getUser = transact(userRepo.getOrCreate(tgUser))

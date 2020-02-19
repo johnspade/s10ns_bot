@@ -1,7 +1,7 @@
 package ru.johnspade.s10ns.subscription.service
 
-import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+import java.time.{LocalDate, ZoneOffset}
 
 import cats.effect.{Clock, IO}
 import cats.syntax.option._
@@ -26,7 +26,7 @@ class S10nsListMessageServiceSpec extends AnyFlatSpec with Matchers with OptionV
   private val moneyService = new MoneyService[IO](new InMemoryExchangeRatesStorage)
   private val s10nsListMessageService = new S10nsListMessageService[IO](moneyService, new S10nInfoService[IO](moneyService))
 
-  private val firstPaymentDate = LocalDate.now.minusDays(35)
+  private val firstPaymentDate = LocalDate.now(ZoneOffset.UTC).minusDays(35)
   private val s10n1 = Subscription(
     SubscriptionId(1L),
     UserId(0L),
@@ -157,7 +157,7 @@ class S10nsListMessageServiceSpec extends AnyFlatSpec with Matchers with OptionV
   }
 
   it should "generate a correct message for one time subscriptions" in {
-    val firstPaymentDate = FirstPaymentDate(LocalDate.now().minusMonths(1))
+    val firstPaymentDate = FirstPaymentDate(LocalDate.now(ZoneOffset.UTC).minusMonths(1))
     val subscription = Subscription(
       SubscriptionId(0L),
       UserId(0L),
@@ -198,7 +198,7 @@ class S10nsListMessageServiceSpec extends AnyFlatSpec with Matchers with OptionV
   }
 
   it should "generate a markup for one time subscription editing" in {
-    val firstPaymentDate = FirstPaymentDate(LocalDate.now().minusMonths(1))
+    val firstPaymentDate = FirstPaymentDate(LocalDate.now(ZoneOffset.UTC).minusMonths(1))
     val subscription = Subscription(
       SubscriptionId(0L),
       UserId(0L),

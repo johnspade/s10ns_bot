@@ -36,7 +36,9 @@ final case class EditS10nFirstPaymentDate(subscriptionId: SubscriptionId) extend
 case object DefCurrency extends CbData
 
 object CbData {
-  val csvConfig: CsvConfiguration = rfc.withCellSeparator('\u001D')
+  val Separator: Char = '\u001D'
+
+  val csvConfig: CsvConfiguration = rfc.withCellSeparator(Separator)
 
   implicit def liftedCellEncoder[T, U](implicit cellEncoder: CellEncoder[T]): CellEncoder[T @@ U] =
     lifterF[CellEncoder].lift

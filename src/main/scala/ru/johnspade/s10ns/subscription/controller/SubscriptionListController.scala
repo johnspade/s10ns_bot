@@ -1,6 +1,5 @@
 package ru.johnspade.s10ns.subscription.controller
 
-import cats.Monad
 import cats.effect.Sync
 import cats.implicits._
 import io.chrisdavenport.log4cats.Logger

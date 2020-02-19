@@ -1,7 +1,7 @@
 package ru.johnspade.s10ns.subscription.service
 
 import java.time.format.DateTimeFormatter
-import java.time.{Instant, ZoneOffset}
+import java.time.{Instant, LocalDate, ZoneOffset}
 import java.util.concurrent.TimeUnit
 
 import cats.Monad
@@ -19,6 +19,8 @@ import ru.johnspade.s10ns.subscription.tags.{FirstPaymentDate, SubscriptionName}
 class S10nInfoService[F[_] : Sync : Clock](
   private val moneyService: MoneyService[F]
 ) {
+  private implicit val localDateOrdering: Ordering[LocalDate] = _ compareTo _
+
   def getName(name: SubscriptionName): String = s"*$name*"
 
   def getAmount(amount: Money): String = MoneyFormatter.print(amount)
@@ -35,45 +37,29 @@ class S10nInfoService[F[_] : Sync : Clock](
     s"_Billing period:_ every $measure"
   }
 
-  def getNextPaymentDate(start: FirstPaymentDate, billingPeriod: BillingPeriod): F[String] = {
-    import billingPeriod.duration
-    import billingPeriod.unit.chronoUnit
-
-    nowClock.map { now =>
-      val today = now.atZone(ZoneOffset.UTC).toLocalDate
-      val nextPaymentDate = if (!today.isAfter(start)) start
-      else {
-        val unitsPassed = chronoUnit.between(start, today)
-        val periodsPassed = unitsPassed / duration
-        val cycleEnd = if (unitsPassed < duration) start.plus(duration, chronoUnit)
-        else start.plus(duration * (periodsPassed + 1), chronoUnit)
-        if (cycleEnd isBefore today) cycleEnd.plus(duration, chronoUnit) else cycleEnd
-      }
+  def getNextPaymentDate(start: FirstPaymentDate, billingPeriod: BillingPeriod): F[String] =
+    calculatePeriodsPassed(start, billingPeriod).map { periodsPassed =>
+      val nextPaymentDate = start.plus(periodsPassed * billingPeriod.duration, billingPeriod.unit.chronoUnit)
       s"_Next payment:_ ${DateTimeFormatter.ISO_DATE.format(nextPaymentDate)}"
     }
-  }
 
-  def getPaidInTotal(amount: Money, start: FirstPaymentDate, billingPeriod: BillingPeriod): F[String] = {
-    import billingPeriod.duration
-    import billingPeriod.unit.chronoUnit
-
-    nowClock.map { now =>
-      val today = now.atZone(ZoneOffset.UTC).toLocalDate
-      val paymentsCount = if (!today.isAfter(start)) 0
-      else {
-        val unitsPassed = chronoUnit.between(start, today)
-        val periodsPassed = unitsPassed / duration
-        val cycleEnd = if (unitsPassed < duration) start.plus(duration, chronoUnit)
-        else start.plus(duration * (periodsPassed + 1), chronoUnit)
-        if (cycleEnd isAfter today) periodsPassed + 1 else periodsPassed
-      }
+  def getPaidInTotal(amount: Money, start: FirstPaymentDate, billingPeriod: BillingPeriod): F[String] =
+    calculatePeriodsPassed(start, billingPeriod).map { paymentsCount =>
       s"_Paid in total:_ ${MoneyFormatter.print(amount.multipliedBy(paymentsCount))}"
     }
-  }
 
   def getFirstPaymentDate(start: FirstPaymentDate): String = s"_First payment:_ ${DateTimeFormatter.ISO_DATE.format(start)}"
 
-  private def nowClock = Clock[F].realTime(TimeUnit.MILLISECONDS).map(Instant.ofEpochMilli)
+  private def calculatePeriodsPassed(start: FirstPaymentDate, billingPeriod: BillingPeriod) = {
+    import billingPeriod.duration
+    import billingPeriod.unit.chronoUnit
+
+    Clock[F].realTime(TimeUnit.MILLISECONDS).map { millis =>
+      val today = Instant.ofEpochMilli(millis).atZone(ZoneOffset.UTC).toLocalDate
+      val unitsPassed = chronoUnit.between(start, Set(today.plus(duration, chronoUnit).minusDays(1), start).max)
+      unitsPassed / duration
+    }
+  }
 
   private val measureFormat = MeasureFormat.getInstance(ULocale.US, FormatWidth.WIDE)
 }
