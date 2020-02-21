@@ -57,3 +57,8 @@ libraryDependencies ++= Seq(
 )
 
 addCompilerPlugin("com.olegpy" %% "better-monadic-for" % "0.3.1")
+
+assemblyMergeStrategy in assembly := {
+  case PathList("META-INF", _) => MergeStrategy.discard
+  case _ => MergeStrategy.first
+}

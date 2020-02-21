@@ -8,8 +8,8 @@ object BotStart {
   val markup: MarkupReplyKeyboard = MarkupReplyKeyboard(ReplyKeyboardMarkup(
     List(
       List(KeyboardButton("\uD83D\uDCCB List")),
-      List(KeyboardButton("➕ Create subscription (default currency)")),
-      List(KeyboardButton("\uD83D\uDCB2 Create subscription")),
+      List(KeyboardButton("➕ New subscription (default currency)")),
+      List(KeyboardButton("\uD83D\uDCB2 New subscription")),
       List(KeyboardButton("⚙️ Settings"))
     ),
     resizeKeyboard = Some(true)

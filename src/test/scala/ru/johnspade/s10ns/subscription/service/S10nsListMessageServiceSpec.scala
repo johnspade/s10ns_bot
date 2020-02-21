@@ -186,12 +186,12 @@ class S10nsListMessageServiceSpec extends AnyFlatSpec with Matchers with OptionV
     val markup = s10nsListMessageService.createEditS10nMarkup(s10n1, PageNumber(0))
     markup should matchTo {
       InlineKeyboardMarkup(List(
-        List(inlineKeyboardButton("Edit name", EditS10nName(id))),
-        List(inlineKeyboardButton("Edit amount", EditS10nAmount(id))),
-        List(inlineKeyboardButton("Edit currency/amount", EditS10nCurrency(id))),
+        List(inlineKeyboardButton("Name", EditS10nName(id))),
+        List(inlineKeyboardButton("Amount", EditS10nAmount(id))),
+        List(inlineKeyboardButton("Currency/amount", EditS10nCurrency(id))),
         List(inlineKeyboardButton("Recurring/one time", EditS10nOneTime(id))),
-        List(inlineKeyboardButton("Edit billing period", EditS10nBillingPeriod(id))),
-        List(inlineKeyboardButton("Edit first payment date", EditS10nFirstPaymentDate(id))),
+        List(inlineKeyboardButton("Billing period", EditS10nBillingPeriod(id))),
+        List(inlineKeyboardButton("First payment date", EditS10nFirstPaymentDate(id))),
         List(inlineKeyboardButton("Back", S10n(id, PageNumber(0))))
       ))
     }
@@ -214,12 +214,12 @@ class S10nsListMessageServiceSpec extends AnyFlatSpec with Matchers with OptionV
     val markup = s10nsListMessageService.createEditS10nMarkup(subscription, PageNumber(0))
     markup should matchTo {
       InlineKeyboardMarkup(List(
-        List(inlineKeyboardButton("Edit name", EditS10nName(id))),
-        List(inlineKeyboardButton("Edit amount", EditS10nAmount(id))),
-        List(inlineKeyboardButton("Edit currency/amount", EditS10nCurrency(id))),
+        List(inlineKeyboardButton("Name", EditS10nName(id))),
+        List(inlineKeyboardButton("Amount", EditS10nAmount(id))),
+        List(inlineKeyboardButton("Currency/amount", EditS10nCurrency(id))),
         List(inlineKeyboardButton("Recurring/one time", EditS10nOneTime(id))),
         List(),
-        List(inlineKeyboardButton("Edit first payment date", EditS10nFirstPaymentDate(id))),
+        List(inlineKeyboardButton("First payment date", EditS10nFirstPaymentDate(id))),
         List(inlineKeyboardButton("Back", S10n(id, PageNumber(0))))
       ))
     }
