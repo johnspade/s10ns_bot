@@ -5,19 +5,36 @@ import cats.implicits._
 import cats.{Applicative, ~>}
 import ru.johnspade.s10ns.bot.{BotStart, Dialog}
 import ru.johnspade.s10ns.user.{User, UserRepository}
-import telegramium.bots.{MarkupRemoveKeyboard, ReplyKeyboardRemove}
+import telegramium.bots.{InlineKeyboardMarkup, ReplyKeyboardMarkup, ReplyKeyboardRemove}
 
 class DefaultDialogEngine[F[_] : Sync, D[_] : Applicative](
   private val userRepo: UserRepository[D]
 )(private implicit val transact: D ~> F) extends TransactionalDialogEngine[F, D] {
-  override def startDialog(user: User, dialog: Dialog, message: ReplyMessage): F[ReplyMessage] = {
+  override def startDialog(user: User, dialog: Dialog, message: ReplyMessage): F[List[ReplyMessage]] = {
     val userWithDialog = user.copy(dialog = dialog.some)
-    val reply = if (message.markup.isDefined) message // todo remove default keyboard
-    else message.copy(
-      markup = MarkupRemoveKeyboard(ReplyKeyboardRemove(removeKeyboard = true)).some
-    )
-    transact(userRepo.createOrUpdate(userWithDialog)) *>
-      Sync[F].pure(reply)
+    val replyKeyboardRemove = ReplyKeyboardRemove(removeKeyboard = true).some
+    val reply = message.markup match {
+      case Some(replyKeyboard @ ReplyKeyboardMarkup(_, _, _, _)) => List(
+        message.copy(
+          markup = replyKeyboard.some
+        )
+      )
+      case Some(inlineKeyboard @ InlineKeyboardMarkup(_)) => List(
+        message.copy(
+          markup = replyKeyboardRemove,
+        ),
+        ReplyMessage(
+          text = "⌨️",
+          markup = inlineKeyboard.some
+        )
+      )
+      case _ => List(
+        message.copy(
+          markup = replyKeyboardRemove
+        )
+      )
+    }
+    transact(userRepo.createOrUpdate(userWithDialog)).map(_ => reply)
   }
 
   override def reset(user: User, message: String): D[ReplyMessage] =

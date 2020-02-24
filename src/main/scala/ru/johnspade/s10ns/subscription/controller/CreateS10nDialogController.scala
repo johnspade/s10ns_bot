@@ -14,9 +14,9 @@ import telegramium.bots.{CallbackQuery, Message}
 class CreateS10nDialogController[F[_] : Sync : Logger : Timer](
   private val createS10nDialogService: CreateS10nDialogService[F]
 ) {
-  def createCommand(user: User): F[ReplyMessage] = createS10nDialogService.onCreateCommand(user)
+  def createCommand(user: User): F[List[ReplyMessage]] = createS10nDialogService.onCreateCommand(user)
 
-  def createWithDefaultCurrencyCommand(user: User): F[ReplyMessage] =
+  def createWithDefaultCurrencyCommand(user: User): F[List[ReplyMessage]] =
     createS10nDialogService.onCreateWithDefaultCurrencyCommand(user)
 
   def message(user: User, dialog: CreateS10nDialog, message: Message): F[List[ReplyMessage]] =

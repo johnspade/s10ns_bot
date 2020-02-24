@@ -1,4 +1,4 @@
-package ru.johnspade.s10ns.subscription.service
+package ru.johnspade.s10ns.subscription.service.impl
 
 import cats.effect.Sync
 import cats.implicits._
@@ -7,6 +7,7 @@ import ru.johnspade.s10ns.bot.engine.ReplyMessage
 import ru.johnspade.s10ns.bot.{EditS10n, Errors, RemoveS10n, S10n, S10ns}
 import ru.johnspade.s10ns.subscription.Subscription
 import ru.johnspade.s10ns.subscription.repository.SubscriptionRepository
+import ru.johnspade.s10ns.subscription.service.{S10nsListMessageService, SubscriptionListService}
 import ru.johnspade.s10ns.subscription.tags.PageNumber
 import ru.johnspade.s10ns.user.User
 import ru.johnspade.s10ns.user.tags._

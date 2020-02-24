@@ -10,7 +10,7 @@ import ru.johnspade.s10ns.subscription.service.SubscriptionListService
 import ru.johnspade.s10ns.subscription.tags.PageNumber
 import ru.johnspade.s10ns.user.User
 import telegramium.bots.client.{Api, EditMessageReplyMarkupReq, EditMessageTextReq}
-import telegramium.bots.{CallbackQuery, ChatIntId, InlineKeyboardMarkup, MarkupInlineKeyboard}
+import telegramium.bots.{CallbackQuery, ChatIntId, InlineKeyboardMarkup}
 
 class SubscriptionListController[F[_] : Sync : Logger](
   private val s10nListService: SubscriptionListService[F]
@@ -47,7 +47,7 @@ class SubscriptionListController[F[_] : Sync : Logger](
 
   private def editMessage(cb: CallbackQuery, reply: ReplyMessage)(implicit bot: Api[F]) = {
     val markup = reply.markup match {
-      case Some(MarkupInlineKeyboard(markup)) => markup.some
+      case Some(inlineKeyboard @ InlineKeyboardMarkup(_)) => inlineKeyboard.some
       case _ => Option.empty[InlineKeyboardMarkup]
     }
     val editMessageTextReq = EditMessageTextReq(
@@ -55,7 +55,7 @@ class SubscriptionListController[F[_] : Sync : Logger](
       cb.message.map(_.messageId),
       text = reply.text,
       replyMarkup = markup,
-      parseMode = reply.parseMode.map(_.value)
+      parseMode = reply.parseMode
     )
     bot.editMessageText(editMessageTextReq).void
   }

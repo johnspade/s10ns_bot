@@ -17,6 +17,12 @@ sealed abstract class Dialog { self =>
     }
 }
 
+object Dialog {
+  type Aux[S0 <: DialogState] = Dialog {
+    type S = S0
+  }
+}
+
 final case class CreateS10nDialog(
   override val state: CreateS10nDialogState,
   draft: SubscriptionDraft
@@ -40,8 +46,19 @@ final case class SettingsDialog(
     copy(state = SettingsDialogState.transition(state, event))
 }
 
-sealed trait EditS10nDialog extends Dialog {
+sealed trait EditS10nDialog extends Dialog { self =>
   def draft: Subscription
+
+  override def transition(event: E): EditS10nDialog {
+    type S = self.S
+    type E = self.E
+  }
+}
+
+object EditS10nDialog {
+  type Aux[S0 <: DialogState] = EditS10nDialog {
+    type S = S0
+  }
 }
 
 final case class EditS10nNameDialog(

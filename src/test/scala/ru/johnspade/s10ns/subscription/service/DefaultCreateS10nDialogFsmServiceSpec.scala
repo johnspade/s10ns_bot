@@ -14,17 +14,18 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import ru.johnspade.s10ns.TestTransactor.transact
 import ru.johnspade.s10ns.bot.engine.TelegramOps.inlineKeyboardButton
-import ru.johnspade.s10ns.bot.engine.{DefaultDialogEngine, MessageParseMode, ReplyMessage}
-import ru.johnspade.s10ns.bot.{BotStart, CreateS10nDialog, EditS10n, MoneyService, RemoveS10n, S10ns, StateMessageService}
+import ru.johnspade.s10ns.bot.engine.{DefaultDialogEngine, ReplyMessage}
+import ru.johnspade.s10ns.bot.{BotStart, CreateS10nDialog, EditS10n, MoneyService, RemoveS10n, S10ns}
 import ru.johnspade.s10ns.calendar.CalendarService
 import ru.johnspade.s10ns.exchangerates.InMemoryExchangeRatesStorage
-import ru.johnspade.s10ns.subscription.dialog.CreateS10nDialogState
+import ru.johnspade.s10ns.subscription.dialog.{CreateS10nDialogState, CreateS10nMsgService}
 import ru.johnspade.s10ns.subscription.repository.SubscriptionRepository
+import ru.johnspade.s10ns.subscription.service.impl.DefaultCreateS10nDialogFsmService
 import ru.johnspade.s10ns.subscription.tags.{BillingPeriodDuration, FirstPaymentDate, OneTimeSubscription, PageNumber, SubscriptionId, SubscriptionName}
 import ru.johnspade.s10ns.subscription.{BillingPeriodUnit, Subscription, SubscriptionDraft}
 import ru.johnspade.s10ns.user.tags.{FirstName, UserId}
 import ru.johnspade.s10ns.user.{InMemoryUserRepository, User}
-import telegramium.bots.{InlineKeyboardButton, InlineKeyboardMarkup, MarkupInlineKeyboard}
+import telegramium.bots.{InlineKeyboardButton, InlineKeyboardMarkup, Markdown}
 
 import scala.concurrent.ExecutionContext
 
@@ -34,12 +35,13 @@ class DefaultCreateS10nDialogFsmServiceSpec extends AnyFlatSpec with Matchers wi
 
   private val mockS10nRepo = mock[SubscriptionRepository[Id]]
   private val userRepository = new InMemoryUserRepository
-  private val stateMessageService = new StateMessageService[IO](new CalendarService)
   private val dialogEngine = new DefaultDialogEngine[IO, Id](userRepository)
   private val moneyService = new MoneyService[IO](new InMemoryExchangeRatesStorage)
   private val s10nsListMessageService = new S10nsListMessageService[IO](moneyService, new S10nInfoService[IO](moneyService))
+  private val calendarService = new CalendarService
+  private val createS10nMsgService = new CreateS10nMsgService[IO](calendarService)
   private val createS10nDialogFsmService = new DefaultCreateS10nDialogFsmService[IO, Id](
-    mockS10nRepo, userRepository, stateMessageService, dialogEngine, s10nsListMessageService
+    mockS10nRepo, userRepository, dialogEngine, s10nsListMessageService, createS10nMsgService
   )
 
   private val user = User(UserId(0L), FirstName("John"), None)
@@ -49,12 +51,12 @@ class DefaultCreateS10nDialogFsmServiceSpec extends AnyFlatSpec with Matchers wi
     ReplyMessage("Saved.", BotStart.markup.some),
     ReplyMessage(
       "**\n\n0.00 €\n",
-      MarkupInlineKeyboard(InlineKeyboardMarkup(List(
+      InlineKeyboardMarkup(List(
         List(inlineKeyboardButton("Edit", EditS10n(SubscriptionId(0L), PageNumber(0)))),
         List(inlineKeyboardButton("Remove", RemoveS10n(SubscriptionId(0L), PageNumber(0)))),
         List(inlineKeyboardButton("List", S10ns(PageNumber(0))))
-      ))).some,
-      MessageParseMode.Markdown.some
+      )).some,
+      Markdown.some
     )
   )
 
@@ -78,13 +80,13 @@ class DefaultCreateS10nDialogFsmServiceSpec extends AnyFlatSpec with Matchers wi
     createS10nDialogFsmService.saveAmount(user, dialog, BigDecimal(1)).unsafeRunSync should matchTo {
       List(ReplyMessage(
         "Recurring/one time:",
-        markup = MarkupInlineKeyboard(InlineKeyboardMarkup(
+        markup = InlineKeyboardMarkup(
           List(List(
             InlineKeyboardButton("Recurring", callbackData = "OneTime\u001Dfalse".some),
             InlineKeyboardButton("One time", callbackData = "OneTime\u001Dtrue".some),
             InlineKeyboardButton("Skip", callbackData = "SkipIsOneTime".some)
           ))
-        )).some
+        ).some
       ))
     }
   }
@@ -95,7 +97,7 @@ class DefaultCreateS10nDialogFsmServiceSpec extends AnyFlatSpec with Matchers wi
       matchTo {
         List(ReplyMessage(
           "First payment date:",
-          markup = MarkupInlineKeyboard((new CalendarService).generateKeyboard(LocalDate.now(ZoneOffset.UTC))).some
+          calendarService.generateKeyboard(LocalDate.now(ZoneOffset.UTC)).some
         ))
       }
   }
@@ -120,14 +122,14 @@ class DefaultCreateS10nDialogFsmServiceSpec extends AnyFlatSpec with Matchers wi
     createS10nDialogFsmService.saveIsOneTime(user, dialog, OneTimeSubscription(false)).unsafeRunSync should matchTo {
       List(ReplyMessage(
         "Billing period unit:",
-        MarkupInlineKeyboard(InlineKeyboardMarkup(
+        InlineKeyboardMarkup(
           List(List(
             InlineKeyboardButton("Days", callbackData = "PeriodUnit\u001DDay".some),
             InlineKeyboardButton("Weeks", callbackData = "PeriodUnit\u001DWeek".some),
             InlineKeyboardButton("Months", callbackData = "PeriodUnit\u001DMonth".some),
             InlineKeyboardButton("Years", callbackData = "PeriodUnit\u001DYear".some)
           ))
-        )).some
+        ).some
       ))
     }
   }
@@ -137,7 +139,7 @@ class DefaultCreateS10nDialogFsmServiceSpec extends AnyFlatSpec with Matchers wi
     createS10nDialogFsmService.saveIsOneTime(user, dialog, OneTimeSubscription(true)).unsafeRunSync should matchTo {
       List(ReplyMessage(
         "First payment date:",
-        markup = MarkupInlineKeyboard((new CalendarService).generateKeyboard(LocalDate.now(ZoneOffset.UTC))).some
+        markup = calendarService.generateKeyboard(LocalDate.now(ZoneOffset.UTC)).some
       ))
     }
   }

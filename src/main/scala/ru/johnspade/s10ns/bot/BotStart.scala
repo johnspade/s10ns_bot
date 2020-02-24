@@ -2,10 +2,10 @@ package ru.johnspade.s10ns.bot
 
 import cats.implicits._
 import ru.johnspade.s10ns.bot.engine.ReplyMessage
-import telegramium.bots.{KeyboardButton, MarkupReplyKeyboard, ReplyKeyboardMarkup}
+import telegramium.bots.{KeyboardButton, ReplyKeyboardMarkup}
 
 object BotStart {
-  val markup: MarkupReplyKeyboard = MarkupReplyKeyboard(ReplyKeyboardMarkup(
+  val markup: ReplyKeyboardMarkup = ReplyKeyboardMarkup(
     List(
       List(KeyboardButton("\uD83D\uDCCB List")),
       List(KeyboardButton("➕ New subscription (default currency)")),
@@ -13,7 +13,7 @@ object BotStart {
       List(KeyboardButton("⚙️ Settings"))
     ),
     resizeKeyboard = Some(true)
-  ))
+  )
 
   private final val Help = "Manage your subscriptions and get detailed insights of your recurring expenses."
 

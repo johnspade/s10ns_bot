@@ -18,8 +18,6 @@ val CatsRetryVersion = "0.3.1"
 val KantanVersion = "0.6.0"
 
 libraryDependencies ++= Seq(
-  "io.github.apimorphism" %% "telegramium-core" % "1.0.0-RC1",
-  "io.github.apimorphism" %% "telegramium-high" % "1.0.0-RC1",
   "com.softwaremill.sttp" %% "core" % SttpVersion,
   "com.softwaremill.sttp" %% "async-http-client-backend-cats" % SttpVersion,
   "com.softwaremill.sttp" %% "circe" % SttpVersion,
@@ -55,6 +53,10 @@ libraryDependencies ++= Seq(
   "com.softwaremill.diffx" %% "diffx-scalatest" % "0.3.16" % Test,
   "org.scalamock" %% "scalamock" % "4.4.0" % Test
 )
+
+lazy val telegramiumCore = ProjectRef(uri("https://github.com/apimorphism/telegramium.git#master"), "telegramium-core")
+lazy val telegramiumHigh = ProjectRef(uri("https://github.com/apimorphism/telegramium.git#master"), "telegramium-high")
+lazy val root = project.in(file(".")).dependsOn(telegramiumCore, telegramiumHigh)
 
 addCompilerPlugin("com.olegpy" %% "better-monadic-for" % "0.3.1")
 

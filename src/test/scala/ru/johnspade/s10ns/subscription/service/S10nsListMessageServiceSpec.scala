@@ -16,7 +16,7 @@ import ru.johnspade.s10ns.exchangerates.InMemoryExchangeRatesStorage
 import ru.johnspade.s10ns.subscription.tags.{BillingPeriodDuration, FirstPaymentDate, OneTimeSubscription, PageNumber, SubscriptionId, SubscriptionName}
 import ru.johnspade.s10ns.subscription.{BillingPeriod, BillingPeriodUnit, Subscription}
 import ru.johnspade.s10ns.user.tags.UserId
-import telegramium.bots.{InlineKeyboardMarkup, KeyboardMarkup, MarkupInlineKeyboard}
+import telegramium.bots.{InlineKeyboardMarkup, KeyboardMarkup}
 
 import scala.concurrent.ExecutionContext
 
@@ -57,13 +57,13 @@ class S10nsListMessageServiceSpec extends AnyFlatSpec with Matchers with OptionV
          |1. Netflix – 13.37 $
          |2. Spotify – 5.30 €""".stripMargin
     page.markup.value should matchTo[KeyboardMarkup] {
-      MarkupInlineKeyboard(InlineKeyboardMarkup(List(
+      InlineKeyboardMarkup(List(
         List(
           inlineKeyboardButton("1", S10n(SubscriptionId(1L), PageNumber(0))),
           inlineKeyboardButton("2", S10n(SubscriptionId(2L), PageNumber(0)))
         ),
         List()
-      )))
+      ))
     }
   }
 
@@ -75,14 +75,14 @@ class S10nsListMessageServiceSpec extends AnyFlatSpec with Matchers with OptionV
           |
           |${List.tabulate(10)(n => s"${n + 1}. s10n${n + 10} – 1.00 €").mkString("\n")}""".stripMargin
     page.markup.value should matchTo[KeyboardMarkup] {
-      MarkupInlineKeyboard(InlineKeyboardMarkup(List(
+      InlineKeyboardMarkup(List(
         List.tabulate(5)(n => inlineKeyboardButton((n + 1).toString, S10n(SubscriptionId(n + 10.toLong), PageNumber(1)))),
         List.tabulate(5)(n => inlineKeyboardButton((n + 6).toString, S10n(SubscriptionId(n + 15.toLong), PageNumber(1)))),
         List(
           inlineKeyboardButton("⬅", S10ns(PageNumber(0))),
           inlineKeyboardButton("➡", S10ns(PageNumber(2)))
         )
-      )))
+      ))
     }
   }
 
@@ -94,10 +94,10 @@ class S10nsListMessageServiceSpec extends AnyFlatSpec with Matchers with OptionV
           |
           |1. s10n10 – 1.00 €""".stripMargin
     page.markup.value should matchTo[KeyboardMarkup] {
-      MarkupInlineKeyboard(InlineKeyboardMarkup(List(
+      InlineKeyboardMarkup(List(
         List(inlineKeyboardButton("1", S10n(SubscriptionId(10L), PageNumber(1)))),
         List(inlineKeyboardButton("⬅", S10ns(PageNumber(0))))
-      )))
+      ))
     }
   }
 
@@ -109,11 +109,11 @@ class S10nsListMessageServiceSpec extends AnyFlatSpec with Matchers with OptionV
           |
           |${List.tabulate(10)(n => s"${n + 1}. s10n$n – 1.00 €").mkString("\n")}""".stripMargin
     page.markup.value should matchTo[KeyboardMarkup] {
-      MarkupInlineKeyboard(InlineKeyboardMarkup(List(
+      InlineKeyboardMarkup(List(
         List.tabulate(5)(n => inlineKeyboardButton((n + 1).toString, S10n(SubscriptionId(n.toLong), PageNumber(0)))),
         List.tabulate(5)(n => inlineKeyboardButton((n + 6).toString, S10n(SubscriptionId(n + 5.toLong), PageNumber(0)))),
         List(inlineKeyboardButton("➡", S10ns(PageNumber(1))))
-      )))
+      ))
     }
   }
 
@@ -240,10 +240,10 @@ class S10nsListMessageServiceSpec extends AnyFlatSpec with Matchers with OptionV
 
   private def checkS10nMessageMarkup(markup: Option[KeyboardMarkup], s10nId: SubscriptionId, page: PageNumber): Unit =
     markup.value should matchTo[KeyboardMarkup] {
-      MarkupInlineKeyboard(InlineKeyboardMarkup(List(
+      InlineKeyboardMarkup(List(
         List(inlineKeyboardButton("Edit", EditS10n(s10nId, page))),
         List(inlineKeyboardButton("Remove", RemoveS10n(s10nId, page))),
         List(inlineKeyboardButton("List", S10ns(page)))
-      )))
+      ))
     }
 }

@@ -140,14 +140,14 @@ class SubscriptionsBot[F[_] : Sync : Timer : Logger, D[_] : Monad](
   private def routeMessage(chatId: Long, from: TgUser, message: Message): F[Unit] = {
     val msg = message.copy(text = message.text.map(_.trim))
 
-    def handleCommands(user: User, text: String) =
+    def handleCommands(user: User, text: String): F[List[ReplyMessage]] =
       text match {
         case t if t.startsWith("/create") => createS10nDialogController.createCommand(user)
-        case t if t.startsWith("/start") || t.startsWith("/reset") => startController.startCommand(user)
-        case t if t.startsWith("/help") => startController.helpCommand
-        case t if t.startsWith("/list") => s10nListController.listCommand(user)
-        case t if t.startsWith("/settings") => settingsController.settingsCommand
-        case _ => startController.helpCommand
+        case t if t.startsWith("/start") || t.startsWith("/reset") => startController.startCommand(user).map(List(_))
+        case t if t.startsWith("/help") => startController.helpCommand.map(List(_))
+        case t if t.startsWith("/list") => s10nListController.listCommand(user).map(List(_))
+        case t if t.startsWith("/settings") => settingsController.settingsCommand.map(List(_))
+        case _ => startController.helpCommand.map(List(_))
       }
 
     def handleDialogs(user: User, dialog: Dialog) =
@@ -162,25 +162,25 @@ class SubscriptionsBot[F[_] : Sync : Timer : Logger, D[_] : Monad](
         case _ => Sync[F].pure(singleTextMessage(Errors.Default))
       }
 
-    def handleText(user: User, text: String) = {
+    def handleText(user: User, text: String): F[List[ReplyMessage]] = {
       user.dialog.map { dialog =>
         if (text.startsWith("/")) {
           if (importantCommands.exists(text.startsWith))
-            handleCommands(user, text).map(List(_))
+            handleCommands(user, text)
           else
-            Sync[F].pure(List(ReplyMessage("Cannot execute command. Use /reset to stop.")))
+            Sync[F].pure(List(ReplyMessage("Cannot execute this command. Use /reset to stop.")))
         }
         else
           handleDialogs(user, dialog)
       }
         .getOrElse {
           if (text.startsWith("/"))
-            handleCommands(user, text).map(List(_))
+            handleCommands(user, text)
           else {
             text match {
               case t if t.startsWith("\uD83D\uDCCB") => s10nListController.listCommand(user).map(List(_))
-              case t if t.startsWith("\uD83D\uDCB2") => createS10nDialogController.createCommand(user).map(List(_))
-              case t if t.startsWith("➕") => createS10nDialogController.createWithDefaultCurrencyCommand(user).map(List(_))
+              case t if t.startsWith("\uD83D\uDCB2") => createS10nDialogController.createCommand(user)
+              case t if t.startsWith("➕") => createS10nDialogController.createWithDefaultCurrencyCommand(user)
               case t if t.startsWith("⚙️") => settingsController.settingsCommand.map(List(_))
               case _ => startController.helpCommand.map(List(_))
             }

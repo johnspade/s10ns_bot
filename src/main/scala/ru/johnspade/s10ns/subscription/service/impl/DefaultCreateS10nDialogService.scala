@@ -1,41 +1,40 @@
-package ru.johnspade.s10ns.subscription.service
+package ru.johnspade.s10ns.subscription.service.impl
 
 import cats.effect.Sync
-import cats.implicits._
 import cats.{Monad, ~>}
+import cats.implicits._
 import ru.johnspade.s10ns.bot
 import ru.johnspade.s10ns.bot.ValidatorNec.{ValidationResult, validateAmount, validateAmountString, validateCurrency, validateDuration, validateDurationString, validateNameLength, validateText}
-import ru.johnspade.s10ns.bot.engine.{DialogEngine, ReplyMessage}
-import ru.johnspade.s10ns.bot.{CreateS10nDialog, FirstPayment, OneTime, PeriodUnit, StateMessageService}
+import ru.johnspade.s10ns.bot.engine.{DialogEngine, ReplyMessage, StateMessageService}
+import ru.johnspade.s10ns.bot.{CreateS10nDialog, FirstPayment, OneTime, PeriodUnit}
 import ru.johnspade.s10ns.subscription.SubscriptionDraft
 import ru.johnspade.s10ns.subscription.dialog.CreateS10nDialogState
+import ru.johnspade.s10ns.subscription.service.{CreateS10nDialogFsmService, CreateS10nDialogService}
 import ru.johnspade.s10ns.subscription.tags._
 import ru.johnspade.s10ns.user.{User, UserRepository}
 
 class DefaultCreateS10nDialogService[F[_] : Sync, D[_] : Monad](
   private val userRepo: UserRepository[D],
   private val createS10nDialogFsmService: CreateS10nDialogFsmService[F],
-  private val stateMessageService: StateMessageService[F],
+  private val stateMessageService: StateMessageService[F, CreateS10nDialogState],
   private val dialogEngine: DialogEngine[F]
 )(private implicit val transact: D ~> F) extends CreateS10nDialogService[F] {
-  override def onCreateCommand(user: User): F[ReplyMessage] = {
+  override def onCreateCommand(user: User): F[List[ReplyMessage]] = {
     val state = CreateS10nDialogState.Currency
     val dialog = CreateS10nDialog(
       state = state,
       draft = SubscriptionDraft.create(user.id)
     )
-    stateMessageService.getMessage(state)
-      .flatMap(dialogEngine.startDialog(user, dialog, _))
+    stateMessageService.createReplyMessage(state).flatMap(dialogEngine.startDialog(user, dialog, _))
   }
 
-  override def onCreateWithDefaultCurrencyCommand(user: User): F[ReplyMessage] = {
+  override def onCreateWithDefaultCurrencyCommand(user: User): F[List[ReplyMessage]] = {
     val state = CreateS10nDialogState.Name
     val dialog = bot.CreateS10nDialog(
       state = CreateS10nDialogState.Name,
       draft = SubscriptionDraft.create(user.id, user.defaultCurrency)
     )
-    stateMessageService.getMessage(state)
-      .flatMap(dialogEngine.startDialog(user, dialog, _))
+    stateMessageService.createReplyMessage(state).flatMap(dialogEngine.startDialog(user, dialog, _))
   }
 
   override val saveDraft: PartialFunction[(User, CreateS10nDialog, Option[String]), F[ValidationResult[List[ReplyMessage]]]] = {

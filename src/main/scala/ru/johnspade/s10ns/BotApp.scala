@@ -2,7 +2,7 @@ package ru.johnspade.s10ns
 
 import cats.effect.{Async, Blocker, ConcurrentEffect, ContextShift, ExitCode, IO, IOApp, Sync, Timer}
 import cats.implicits._
-import cats.~>
+import cats.{Monad, ~>}
 import com.softwaremill.sttp.SttpBackend
 import com.softwaremill.sttp.asynchttpclient.cats.AsyncHttpClientCatsBackend
 import doobie.free.connection.ConnectionIO
@@ -16,14 +16,16 @@ import org.http4s.client.blaze.BlazeClientBuilder
 import pureconfig.ConfigSource
 import pureconfig.generic.auto._
 import pureconfig.module.catseffect._
-import ru.johnspade.s10ns.bot.engine.DefaultDialogEngine
-import ru.johnspade.s10ns.bot.{CbDataService, Config, MoneyService, StartController, StateMessageService}
+import ru.johnspade.s10ns.bot.engine.{DefaultDialogEngine, DefaultMsgService, TransactionalDialogEngine}
+import ru.johnspade.s10ns.bot.{CbDataService, Config, MoneyService, StartController}
 import ru.johnspade.s10ns.calendar.{CalendarController, CalendarService}
-import ru.johnspade.s10ns.exchangerates.{DoobieExchangeRatesRefreshTimestampRepository, DoobieExchangeRatesRepository, ExchangeRatesCache, DefaultExchangeRatesJobService, ExchangeRatesRefreshTimestampRepository, ExchangeRatesRepository, DefaultExchangeRatesService, FixerApiInterpreter}
-import ru.johnspade.s10ns.settings.{DefaultSettingsService, SettingsController}
+import ru.johnspade.s10ns.exchangerates.{DefaultExchangeRatesJobService, DefaultExchangeRatesService, DoobieExchangeRatesRefreshTimestampRepository, DoobieExchangeRatesRepository, ExchangeRatesCache, ExchangeRatesRefreshTimestampRepository, ExchangeRatesRepository, FixerApiInterpreter}
+import ru.johnspade.s10ns.settings.{DefaultSettingsService, SettingsController, SettingsDialogState}
 import ru.johnspade.s10ns.subscription.controller.{CreateS10nDialogController, EditS10nDialogController, SubscriptionListController}
+import ru.johnspade.s10ns.subscription.dialog.{CreateS10nMsgService, EditS10n1stPaymentDateMsgService, EditS10nAmountDialogState, EditS10nBillingPeriodDialogState, EditS10nCurrencyDialogState, EditS10nNameDialogState, EditS10nOneTimeDialogState}
 import ru.johnspade.s10ns.subscription.repository.{DoobieSubscriptionRepository, SubscriptionRepository}
-import ru.johnspade.s10ns.subscription.service.{DefaultCreateS10nDialogFsmService, DefaultCreateS10nDialogService, DefaultEditS10nDialogFsmService, DefaultEditS10nDialogService, S10nInfoService, S10nsListMessageService, DefaultSubscriptionListService}
+import ru.johnspade.s10ns.subscription.service.impl.{DefaultCreateS10nDialogFsmService, DefaultCreateS10nDialogService, DefaultEditS10n1stPaymentDateDialogService, DefaultEditS10nAmountDialogService, DefaultEditS10nBillingPeriodDialogService, DefaultEditS10nCurrencyDialogService, DefaultEditS10nNameDialogService, DefaultEditS10nOneTimeDialogService, DefaultSubscriptionListService}
+import ru.johnspade.s10ns.subscription.service.{S10nInfoService, S10nsListMessageService}
 import ru.johnspade.s10ns.user.{DoobieUserRepository, UserRepository}
 import telegramium.bots.client.ApiHttp4sImp
 
@@ -82,11 +84,45 @@ object BotApp extends IOApp {
         bot.start().handleErrorWith(e => Logger[F].error(e)(e.getMessage))
       }
 
+    def createEditS10nDialogController[F[_] : Sync : Logger : Timer, D[_] : Monad](
+      userRepo: UserRepository[D],
+      s10nRepo: SubscriptionRepository[D],
+      dialogEngine: TransactionalDialogEngine[F, D],
+      s10nsListService: S10nsListMessageService[F],
+      calendarService: CalendarService
+    )(implicit transact: D ~> F): EditS10nDialogController[F] = {
+      val editS10n1stPaymentDateDialogService = new DefaultEditS10n1stPaymentDateDialogService[F, D](
+        s10nsListService, new EditS10n1stPaymentDateMsgService[F](calendarService), userRepo, s10nRepo, dialogEngine
+      )
+      val editS10nNameDialogService = new DefaultEditS10nNameDialogService[F, D](
+        s10nsListService, new DefaultMsgService[F, EditS10nNameDialogState], userRepo, s10nRepo, dialogEngine
+      )
+      val editS10nAmountDialogService = new DefaultEditS10nAmountDialogService[F, D](
+        s10nsListService, new DefaultMsgService[F, EditS10nAmountDialogState], userRepo, s10nRepo, dialogEngine
+      )
+      val editS10nBillingPeriodDialogService = new DefaultEditS10nBillingPeriodDialogService[F, D](
+        s10nsListService, new DefaultMsgService[F, EditS10nBillingPeriodDialogState], userRepo, s10nRepo, dialogEngine
+      )
+      val editS10nCurrencyDialogService = new DefaultEditS10nCurrencyDialogService[F, D](
+        s10nsListService, new DefaultMsgService[F, EditS10nCurrencyDialogState], userRepo, s10nRepo, dialogEngine
+      )
+      val editS10nOneTimeDialogService = new DefaultEditS10nOneTimeDialogService[F, D](
+        s10nsListService, new DefaultMsgService[F, EditS10nOneTimeDialogState], userRepo, s10nRepo, dialogEngine
+      )
+      new EditS10nDialogController[F](
+        editS10n1stPaymentDateDialogService,
+        editS10nNameDialogService,
+        editS10nAmountDialogService,
+        editS10nBillingPeriodDialogService,
+        editS10nCurrencyDialogService,
+        editS10nOneTimeDialogService
+      )
+    }
+
     def init[F[_] : ConcurrentEffect : ContextShift : Timer](conf: Config, transact: D ~> F) = {
       implicit val xa: D ~> F = transact
       implicit val sttpBackend: SttpBackend[F, Nothing] = AsyncHttpClientCatsBackend[F]()
       val calendarService = new CalendarService
-      val stateMessageService = new StateMessageService[F](calendarService)
 
       for {
         implicit0(logger: Logger[F]) <- Slf4jLogger.create[F]
@@ -103,39 +139,33 @@ object BotApp extends IOApp {
         moneyService = new MoneyService[F](exchangeRatesService)
         s10nInfoService = new S10nInfoService[F](moneyService)
         s10nsListService = new S10nsListMessageService[F](moneyService, s10nInfoService)
+        createS10nMsgService = new CreateS10nMsgService[F](calendarService)
         createS10nDialogFsmService = new DefaultCreateS10nDialogFsmService[F, D](
           s10nRepo,
           userRepo,
-          stateMessageService,
           dialogEngine,
-          s10nsListService
+          s10nsListService,
+          createS10nMsgService
         )
         cbDataService = new CbDataService[F]
-        editS10nDialogFsmService = new DefaultEditS10nDialogFsmService[F, D](
-          s10nsListService,
-          stateMessageService,
-          userRepo,
-          s10nRepo,
-          dialogEngine
-        )
-        editS10nDialogService = new DefaultEditS10nDialogService[F, D](
-          s10nRepo,
-          editS10nDialogFsmService,
-          stateMessageService,
-          dialogEngine
-        )
         s10nCbService = new DefaultSubscriptionListService[F, D](s10nRepo, s10nsListService)
         createS10nDialogService = new DefaultCreateS10nDialogService[F, D](
           userRepo,
           createS10nDialogFsmService,
-          stateMessageService,
+          createS10nMsgService,
           dialogEngine
         )
-        settingsService = new DefaultSettingsService[F](dialogEngine, stateMessageService)
-        exchangeRatesJobService = new DefaultExchangeRatesJobService[F, D](exchangeRatesService, exchangeRatesRefreshTimestampRepo)
+        settingsMsgService = new DefaultMsgService[F, SettingsDialogState]
+        settingsService = new DefaultSettingsService[F](dialogEngine, settingsMsgService)
+        exchangeRatesJobService = new DefaultExchangeRatesJobService[F, D](
+          exchangeRatesService,
+          exchangeRatesRefreshTimestampRepo
+        )
         s10nListController = new SubscriptionListController[F](s10nCbService)
         createS10nDialogController = new CreateS10nDialogController[F](createS10nDialogService)
-        editS10nDialogController = new EditS10nDialogController[F](editS10nDialogService)
+        editS10nDialogController = createEditS10nDialogController[F, D](
+          userRepo, s10nRepo, dialogEngine, s10nsListService, calendarService
+        )
         settingsController = new SettingsController[F](settingsService)
         calendarController = new CalendarController[F](calendarService)
         startController = new StartController[F](dialogEngine)

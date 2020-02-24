@@ -1,19 +1,28 @@
 package ru.johnspade.s10ns.subscription.dialog
 
+import cats.syntax.option._
 import enumeratum._
-import ru.johnspade.s10ns.bot.Messages
 import ru.johnspade.s10ns.bot.engine.{DialogState, StateEvent}
+import ru.johnspade.s10ns.bot.{Markup, Messages}
+import telegramium.bots.KeyboardMarkup
 
 import scala.collection.immutable.IndexedSeq
 
-sealed abstract class EditS10nBillingPeriodDialogState(override val message: String)
+
+sealed abstract class EditS10nBillingPeriodDialogState(
+  override val message: String,
+  override val markup: Option[KeyboardMarkup]
+)
   extends EnumEntry with DialogState
 
 object EditS10nBillingPeriodDialogState
   extends Enum[EditS10nBillingPeriodDialogState] with CirceEnum[EditS10nBillingPeriodDialogState] {
-  case object BillingPeriodUnit extends EditS10nBillingPeriodDialogState(Messages.BillingPeriodUnit)
-  case object BillingPeriodDuration extends EditS10nBillingPeriodDialogState(Messages.BillingPeriodDuration)
-  case object Finished extends EditS10nBillingPeriodDialogState("Saved.")
+  case object BillingPeriodUnit extends EditS10nBillingPeriodDialogState(
+    Messages.BillingPeriodUnit,
+    Markup.BillingPeriodUnitReplyMarkup.some
+  )
+  case object BillingPeriodDuration extends EditS10nBillingPeriodDialogState(Messages.BillingPeriodDuration, None)
+  case object Finished extends EditS10nBillingPeriodDialogState(Messages.S10nSaved, None)
 
   override def values: IndexedSeq[EditS10nBillingPeriodDialogState] = findValues
 

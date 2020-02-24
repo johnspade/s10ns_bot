@@ -1,24 +1,25 @@
-package ru.johnspade.s10ns.subscription.service
+package ru.johnspade.s10ns.subscription.service.impl
 
 import cats.effect.Sync
 import cats.implicits._
 import cats.{Monad, ~>}
 import io.chrisdavenport.log4cats.Logger
 import org.joda.money.{CurrencyUnit, Money}
-import ru.johnspade.s10ns.bot.engine.{ReplyMessage, TransactionalDialogEngine}
-import ru.johnspade.s10ns.bot.{CreateS10nDialog, StateMessageService}
+import ru.johnspade.s10ns.bot.CreateS10nDialog
+import ru.johnspade.s10ns.bot.engine.{ReplyMessage, StateMessageService, TransactionalDialogEngine}
 import ru.johnspade.s10ns.subscription.BillingPeriodUnit
 import ru.johnspade.s10ns.subscription.dialog.{CreateS10nDialogEvent, CreateS10nDialogState}
 import ru.johnspade.s10ns.subscription.repository.SubscriptionRepository
+import ru.johnspade.s10ns.subscription.service.{CreateS10nDialogFsmService, S10nsListMessageService}
 import ru.johnspade.s10ns.subscription.tags._
 import ru.johnspade.s10ns.user.{User, UserRepository}
 
 class DefaultCreateS10nDialogFsmService[F[_] : Sync : Logger, D[_] : Monad](
   private val subscriptionRepo: SubscriptionRepository[D],
   private val userRepo: UserRepository[D],
-  private val stateMessageService: StateMessageService[F],
   private val dialogEngine: TransactionalDialogEngine[F, D],
-  private val s10nsListMessageService: S10nsListMessageService[F]
+  private val s10nsListMessageService: S10nsListMessageService[F],
+  private val stateMessageService: StateMessageService[F, CreateS10nDialogState]
 )(private implicit val transact: D ~> F) extends CreateS10nDialogFsmService[F] {
 
   override def saveName(user: User, dialog: CreateS10nDialog, name: SubscriptionName): F[List[ReplyMessage]] = {
@@ -82,9 +83,8 @@ class DefaultCreateS10nDialogFsmService[F[_] : Sync : Logger, D[_] : Monad](
           }
       case _ =>
         val userWithUpdatedDialog = user.copy(dialog = updatedDialog.some)
-        transact(userRepo.createOrUpdate(userWithUpdatedDialog)) *>
-          stateMessageService.getMessage(updatedDialog.state)
-            .map(List(_))
+        transact(userRepo.createOrUpdate(userWithUpdatedDialog))
+          .flatMap(_ => stateMessageService.createReplyMessage(updatedDialog.state).map(List(_)))
     }
   }
 }

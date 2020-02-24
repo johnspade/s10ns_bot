@@ -4,12 +4,12 @@ import cats.effect.Sync
 import cats.implicits._
 import org.joda.money.{CurrencyUnit, Money}
 import ru.johnspade.s10ns.bot.Formatters.MoneyFormatter
+import ru.johnspade.s10ns.bot.engine.ReplyMessage
 import ru.johnspade.s10ns.bot.engine.TelegramOps.inlineKeyboardButton
-import ru.johnspade.s10ns.bot.engine.{MessageParseMode, ReplyMessage}
 import ru.johnspade.s10ns.bot.{EditS10n, EditS10nAmount, EditS10nBillingPeriod, EditS10nCurrency, EditS10nFirstPaymentDate, EditS10nName, EditS10nOneTime, MoneyService, RemoveS10n, S10n, S10ns}
 import ru.johnspade.s10ns.subscription.tags.{FirstPaymentDate, PageNumber}
 import ru.johnspade.s10ns.subscription.{BillingPeriod, Subscription}
-import telegramium.bots.{InlineKeyboardButton, InlineKeyboardMarkup, MarkupInlineKeyboard}
+import telegramium.bots.{InlineKeyboardButton, InlineKeyboardMarkup, Markdown}
 
 class S10nsListMessageService[F[_] : Sync](
   private val moneyService: MoneyService[F],
@@ -59,7 +59,7 @@ class S10nsListMessageService[F[_] : Sync](
         val text = createText(indexedS10nsPage, sum)
         val subscriptionButtons = createSubscriptionButtons(indexedS10nsPage)
         val arrowButtons = createNavButtons(subscriptions.size)
-        ReplyMessage(text, MarkupInlineKeyboard(InlineKeyboardMarkup(subscriptionButtons :+ arrowButtons)).some)
+        ReplyMessage(text, InlineKeyboardMarkup(subscriptionButtons :+ arrowButtons).some)
       }
 
     createReplyMessage(subscriptions)
@@ -105,8 +105,8 @@ class S10nsListMessageService[F[_] : Sync](
       val buttonsList = List(List(editButton), List(removeButton), List(backButton))
       ReplyMessage(
         text,
-        MarkupInlineKeyboard(InlineKeyboardMarkup(buttonsList)).some,
-        parseMode = MessageParseMode.Markdown.some
+        InlineKeyboardMarkup(buttonsList).some,
+        parseMode = Markdown.some
       )
     }
 

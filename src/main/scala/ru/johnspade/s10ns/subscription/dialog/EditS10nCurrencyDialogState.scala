@@ -1,18 +1,20 @@
 package ru.johnspade.s10ns.subscription.dialog
 
+import cats.syntax.option._
 import enumeratum._
-import ru.johnspade.s10ns.bot.Messages
 import ru.johnspade.s10ns.bot.engine.{DialogState, StateEvent}
+import ru.johnspade.s10ns.bot.{Markup, Messages}
+import telegramium.bots.KeyboardMarkup
 
 import scala.collection.immutable.IndexedSeq
 
-sealed abstract class EditS10nCurrencyDialogState(override val message: String)
+sealed abstract class EditS10nCurrencyDialogState(override val message: String, override val markup: Option[KeyboardMarkup])
   extends EnumEntry with DialogState
 
 object EditS10nCurrencyDialogState extends Enum[EditS10nCurrencyDialogState] with CirceEnum[EditS10nCurrencyDialogState] {
-  case object Currency extends EditS10nCurrencyDialogState(Messages.Currency)
-  case object Amount extends EditS10nCurrencyDialogState(Messages.Amount)
-  case object Finished extends EditS10nCurrencyDialogState(Messages.S10nSaved)
+  case object Currency extends EditS10nCurrencyDialogState(Messages.Currency, Markup.CurrencyReplyMarkup.some)
+  case object Amount extends EditS10nCurrencyDialogState(Messages.Amount, None)
+  case object Finished extends EditS10nCurrencyDialogState(Messages.S10nSaved, None)
 
   override def values: IndexedSeq[EditS10nCurrencyDialogState] = findValues
 

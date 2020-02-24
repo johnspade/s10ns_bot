@@ -10,7 +10,7 @@ import ru.johnspade.s10ns.bot.{BotStart, SettingsDialog}
 import ru.johnspade.s10ns.settings.SettingsDialogState
 import ru.johnspade.s10ns.user.tags.{ChatId, FirstName, UserId}
 import ru.johnspade.s10ns.user.{InMemoryUserRepository, User}
-import telegramium.bots.{MarkupRemoveKeyboard, ReplyKeyboardRemove}
+import telegramium.bots.ReplyKeyboardRemove
 
 class DefaultDialogEngineSpec extends AnyFlatSpec with Matchers {
   private val userRepo = new InMemoryUserRepository
@@ -21,8 +21,9 @@ class DefaultDialogEngineSpec extends AnyFlatSpec with Matchers {
   private val userWithDialog = user.copy(dialog = dialog.some)
 
   "startDialog" should "update an user and remove the default keyboard" in {
-    dialogEngine.startDialog(user, dialog, ReplyMessage("Hello")).unsafeRunSync shouldBe
-      ReplyMessage("Hello", markup = MarkupRemoveKeyboard(ReplyKeyboardRemove(removeKeyboard = true)).some)
+    val message = ReplyMessage("Hello")
+    dialogEngine.startDialog(user, dialog, message).unsafeRunSync shouldBe
+      List(ReplyMessage("Hello", markup = ReplyKeyboardRemove(removeKeyboard = true).some))
     userRepo.users.get(user.id) shouldBe user.copy(dialog = dialog.some).some
   }
 

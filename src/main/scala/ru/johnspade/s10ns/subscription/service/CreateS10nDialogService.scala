@@ -5,9 +5,9 @@ import ru.johnspade.s10ns.bot.{CreateS10nDialog, FirstPayment, OneTime, PeriodUn
 import ru.johnspade.s10ns.user.User
 
 trait CreateS10nDialogService[F[_]] {
-  def onCreateCommand(user: User): F[ReplyMessage]
+  def onCreateCommand(user: User): F[List[ReplyMessage]]
 
-  def onCreateWithDefaultCurrencyCommand(user: User): F[ReplyMessage]
+  def onCreateWithDefaultCurrencyCommand(user: User): F[List[ReplyMessage]]
 
   val saveDraft: PartialFunction[(User, CreateS10nDialog, Option[String]), F[ValidatorNec.ValidationResult[List[ReplyMessage]]]]
 

@@ -5,8 +5,8 @@ import cats.data.Validated.{Invalid, Valid}
 import cats.effect.{Sync, Timer}
 import cats.implicits._
 import io.chrisdavenport.log4cats.Logger
-import ru.johnspade.s10ns.bot.{CbData, Dialog}
 import ru.johnspade.s10ns.bot.ValidatorNec.ValidationResult
+import ru.johnspade.s10ns.bot.{CbData, Dialog}
 import ru.johnspade.s10ns.user._
 import ru.johnspade.s10ns.user.tags._
 import telegramium.bots.client.{AnswerCallbackQueryReq, Api, EditMessageReplyMarkupReq, SendMessageReq}
@@ -25,12 +25,12 @@ object TelegramOps {
       )
   }
 
-  def sendReplyMessage[F[_] : Sync](msg: Message, reply: ReplyMessage)(implicit bot: Api[F]): F[Unit] = {
+  def sendReplyMessage[F[_] : Sync : Timer](msg: Message, reply: ReplyMessage)(implicit bot: Api[F]): F[Unit] = {
     val request = SendMessageReq(
       ChatIntId(msg.chat.id),
       reply.text,
       replyMarkup = reply.markup,
-      parseMode = reply.parseMode.map(_.value)
+      parseMode = reply.parseMode
     )
     bot.sendMessage(request).void
   }
@@ -82,6 +82,7 @@ object TelegramOps {
   ): F[Unit] =
     replies.map { reply =>
       sendReplyMessage(msg, reply)
+        .void
         .handleErrorWith(e => Logger[F].error(e)(e.getMessage)) *>
         Timer[F].sleep(FiniteDuration(1, "second"))
     }

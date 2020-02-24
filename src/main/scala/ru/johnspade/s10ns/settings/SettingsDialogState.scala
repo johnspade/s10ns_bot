@@ -1,17 +1,21 @@
 package ru.johnspade.s10ns.settings
 
+import cats.syntax.option._
 import enumeratum._
+import ru.johnspade.s10ns.bot.Markup
 import ru.johnspade.s10ns.bot.engine.{DialogState, StateEvent}
+import telegramium.bots.KeyboardMarkup
 
 import scala.collection.immutable.IndexedSeq
 
-sealed abstract class SettingsDialogState(override val message: String) extends EnumEntry with DialogState
+sealed abstract class SettingsDialogState(override val message: String, override val markup: Option[KeyboardMarkup])
+  extends EnumEntry with DialogState
 
 object SettingsDialogState
   extends Enum[SettingsDialogState]
     with CirceEnum[SettingsDialogState] {
-  case object DefaultCurrency extends SettingsDialogState("Default currency:")
-  case object Finished extends SettingsDialogState("Default currency set.")
+  case object DefaultCurrency extends SettingsDialogState("Default currency:", Markup.CurrencyReplyMarkup.some)
+  case object Finished extends SettingsDialogState("Default currency set.", None)
 
   override val values: IndexedSeq[SettingsDialogState] = findValues
 

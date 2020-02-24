@@ -16,19 +16,21 @@ import org.flywaydb.core.Flyway
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.freespec.AnyFreeSpec
-import ru.johnspade.s10ns.bot.engine.DefaultDialogEngine
 import ru.johnspade.s10ns.bot.engine.TelegramOps.inlineKeyboardButton
-import ru.johnspade.s10ns.bot.{BotStart, CbDataService, EditS10n, Markup, Messages, MoneyService, RemoveS10n, S10ns, StartController, StateMessageService}
+import ru.johnspade.s10ns.bot.engine.{DefaultDialogEngine, DefaultMsgService}
+import ru.johnspade.s10ns.bot.{BotStart, CbDataService, EditS10n, Markup, Messages, MoneyService, RemoveS10n, S10ns, StartController}
 import ru.johnspade.s10ns.calendar.{CalendarController, CalendarService}
 import ru.johnspade.s10ns.exchangerates.InMemoryExchangeRatesStorage
-import ru.johnspade.s10ns.settings.{DefaultSettingsService, SettingsController}
+import ru.johnspade.s10ns.settings.{DefaultSettingsService, SettingsController, SettingsDialogState}
 import ru.johnspade.s10ns.subscription.controller.{CreateS10nDialogController, EditS10nDialogController, SubscriptionListController}
+import ru.johnspade.s10ns.subscription.dialog.{CreateS10nMsgService, EditS10n1stPaymentDateMsgService, EditS10nAmountDialogState, EditS10nBillingPeriodDialogState, EditS10nCurrencyDialogState, EditS10nNameDialogState, EditS10nOneTimeDialogState}
 import ru.johnspade.s10ns.subscription.repository.DoobieSubscriptionRepository
-import ru.johnspade.s10ns.subscription.service.{DefaultCreateS10nDialogFsmService, DefaultCreateS10nDialogService, DefaultEditS10nDialogFsmService, DefaultEditS10nDialogService, DefaultSubscriptionListService, S10nInfoService, S10nsListMessageService}
+import ru.johnspade.s10ns.subscription.service.impl.{DefaultCreateS10nDialogFsmService, DefaultCreateS10nDialogService, DefaultEditS10n1stPaymentDateDialogService, DefaultEditS10nAmountDialogService, DefaultEditS10nBillingPeriodDialogService, DefaultEditS10nCurrencyDialogService, DefaultEditS10nNameDialogService, DefaultEditS10nOneTimeDialogService, DefaultSubscriptionListService}
+import ru.johnspade.s10ns.subscription.service.{S10nInfoService, S10nsListMessageService}
 import ru.johnspade.s10ns.subscription.tags.{PageNumber, SubscriptionId}
 import ru.johnspade.s10ns.user.DoobieUserRepository
 import telegramium.bots.client.{AnswerCallbackQueryReq, AnswerCallbackQueryRes, Api, EditMessageReplyMarkupReq, EditMessageReplyMarkupRes, SendMessageReq, SendMessageRes}
-import telegramium.bots.{CallbackQuery, Chat, ChatIntId, InlineKeyboardMarkup, KeyboardMarkup, MarkupInlineKeyboard, Message, User}
+import telegramium.bots.{CallbackQuery, Chat, ChatIntId, InlineKeyboardMarkup, KeyboardMarkup, Markdown, Message, ParseMode, User}
 
 import scala.concurrent.ExecutionContext
 
@@ -80,7 +82,7 @@ class SubscriptionsBotISpec
     sendMessage("1")
     verifySendMessage(
       Messages.FirstPaymentDate,
-      MarkupInlineKeyboard(calendarService.generateKeyboard(LocalDate.now(ZoneOffset.UTC))).some
+      calendarService.generateKeyboard(LocalDate.now(ZoneOffset.UTC)).some
     ).once
 
     sendCallbackQuery(s"FirstPayment\u001D$today")
@@ -94,12 +96,12 @@ class SubscriptionsBotISpec
          |_Next payment:_ $today
          |_First payment:_ $today
          |_Paid in total:_ 0.00 €""".stripMargin,
-      MarkupInlineKeyboard(InlineKeyboardMarkup(List(
+      InlineKeyboardMarkup(List(
         List(inlineKeyboardButton("Edit", EditS10n(SubscriptionId(1L), PageNumber(0)))),
         List(inlineKeyboardButton("Remove", RemoveS10n(SubscriptionId(1L), PageNumber(0)))),
         List(inlineKeyboardButton("List", S10ns(PageNumber(0))))
-      ))).some,
-      "Markdown".some
+      )).some,
+      Markdown.some
     ).once
 
     (api.editMessageReplyMarkup _).verify(EditMessageReplyMarkupReq(ChatIntId(0).some, 0.some)).repeat(3)
@@ -126,7 +128,7 @@ class SubscriptionsBotISpec
       message = createMessage("").some
     )
 
-  private def verifySendMessage(text: String, markup: Option[KeyboardMarkup] = None, parseMode: Option[String] = None) =
+  private def verifySendMessage(text: String, markup: Option[KeyboardMarkup] = None, parseMode: Option[ParseMode] = None) =
     (api.sendMessage _).verify(SendMessageReq(ChatIntId(0), text, replyMarkup = markup, parseMode = parseMode))
 
   private trait Wiring {
@@ -150,24 +152,43 @@ class SubscriptionsBotISpec
     private val s10nsListService = new DefaultSubscriptionListService[IO, ConnectionIO](s10nRepo, s10nsListMessageService)
     private val s10nListController = new SubscriptionListController[IO](s10nsListService)
     protected val calendarService = new CalendarService
-    private val stateMessageService = new StateMessageService[IO](calendarService)
     private val dialogEngine = new DefaultDialogEngine[IO, ConnectionIO](userRepo)
+    private val createS10nMsgService = new CreateS10nMsgService[IO](calendarService)
     private val createS10nDialogFsmService = new DefaultCreateS10nDialogFsmService[IO, ConnectionIO](
-      s10nRepo, userRepo, stateMessageService, dialogEngine, s10nsListMessageService
+      s10nRepo, userRepo, dialogEngine, s10nsListMessageService, createS10nMsgService
     )
     private val createS10nDialogService = new DefaultCreateS10nDialogService[IO, ConnectionIO](
-      userRepo, createS10nDialogFsmService, stateMessageService, dialogEngine
+      userRepo, createS10nDialogFsmService, createS10nMsgService, dialogEngine
     )
     private val createS10nDialogController = new CreateS10nDialogController[IO](createS10nDialogService)
-    private val editS10nDialogFsmService = new DefaultEditS10nDialogFsmService[IO, ConnectionIO](
-      s10nsListMessageService, stateMessageService, userRepo, s10nRepo, dialogEngine
+    val editS10n1stPaymentDateDialogService = new DefaultEditS10n1stPaymentDateDialogService[IO, ConnectionIO](
+      s10nsListMessageService, new EditS10n1stPaymentDateMsgService[IO](calendarService), userRepo, s10nRepo, dialogEngine
     )
-    private val editS10nDialogService = new DefaultEditS10nDialogService[IO, ConnectionIO](
-      s10nRepo, editS10nDialogFsmService, stateMessageService, dialogEngine
+    val editS10nNameDialogService = new DefaultEditS10nNameDialogService[IO, ConnectionIO](
+      s10nsListMessageService, new DefaultMsgService[IO, EditS10nNameDialogState], userRepo, s10nRepo, dialogEngine
     )
-    private val editS10nDialogController = new EditS10nDialogController[IO](editS10nDialogService)
+    val editS10nAmountDialogService = new DefaultEditS10nAmountDialogService[IO, ConnectionIO](
+      s10nsListMessageService, new DefaultMsgService[IO, EditS10nAmountDialogState], userRepo, s10nRepo, dialogEngine
+    )
+    val editS10nBillingPeriodDialogService = new DefaultEditS10nBillingPeriodDialogService[IO, ConnectionIO](
+      s10nsListMessageService, new DefaultMsgService[IO, EditS10nBillingPeriodDialogState], userRepo, s10nRepo, dialogEngine
+    )
+    val editS10nCurrencyDialogService = new DefaultEditS10nCurrencyDialogService[IO, ConnectionIO](
+      s10nsListMessageService, new DefaultMsgService[IO, EditS10nCurrencyDialogState], userRepo, s10nRepo, dialogEngine
+    )
+    val editS10nOneTimeDialogService = new DefaultEditS10nOneTimeDialogService[IO, ConnectionIO](
+      s10nsListMessageService, new DefaultMsgService[IO, EditS10nOneTimeDialogState], userRepo, s10nRepo, dialogEngine
+    )
+    private val editS10nDialogController = new EditS10nDialogController[IO](
+      editS10n1stPaymentDateDialogService,
+      editS10nNameDialogService,
+      editS10nAmountDialogService,
+      editS10nBillingPeriodDialogService,
+      editS10nCurrencyDialogService,
+      editS10nOneTimeDialogService
+    )
     private val calendarController = new CalendarController[IO](calendarService)
-    private val settingsService = new DefaultSettingsService[IO](dialogEngine, stateMessageService)
+    private val settingsService = new DefaultSettingsService[IO](dialogEngine, new DefaultMsgService[IO, SettingsDialogState])
     private val settingsController = new SettingsController[IO](settingsService)
     private val startController = new StartController[IO](dialogEngine)
     private val cbDataService = new CbDataService[IO]

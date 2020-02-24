@@ -3,16 +3,20 @@ package ru.johnspade.s10ns.subscription.dialog
 import enumeratum._
 import ru.johnspade.s10ns.bot.Messages
 import ru.johnspade.s10ns.bot.engine.{DialogState, StateEvent}
+import telegramium.bots.KeyboardMarkup
 
 import scala.collection.immutable.IndexedSeq
 
-sealed abstract class EditS10nFirstPaymentDateDialogState(override val message: String)
+sealed abstract class EditS10nFirstPaymentDateDialogState(
+  override val message: String,
+  override val markup: Option[KeyboardMarkup]
+)
   extends EnumEntry with DialogState
 
 object EditS10nFirstPaymentDateDialogState
   extends Enum[EditS10nFirstPaymentDateDialogState] with CirceEnum[EditS10nFirstPaymentDateDialogState] {
-  case object FirstPaymentDate extends EditS10nFirstPaymentDateDialogState(Messages.FirstPaymentDate)
-  case object Finished extends EditS10nFirstPaymentDateDialogState(Messages.S10nSaved)
+  case object FirstPaymentDate extends EditS10nFirstPaymentDateDialogState(Messages.FirstPaymentDate, None)
+  case object Finished extends EditS10nFirstPaymentDateDialogState(Messages.S10nSaved, None)
   override def values: IndexedSeq[EditS10nFirstPaymentDateDialogState] = findValues
 
   def transition(

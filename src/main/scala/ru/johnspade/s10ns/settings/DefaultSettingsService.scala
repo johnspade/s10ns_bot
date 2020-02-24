@@ -4,21 +4,19 @@ import cats.effect.Sync
 import cats.implicits._
 import ru.johnspade.s10ns.bot.ValidatorNec._
 import ru.johnspade.s10ns.bot.engine.TelegramOps.singleInlineKeyboardButton
-import ru.johnspade.s10ns.bot.engine.{DialogEngine, ReplyMessage}
-import ru.johnspade.s10ns.bot.{DefCurrency, SettingsDialog, StateMessageService}
+import ru.johnspade.s10ns.bot.engine.{DialogEngine, ReplyMessage, StateMessageService}
+import ru.johnspade.s10ns.bot.{DefCurrency, SettingsDialog}
 import ru.johnspade.s10ns.user.User
-import telegramium.bots.{InlineKeyboardMarkup, MarkupInlineKeyboard}
+import telegramium.bots.InlineKeyboardMarkup
 
 class DefaultSettingsService[F[_] : Sync](
   private val dialogEngine: DialogEngine[F],
-  private val stateMessageService: StateMessageService[F]
+  private val stateMessageService: StateMessageService[F, SettingsDialogState]
 ) extends SettingsService[F] {
-  override def startDefaultCurrencyDialog(user: User): F[ReplyMessage] = {
+  override def startDefaultCurrencyDialog(user: User): F[List[ReplyMessage]] = {
     val start = SettingsDialogState.DefaultCurrency
     val dialog = SettingsDialog(state = start)
-    stateMessageService.getMessage(start).flatMap {
-      dialogEngine.startDialog(user, dialog, _)
-    }
+    stateMessageService.createReplyMessage(start).flatMap(dialogEngine.startDialog(user, dialog, _))
   }
 
   override def saveDefaultCurrency(user: User, text: Option[String]): F[ValidationResult[ReplyMessage]] =
@@ -33,9 +31,7 @@ class DefaultSettingsService[F[_] : Sync](
     Sync[F].pure {
       ReplyMessage(
         "Settings",
-        MarkupInlineKeyboard(InlineKeyboardMarkup(
-          singleInlineKeyboardButton("Default currency", DefCurrency)
-        )).some
+        InlineKeyboardMarkup(singleInlineKeyboardButton("Default currency", DefCurrency)).some
       )
     }
 }

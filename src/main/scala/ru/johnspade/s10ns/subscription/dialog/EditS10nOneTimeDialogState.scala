@@ -1,19 +1,27 @@
 package ru.johnspade.s10ns.subscription.dialog
 
+import cats.syntax.option._
 import enumeratum._
-import ru.johnspade.s10ns.bot.Messages
 import ru.johnspade.s10ns.bot.engine.{DialogState, StateEvent}
+import ru.johnspade.s10ns.bot.{Markup, Messages}
+import telegramium.bots.KeyboardMarkup
 
 import scala.collection.immutable.IndexedSeq
 
-sealed abstract class EditS10nOneTimeDialogState(override val message: String)
+sealed abstract class EditS10nOneTimeDialogState(override val message: String, override val markup: Option[KeyboardMarkup])
   extends EnumEntry with DialogState
 
 object EditS10nOneTimeDialogState extends Enum[EditS10nOneTimeDialogState] with CirceEnum[EditS10nOneTimeDialogState] {
-  case object IsOneTime extends EditS10nOneTimeDialogState(Messages.IsOneTime)
-  case object BillingPeriodUnit extends EditS10nOneTimeDialogState(Messages.BillingPeriodUnit)
-  case object BillingPeriodDuration extends EditS10nOneTimeDialogState(Messages.BillingPeriodDuration)
-  case object Finished extends EditS10nOneTimeDialogState(Messages.S10nSaved)
+  case object IsOneTime extends EditS10nOneTimeDialogState(
+    Messages.IsOneTime,
+    Markup.isOneTimeReplyMarkup("Do not fill (remove)").some
+  )
+  case object BillingPeriodUnit extends EditS10nOneTimeDialogState(
+    Messages.BillingPeriodUnit,
+    Markup.BillingPeriodUnitReplyMarkup.some
+  )
+  case object BillingPeriodDuration extends EditS10nOneTimeDialogState(Messages.BillingPeriodDuration, None)
+  case object Finished extends EditS10nOneTimeDialogState(Messages.S10nSaved, None)
 
   override def values: IndexedSeq[EditS10nOneTimeDialogState] = findValues
 
