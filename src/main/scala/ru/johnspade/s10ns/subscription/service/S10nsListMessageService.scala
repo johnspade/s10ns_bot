@@ -17,13 +17,20 @@ class S10nsListMessageService[F[_] : Sync](
 ) {
   private val DefaultPageSize = 10
 
-  def createSubscriptionsPage(subscriptions: List[Subscription], page: PageNumber, defaultCurrency: CurrencyUnit):
+  def createSubscriptionsPage(
+    subscriptions: List[Subscription],
+    page: PageNumber,
+    defaultCurrency: CurrencyUnit
+  ):
   F[ReplyMessage] = {
     def createText(indexedSubscriptions: List[(Subscription, Int)], sum: Money) = {
       val sumString = MoneyFormatter.print(sum) + "\n"
       val list = indexedSubscriptions
         .map {
-          case (s, i) => s"$i. ${s.name} – ${MoneyFormatter.print(s.amount)}"
+          case (s, i) =>
+            val period = s.billingPeriod.map(billingPeriod => s" / ${billingPeriod.unit.chronoUnit.name().toLowerCase.head}")
+              .getOrElse("")
+            s"$i. ${s.name} – ${MoneyFormatter.print(s.amount)}$period"
         }
         .mkString("\n")
       s"$sumString\n$list"

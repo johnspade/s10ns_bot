@@ -12,16 +12,16 @@ import ru.johnspade.s10ns.subscription.{BillingPeriod, Subscription}
 import scala.math.max
 
 class MoneyService[F[_] : Sync](private val exchangeRatesStorage: ExchangeRatesStorage[F]) {
-  def sum(subscriptions: List[Subscription], defaultCurrency: CurrencyUnit): F[Money] = {
+  def sum(subscriptions: List[Subscription], defaultCurrency: CurrencyUnit, unit: ChronoUnit = ChronoUnit.MONTHS): F[Money] = {
     def getAmountInDefCurrencyAndPeriod(s10n: Subscription, rates: Map[String, BigDecimal]) =
       s10n.billingPeriod.flatTraverse { period =>
         convert(s10n.amount, defaultCurrency)
           .map(_.map((period, _)))
       }
 
-    def calcMonthAmount(period: BillingPeriod, amount: Money) =
+    def calcAmount(period: BillingPeriod, amount: Money) =
       amount
-        .multipliedBy(ChronoUnit.MONTHS.getDuration.getSeconds)
+        .multipliedBy(unit.getDuration.getSeconds)
         .dividedBy(period.unit.chronoUnit.getDuration.getSeconds * period.duration, RoundingMode.HALF_EVEN)
 
     exchangeRatesStorage.getRates
@@ -31,7 +31,7 @@ class MoneyService[F[_] : Sync](private val exchangeRatesStorage: ExchangeRatesS
           .map {
             _.flatten
               .map {
-                case (period, amount) => calcMonthAmount(period, amount)
+                case (period, amount) => calcAmount(period, amount)
               }
               .foldLeft(Money.zero(defaultCurrency))(_ plus _)
           }

@@ -54,8 +54,8 @@ class S10nsListMessageServiceSpec extends AnyFlatSpec with Matchers with OptionV
     page.text shouldBe
       """|17.27 €
          |
-         |1. Netflix – 13.37 $
-         |2. Spotify – 5.30 €""".stripMargin
+         |1. Netflix – 13.37 $ / m
+         |2. Spotify – 5.30 € / m""".stripMargin
     page.markup.value should matchTo[KeyboardMarkup] {
       InlineKeyboardMarkup(List(
         List(

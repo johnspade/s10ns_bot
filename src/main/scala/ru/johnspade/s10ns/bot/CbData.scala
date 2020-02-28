@@ -16,6 +16,8 @@ sealed abstract class CbData extends Product with Serializable {
   def toCsv: String = this.writeCsvRow(csvConfig)
 }
 
+sealed trait StartsDialog extends CbData
+
 case object Ignore extends CbData
 final case class S10ns(page: PageNumber) extends CbData
 final case class S10n(subscriptionId: SubscriptionId, page: PageNumber) extends CbData
@@ -27,13 +29,13 @@ final case class FirstPayment(date: FirstPaymentDate) extends CbData
 case object DropFirstPayment extends CbData
 final case class RemoveS10n(subscriptionId: SubscriptionId, page: PageNumber) extends CbData
 final case class EditS10n(subscriptionId: SubscriptionId, page: PageNumber) extends CbData
-final case class EditS10nName(subscriptionId: SubscriptionId) extends CbData
-final case class EditS10nCurrency(subscriptionId: SubscriptionId) extends CbData
-final case class EditS10nAmount(subscriptionId: SubscriptionId) extends CbData
-final case class EditS10nOneTime(subscriptionId: SubscriptionId) extends CbData
-final case class EditS10nBillingPeriod(subscriptionId: SubscriptionId) extends CbData
-final case class EditS10nFirstPaymentDate(subscriptionId: SubscriptionId) extends CbData
-case object DefCurrency extends CbData
+final case class EditS10nName(subscriptionId: SubscriptionId) extends CbData with StartsDialog
+final case class EditS10nCurrency(subscriptionId: SubscriptionId) extends CbData with StartsDialog
+final case class EditS10nAmount(subscriptionId: SubscriptionId) extends CbData with StartsDialog
+final case class EditS10nOneTime(subscriptionId: SubscriptionId) extends CbData with StartsDialog
+final case class EditS10nBillingPeriod(subscriptionId: SubscriptionId) extends CbData with StartsDialog
+final case class EditS10nFirstPaymentDate(subscriptionId: SubscriptionId) extends CbData with StartsDialog
+case object DefCurrency extends CbData with StartsDialog
 
 object CbData {
   val Separator: Char = '\u001D'
