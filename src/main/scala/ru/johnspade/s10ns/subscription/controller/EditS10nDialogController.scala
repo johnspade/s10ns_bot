@@ -28,7 +28,7 @@ class EditS10nDialogController[F[_] : Sync : Logger : Timer](
     dialog.state match {
       case EditS10nNameDialogState.Name =>
         editS10nNameDialogService.saveName(user, dialog, message.text).map(toReplyMessages)
-      case _ => defaultError
+      case _ => useInlineKeyboardError
     }
 
   def editS10nAmountCb(user: User, cb: CallbackQuery, data: EditS10nAmount)(implicit bot: Api[F]): F[Unit] =
@@ -41,7 +41,7 @@ class EditS10nDialogController[F[_] : Sync : Logger : Timer](
     dialog.state match {
       case EditS10nAmountDialogState.Amount =>
         editS10nAmountDialogService.saveAmount(user, dialog, message.text).map(toReplyMessages)
-      case _ => defaultError
+      case _ => useInlineKeyboardError
     }
 
   def s10nEditCurrencyMessage(user: User, dialog: EditS10nCurrencyDialog, message: Message): F[List[ReplyMessage]] =
@@ -50,7 +50,7 @@ class EditS10nDialogController[F[_] : Sync : Logger : Timer](
         editS10nCurrencyDialogService.saveCurrency(user, dialog, message.text).map(toReplyMessages)
       case EditS10nCurrencyDialogState.Amount =>
         editS10nCurrencyDialogService.saveAmount(user, dialog, message.text).map(toReplyMessages)
-      case _ => defaultError
+      case _ => useInlineKeyboardError
     }
 
   def editS10nOneTimeCb(user: User, cb: CallbackQuery, data: EditS10nOneTime)(implicit bot: Api[F]): F[Unit] =
@@ -71,7 +71,7 @@ class EditS10nDialogController[F[_] : Sync : Logger : Timer](
     dialog.state match {
       case EditS10nOneTimeDialogState.BillingPeriodDuration =>
         editS10nOneTimeDialogService.saveBillingPeriodDuration(user, dialog, message.text).map(toReplyMessages)
-      case _ => defaultError
+      case _ => useInlineKeyboardError
     }
 
   def editS10nBillingPeriodCb(user: User, cb: CallbackQuery, data: EditS10nBillingPeriod)(implicit bot: Api[F]): F[Unit] =
@@ -85,7 +85,7 @@ class EditS10nDialogController[F[_] : Sync : Logger : Timer](
     dialog.state match {
       case EditS10nBillingPeriodDialogState.BillingPeriodDuration =>
         editS10nBillingPeriodDialogService.saveBillingPeriodDuration(user, dialog, message.text).map(toReplyMessages)
-      case _ => defaultError
+      case _ => useInlineKeyboardError
     }
 
   def editS10nFirstPaymentDateCb(user: User, cb: CallbackQuery, data: EditS10nFirstPaymentDate)(implicit bot: Api[F]): F[Unit] =
@@ -106,5 +106,5 @@ class EditS10nDialogController[F[_] : Sync : Logger : Timer](
     } getOrElse ackCb(cb, Errors.Default.some)
   }
 
-  private val defaultError = Sync[F].pure(singleTextMessage(Errors.Default))
+  private val useInlineKeyboardError = Sync[F].pure(singleTextMessage(Errors.UseInlineKeyboard))
 }

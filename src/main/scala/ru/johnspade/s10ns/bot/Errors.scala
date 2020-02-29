@@ -5,4 +5,5 @@ object Errors {
   final val NotFound: String = "Not found."
   final val AccessDenied: String = "Access denied."
   final val ActiveDialogNotFinished: String = "Finish the active dialog"
+  final val UseInlineKeyboard: String = "Please use the inline keyboard"
 }

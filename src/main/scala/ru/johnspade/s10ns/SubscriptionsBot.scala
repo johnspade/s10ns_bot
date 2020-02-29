@@ -176,7 +176,7 @@ class SubscriptionsBot[F[_] : Sync : Timer : Logger, D[_] : Monad](
         case d: EditS10nCurrencyDialog => editS10nDialogController.s10nEditCurrencyMessage(user, d, msg)
         case d: EditS10nOneTimeDialog => editS10nDialogController.s10nBillingPeriodDurationMessage(user, d, msg)
         case d: EditS10nBillingPeriodDialog => editS10nDialogController.s10nBillingPeriodDurationMessage(user, d, msg)
-        case _ => Sync[F].pure(singleTextMessage(Errors.Default))
+        case _ => Sync[F].pure(singleTextMessage(Errors.UseInlineKeyboard))
       }
 
     def handleText(user: User, text: String): F[List[ReplyMessage]] = {
