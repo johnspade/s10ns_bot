@@ -3,6 +3,6 @@
 
 Manage your subscriptions and get detailed insights of your recurring expenses.
 
-![](screenshot.jpg)
+![](screenshot.png)
 
 Built with [Telegramium](https://github.com/apimorphism/telegramium).
