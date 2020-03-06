@@ -10,15 +10,13 @@ import retry.CatsEffect._
 import retry.RetryDetails.{GivingUp, WillDelayAndRetry}
 import retry._
 
-import scala.concurrent.duration._
-
 class DefaultExchangeRatesService[F[_] : Sync : Logger : Timer, D[_] : Monad](
   private val fixerApi: FixerApi[F],
   private val exchangeRatesRepository: ExchangeRatesRepository[D],
   private val exchangeRatesRefreshTimestampRepo: ExchangeRatesRefreshTimestampRepository[D],
-  private val cache: ExchangeRatesCache[F]
+  private val cache: ExchangeRatesCache[F],
+  private val retryPolicy: RetryPolicy[F]
 )(private implicit val transact: D ~> F) extends ExchangeRatesService[F] {
-  private val retryPolicy = RetryPolicies.limitRetries[F](3) join RetryPolicies.exponentialBackoff[F](1.minute)
 
   override def saveRates(): F[Unit] = {
     def saveToDb(rates: ExchangeRates): F[Unit] =
@@ -39,10 +37,11 @@ class DefaultExchangeRatesService[F[_] : Sync : Logger : Timer, D[_] : Monad](
       policy = retryPolicy,
       onError = logError
     ) {
-      fixerApi.getLatestRates
-        .flatMap { rates =>
-          saveToDb(rates) *> cache.set(rates.rates)
-        }
+      for {
+        _ <- Logger[F].info("Refreshing rates")
+        rates <- fixerApi.getLatestRates
+        _ <- saveToDb(rates) *> cache.set(rates.rates)
+      } yield ()
     }.handleError(_ => ())
   }
 

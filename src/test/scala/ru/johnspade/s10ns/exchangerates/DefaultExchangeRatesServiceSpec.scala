@@ -7,14 +7,16 @@ import cats.effect.{IO, Timer}
 import com.softwaremill.diffx.scalatest.DiffMatcher
 import io.chrisdavenport.log4cats.SelfAwareStructuredLogger
 import io.chrisdavenport.log4cats.slf4j.Slf4jLogger
+import org.scalamock.scalatest.MockFactory
 import org.scalatest.OptionValues
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
+import retry.RetryPolicies
 import ru.johnspade.s10ns.TestTransactor.transact
 
 import scala.concurrent.ExecutionContext
 
-class DefaultExchangeRatesServiceSpec extends AnyFlatSpec with Matchers with OptionValues with DiffMatcher {
+class DefaultExchangeRatesServiceSpec extends AnyFlatSpec with Matchers with OptionValues with DiffMatcher with MockFactory {
   private implicit val logger: SelfAwareStructuredLogger[IO] = Slf4jLogger.create[IO].unsafeRunSync
   private implicit val timer: Timer[IO] = IO.timer(ExecutionContext.global)
 
@@ -30,7 +32,8 @@ class DefaultExchangeRatesServiceSpec extends AnyFlatSpec with Matchers with Opt
       fixerApi,
       exchangeRatesRepo,
       exchangeRatesRefreshTimestampRepo,
-      ExchangeRatesCache.create[IO](sampleRates).unsafeRunSync
+      ExchangeRatesCache.create[IO](sampleRates).unsafeRunSync,
+      RetryPolicies.alwaysGiveUp
     )
 
     exchangeRatesService.getRates.unsafeRunSync should matchTo(sampleRates)
@@ -42,7 +45,8 @@ class DefaultExchangeRatesServiceSpec extends AnyFlatSpec with Matchers with Opt
       fixerApi,
       exchangeRatesRepo,
       exchangeRatesRefreshTimestampRepo,
-      cache
+      cache,
+      RetryPolicies.alwaysGiveUp
     )
     exchangeRatesService.saveRates().unsafeRunSync
 
@@ -53,5 +57,19 @@ class DefaultExchangeRatesServiceSpec extends AnyFlatSpec with Matchers with Opt
     exchangeRatesRefreshTimestampRepo.get().value.getEpochSecond shouldBe timestamp
   }
 
-  // todo test errors and retries
+  it should "retry on errors" in {
+    val mockFixerApi = stub[FixerApi[IO]]
+    val exchangeRatesService = new DefaultExchangeRatesService[IO, Id](
+      mockFixerApi,
+      exchangeRatesRepo,
+      exchangeRatesRefreshTimestampRepo,
+      ExchangeRatesCache.create[IO](sampleRates).unsafeRunSync,
+      RetryPolicies.limitRetries(2)
+    )
+
+    (mockFixerApi.getLatestRates _).when().throws(new RuntimeException())
+
+    exchangeRatesService.saveRates().unsafeRunSync
+    (mockFixerApi.getLatestRates _).verify().repeat(3)
+  }
 }

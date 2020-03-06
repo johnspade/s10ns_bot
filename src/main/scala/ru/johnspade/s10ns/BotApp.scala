@@ -16,6 +16,7 @@ import org.http4s.client.blaze.BlazeClientBuilder
 import pureconfig.ConfigSource
 import pureconfig.generic.auto._
 import pureconfig.module.catseffect._
+import retry.RetryPolicies
 import ru.johnspade.s10ns.bot.engine.{DefaultDialogEngine, DefaultMsgService, TransactionalDialogEngine}
 import ru.johnspade.s10ns.bot.{CbDataService, Config, MoneyService, StartController}
 import ru.johnspade.s10ns.calendar.{CalendarController, CalendarService}
@@ -31,6 +32,7 @@ import telegramium.bots.client.ApiHttp4sImp
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.duration._
 
 object BotApp extends IOApp {
   private type F[A] = IO[A]
@@ -130,11 +132,13 @@ object BotApp extends IOApp {
         exchangeRatesCache <- ExchangeRatesCache.create[F](exchangeRates)
         dialogEngine = new DefaultDialogEngine[F, D](userRepo)
         fixerApi = new FixerApiInterpreter[F](conf.fixer.token)
+        retryPolicy = RetryPolicies.limitRetries[F](3) join RetryPolicies.exponentialBackoff[F](1.minute)
         exchangeRatesService = new DefaultExchangeRatesService[F, D](
           fixerApi,
           exchangeRatesRepo,
           exchangeRatesRefreshTimestampRepo,
-          exchangeRatesCache
+          exchangeRatesCache,
+          retryPolicy
         )
         moneyService = new MoneyService[F](exchangeRatesService)
         s10nInfoService = new S10nInfoService[F](moneyService)

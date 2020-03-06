@@ -1,5 +1,6 @@
 package ru.johnspade.s10ns.exchangerates
 
+import java.time.temporal.ChronoUnit
 import java.time.{Instant, OffsetDateTime, ZoneId}
 import java.util.concurrent.TimeUnit
 
@@ -27,7 +28,7 @@ class DefaultExchangeRatesJobService[F[_] : Concurrent : Clock : Timer : Logger,
         case _ => Sync[F].unit
       }
       midnight = OffsetDateTime.ofInstant(Instant.ofEpochMilli(now), ZoneId.systemDefault)
-        .withHour(0)
+        .truncatedTo(ChronoUnit.DAYS)
         .plusDays(1)
         .toInstant
         .toEpochMilli
