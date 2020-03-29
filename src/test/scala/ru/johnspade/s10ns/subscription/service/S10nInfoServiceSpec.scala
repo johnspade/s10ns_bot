@@ -98,4 +98,12 @@ class S10nInfoServiceSpec extends AnyFlatSpec with Matchers with OptionValues {
     s10nInfoService.getFirstPaymentDate(firstPaymentDate) shouldBe
       s"_First payment:_ ${DateTimeFormatter.ISO_DATE.format(firstPaymentDate)}"
   }
+
+  "printAmount" should "just return a passed amount with default currency" in {
+    s10nInfoService.printAmount(amount, CurrencyUnit.USD).unsafeRunSync shouldBe "13.37 $"
+  }
+
+  it should "convert the amount to default currency" in {
+    s10nInfoService.printAmount(amount, CurrencyUnit.EUR).unsafeRunSync shouldBe "≈11.97 €"
+  }
 }

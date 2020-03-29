@@ -4,7 +4,7 @@ import cats.effect.Sync
 import cats.implicits._
 import cats.{Monad, ~>}
 import ru.johnspade.s10ns.bot.engine.ReplyMessage
-import ru.johnspade.s10ns.bot.{EditS10n, Errors, RemoveS10n, S10n, S10ns}
+import ru.johnspade.s10ns.bot.{EditS10n, Errors, RemoveS10n, S10n, S10ns, S10nsPeriod}
 import ru.johnspade.s10ns.subscription.Subscription
 import ru.johnspade.s10ns.subscription.repository.SubscriptionRepository
 import ru.johnspade.s10ns.subscription.service.{S10nsListMessageService, SubscriptionListService}
@@ -17,12 +17,17 @@ class DefaultSubscriptionListService[F[_] : Sync, D[_] : Monad](
   private val s10nRepo: SubscriptionRepository[D],
   private val s10nsListMessageService: S10nsListMessageService[F]
 )(private implicit val transact: D ~> F) extends SubscriptionListService[F] {
-  override def onSubscriptionsCb(user: User, cb: CallbackQuery, data: S10ns): F[ReplyMessage] = {
+  override def onSubscriptionsCb(user: User, cb: CallbackQuery, data: S10ns): F[ReplyMessage] =
     for {
       s10ns <- transact(s10nRepo.getByUserId(user.id))
       reply <- s10nsListMessageService.createSubscriptionsPage(s10ns, data.page, user.defaultCurrency)
     } yield reply
-  }
+
+  override def onS10nsPeriodCb(user: User, cb: CallbackQuery, data: S10nsPeriod): F[ReplyMessage] =
+    for {
+      s10ns <- transact(s10nRepo.getByUserId(user.id))
+      reply <- s10nsListMessageService.createSubscriptionsPage(s10ns, data.page, user.defaultCurrency, data.period)
+    } yield reply
 
   override def onRemoveSubscriptionCb(user: User, cb: CallbackQuery, data: RemoveS10n): F[ReplyMessage] = {
     for {

@@ -17,5 +17,5 @@ object BillingPeriodUnit
   case object Month extends BillingPeriodUnit(ChronoUnit.MONTHS, MeasureUnit.MONTH)
   case object Year extends BillingPeriodUnit(ChronoUnit.YEARS, MeasureUnit.YEAR)
 
-  override def values: IndexedSeq[BillingPeriodUnit] = findValues
+  override val values: IndexedSeq[BillingPeriodUnit] = findValues
 }

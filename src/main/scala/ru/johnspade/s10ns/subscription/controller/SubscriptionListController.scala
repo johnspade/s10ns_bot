@@ -5,7 +5,7 @@ import cats.implicits._
 import io.chrisdavenport.log4cats.Logger
 import ru.johnspade.s10ns.bot.engine.ReplyMessage
 import ru.johnspade.s10ns.bot.engine.TelegramOps.ackCb
-import ru.johnspade.s10ns.bot.{EditS10n, RemoveS10n, S10n, S10ns}
+import ru.johnspade.s10ns.bot.{EditS10n, RemoveS10n, S10n, S10ns, S10nsPeriod}
 import ru.johnspade.s10ns.subscription.service.SubscriptionListService
 import ru.johnspade.s10ns.subscription.tags.PageNumber
 import ru.johnspade.s10ns.user.User
@@ -17,6 +17,10 @@ class SubscriptionListController[F[_] : Sync : Logger](
 ) {
   def subscriptionsCb(user: User, cb: CallbackQuery, data: S10ns)(implicit bot: Api[F]): F[Unit] =
     s10nListService.onSubscriptionsCb(user, cb, data)
+      .flatMap(ackCb(cb) *> editMessage(cb, _))
+
+  def s10nsPeriodCb(user: User, cb: CallbackQuery, data: S10nsPeriod)(implicit bot: Api[F]): F[Unit] =
+    s10nListService.onS10nsPeriodCb(user, cb, data)
       .flatMap(ackCb(cb) *> editMessage(cb, _))
 
   def removeSubscriptionCb(user: User, cb: CallbackQuery, data: RemoveS10n)(implicit bot: Api[F]): F[Unit] =

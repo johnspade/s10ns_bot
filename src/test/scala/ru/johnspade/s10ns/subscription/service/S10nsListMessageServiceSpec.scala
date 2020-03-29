@@ -11,7 +11,7 @@ import org.scalatest.OptionValues
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import ru.johnspade.s10ns.bot.engine.TelegramOps.inlineKeyboardButton
-import ru.johnspade.s10ns.bot.{EditS10n, EditS10nAmount, EditS10nBillingPeriod, EditS10nCurrency, EditS10nFirstPaymentDate, EditS10nName, EditS10nOneTime, MoneyService, RemoveS10n, S10n, S10ns}
+import ru.johnspade.s10ns.bot.{EditS10n, EditS10nAmount, EditS10nBillingPeriod, EditS10nCurrency, EditS10nFirstPaymentDate, EditS10nName, EditS10nOneTime, MoneyService, RemoveS10n, S10n, S10ns, S10nsPeriod}
 import ru.johnspade.s10ns.exchangerates.InMemoryExchangeRatesStorage
 import ru.johnspade.s10ns.subscription.tags.{BillingPeriodDuration, FirstPaymentDate, OneTimeSubscription, PageNumber, SubscriptionId, SubscriptionName}
 import ru.johnspade.s10ns.subscription.{BillingPeriod, BillingPeriodUnit, Subscription}
@@ -52,12 +52,13 @@ class S10nsListMessageServiceSpec extends AnyFlatSpec with Matchers with OptionV
     val page = s10nsListMessageService.createSubscriptionsPage(List(s10n1, s10n2), PageNumber(0), CurrencyUnit.EUR)
       .unsafeRunSync
     page.text shouldBe
-      """|17.27 €
+      """|Monthly: 17.27 €
          |
-         |1. Netflix – 13.37 $ / m
-         |2. Spotify – 5.30 € / m""".stripMargin
+         |1. Netflix – ≈11.97 € (≈143.67 € / y)
+         |2. Spotify – 5.30 € (63.60 € / y)""".stripMargin
     page.markup.value should matchTo[KeyboardMarkup] {
       InlineKeyboardMarkup(List(
+        List(inlineKeyboardButton("Yearly", S10nsPeriod(BillingPeriodUnit.Year, PageNumber(0)))),
         List(
           inlineKeyboardButton("1", S10n(SubscriptionId(1L), PageNumber(0))),
           inlineKeyboardButton("2", S10n(SubscriptionId(2L), PageNumber(0)))
@@ -71,11 +72,12 @@ class S10nsListMessageServiceSpec extends AnyFlatSpec with Matchers with OptionV
     val page = s10nsListMessageService.createSubscriptionsPage(createS10ns(21), PageNumber(1), CurrencyUnit.EUR)
       .unsafeRunSync
     page.text shouldBe
-      s"""|0.00 €
+      s"""|Monthly: 0.00 €
           |
           |${List.tabulate(10)(n => s"${n + 1}. s10n${n + 10} – 1.00 €").mkString("\n")}""".stripMargin
     page.markup.value should matchTo[KeyboardMarkup] {
       InlineKeyboardMarkup(List(
+        List(inlineKeyboardButton("Yearly", S10nsPeriod(BillingPeriodUnit.Year, PageNumber(1)))),
         List.tabulate(5)(n => inlineKeyboardButton((n + 1).toString, S10n(SubscriptionId(n + 10.toLong), PageNumber(1)))),
         List.tabulate(5)(n => inlineKeyboardButton((n + 6).toString, S10n(SubscriptionId(n + 15.toLong), PageNumber(1)))),
         List(
@@ -90,11 +92,12 @@ class S10nsListMessageServiceSpec extends AnyFlatSpec with Matchers with OptionV
     val page = s10nsListMessageService.createSubscriptionsPage(createS10ns(11), PageNumber(1), CurrencyUnit.EUR)
       .unsafeRunSync
     page.text shouldBe
-      s"""|0.00 €
+      s"""|Monthly: 0.00 €
           |
           |1. s10n10 – 1.00 €""".stripMargin
     page.markup.value should matchTo[KeyboardMarkup] {
       InlineKeyboardMarkup(List(
+        List(inlineKeyboardButton("Yearly", S10nsPeriod(BillingPeriodUnit.Year, PageNumber(1)))),
         List(inlineKeyboardButton("1", S10n(SubscriptionId(10L), PageNumber(1)))),
         List(inlineKeyboardButton("⬅", S10ns(PageNumber(0))))
       ))
@@ -105,17 +108,53 @@ class S10nsListMessageServiceSpec extends AnyFlatSpec with Matchers with OptionV
     val page = s10nsListMessageService.createSubscriptionsPage(createS10ns(11), PageNumber(0), CurrencyUnit.EUR)
       .unsafeRunSync
     page.text shouldBe
-      s"""|0.00 €
+      s"""|Monthly: 0.00 €
           |
           |${List.tabulate(10)(n => s"${n + 1}. s10n$n – 1.00 €").mkString("\n")}""".stripMargin
     page.markup.value should matchTo[KeyboardMarkup] {
       InlineKeyboardMarkup(List(
+        List(inlineKeyboardButton("Yearly", S10nsPeriod(BillingPeriodUnit.Year, PageNumber(0)))),
         List.tabulate(5)(n => inlineKeyboardButton((n + 1).toString, S10n(SubscriptionId(n.toLong), PageNumber(0)))),
         List.tabulate(5)(n => inlineKeyboardButton((n + 6).toString, S10n(SubscriptionId(n + 5.toLong), PageNumber(0)))),
         List(inlineKeyboardButton("➡", S10ns(PageNumber(1))))
       ))
     }
   }
+
+  it should "generate a message with the 'Weekly' button if a 'yearly' period is selected" in {
+    val page = s10nsListMessageService.createSubscriptionsPage(
+      List(s10n1),
+      PageNumber(0),
+      CurrencyUnit.EUR,
+      BillingPeriodUnit.Year
+    )
+      .unsafeRunSync
+    page.markup.value should matchTo[KeyboardMarkup] {
+      InlineKeyboardMarkup(List(
+        List(inlineKeyboardButton("Weekly", S10nsPeriod(BillingPeriodUnit.Week, PageNumber(0)))),
+        List(inlineKeyboardButton("1", S10n(SubscriptionId(1L), PageNumber(0)))),
+        List()
+      ))
+    }
+  }
+
+  it should "generate a message with the 'Monthly' button if a 'Weekly' period is selected" in {
+    val page = s10nsListMessageService.createSubscriptionsPage(
+      List(s10n1),
+      PageNumber(0),
+      CurrencyUnit.EUR,
+      BillingPeriodUnit.Week
+    )
+      .unsafeRunSync
+    page.markup.value should matchTo[KeyboardMarkup] {
+      InlineKeyboardMarkup(List(
+        List(inlineKeyboardButton("Monthly", S10nsPeriod(BillingPeriodUnit.Month, PageNumber(0)))),
+        List(inlineKeyboardButton("1", S10n(SubscriptionId(1L), PageNumber(0)))),
+        List()
+      ))
+    }
+  }
+
 
   behavior of "createSubscriptionMessage"
 

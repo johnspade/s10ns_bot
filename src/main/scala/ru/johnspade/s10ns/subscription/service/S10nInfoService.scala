@@ -25,6 +25,9 @@ class S10nInfoService[F[_] : Sync : Clock](
 
   def getAmount(amount: Money): String = MoneyFormatter.print(amount)
 
+  def printAmount(amount: Money, defaultCurrency: CurrencyUnit): F[String] =
+    getAmountInDefaultCurrency(amount, defaultCurrency).map(_.getOrElse(MoneyFormatter.print(amount)))
+
   def getAmountInDefaultCurrency(amount: Money, defaultCurrency: CurrencyUnit): F[Option[String]] = {
     val converted =
       if (amount.getCurrencyUnit == defaultCurrency) Monad[F].pure(Option.empty[Money])

@@ -36,6 +36,7 @@ final case class EditS10nOneTime(subscriptionId: SubscriptionId) extends CbData 
 final case class EditS10nBillingPeriod(subscriptionId: SubscriptionId) extends CbData with StartsDialog
 final case class EditS10nFirstPaymentDate(subscriptionId: SubscriptionId) extends CbData with StartsDialog
 case object DefCurrency extends CbData with StartsDialog
+final case class S10nsPeriod(period: BillingPeriodUnit, page: PageNumber) extends CbData
 
 object CbData {
   val Separator: Char = '\u001D'
@@ -77,6 +78,8 @@ object CbData {
     RowCodec.caseOrdered(EditS10nBillingPeriod.apply _)(EditS10nBillingPeriod.unapply)
   implicit val editS10nFirstPaymentDateRowCodec: RowCodec[EditS10nFirstPaymentDate] =
     RowCodec.caseOrdered(EditS10nFirstPaymentDate.apply _)(EditS10nFirstPaymentDate.unapply)
+  implicit val s10nsPeriodRowCodec: RowCodec[S10nsPeriod] =
+    RowCodec.caseOrdered(S10nsPeriod.apply _)(S10nsPeriod.unapply)
   implicit val skipIsOneTimeRowCodec: RowCodec[SkipIsOneTime.type] =
     caseObjectRowCodec(SkipIsOneTime)
   implicit val dropFirstPaymentRowCodec: RowCodec[DropFirstPayment.type] =

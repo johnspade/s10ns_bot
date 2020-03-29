@@ -1,14 +1,16 @@
 package ru.johnspade.s10ns.subscription.service
 
+import java.time.temporal.ChronoUnit
+
 import cats.effect.Sync
 import cats.implicits._
 import org.joda.money.{CurrencyUnit, Money}
 import ru.johnspade.s10ns.bot.Formatters.MoneyFormatter
 import ru.johnspade.s10ns.bot.engine.ReplyMessage
 import ru.johnspade.s10ns.bot.engine.TelegramOps.inlineKeyboardButton
-import ru.johnspade.s10ns.bot.{EditS10n, EditS10nAmount, EditS10nBillingPeriod, EditS10nCurrency, EditS10nFirstPaymentDate, EditS10nName, EditS10nOneTime, MoneyService, RemoveS10n, S10n, S10ns}
+import ru.johnspade.s10ns.bot.{EditS10n, EditS10nAmount, EditS10nBillingPeriod, EditS10nCurrency, EditS10nFirstPaymentDate, EditS10nName, EditS10nOneTime, MoneyService, RemoveS10n, S10n, S10ns, S10nsPeriod}
 import ru.johnspade.s10ns.subscription.tags.{FirstPaymentDate, PageNumber}
-import ru.johnspade.s10ns.subscription.{BillingPeriod, Subscription}
+import ru.johnspade.s10ns.subscription.{BillingPeriod, BillingPeriodUnit, Subscription}
 import telegramium.bots.{InlineKeyboardButton, InlineKeyboardMarkup, Markdown}
 
 class S10nsListMessageService[F[_] : Sync](
@@ -20,20 +22,44 @@ class S10nsListMessageService[F[_] : Sync](
   def createSubscriptionsPage(
     subscriptions: List[Subscription],
     page: PageNumber,
-    defaultCurrency: CurrencyUnit
+    defaultCurrency: CurrencyUnit,
+    period: BillingPeriodUnit = BillingPeriodUnit.Month
   ):
   F[ReplyMessage] = {
     def createText(indexedSubscriptions: List[(Subscription, Int)], sum: Money) = {
-      val sumString = MoneyFormatter.print(sum) + "\n"
-      val list = indexedSubscriptions
-        .map {
+      val sumString = period.measureUnit.getSubtype.capitalize + "ly: " + MoneyFormatter.print(sum) + "\n"
+      indexedSubscriptions
+        .traverse {
           case (s, i) =>
-            val period = s.billingPeriod.map(billingPeriod => s" / ${billingPeriod.unit.chronoUnit.name().toLowerCase.head}")
-              .getOrElse("")
-            s"$i. ${s.name} – ${MoneyFormatter.print(s.amount)}$period"
+            s.billingPeriod.map { billingPeriod =>
+              val periodAmount = moneyService.calcAmount(billingPeriod, s.amount, period.chronoUnit)
+              val periodAmountString = s10nInfoService.printAmount(periodAmount, defaultCurrency)
+              val additionalAmount = period match {
+                case BillingPeriodUnit.Month | BillingPeriodUnit.Week =>
+                  val yearAmount = moneyService.calcAmount(billingPeriod, s.amount, ChronoUnit.YEARS)
+                  val yearAmountString = s10nInfoService.printAmount(yearAmount, defaultCurrency)
+                  yearAmountString.map(s => s" ($s / y)")
+                case _ => Sync[F].pure("")
+              }
+              periodAmountString.flatMap(s => additionalAmount.map(s + _))
+            }
+              .getOrElse(s10nInfoService.printAmount(s.amount, defaultCurrency))
+              .map { amount =>
+                s"$i. ${s.name} – $amount"
+              }
         }
-        .mkString("\n")
-      s"$sumString\n$list"
+        .map { s10ns =>
+          s"$sumString\n${s10ns.mkString("\n")}"
+        }
+    }
+
+    def createPeriodButton(): InlineKeyboardButton = {
+      val nextPeriod = period match {
+        case BillingPeriodUnit.Month => BillingPeriodUnit.Year
+        case BillingPeriodUnit.Year => BillingPeriodUnit.Week
+        case _ => BillingPeriodUnit.Month
+      }
+      inlineKeyboardButton(nextPeriod.measureUnit.getSubtype.capitalize + "ly", S10nsPeriod(nextPeriod, page))
     }
 
     def createSubscriptionButtons(indexedSubscriptions: List[(Subscription, Int)]): List[List[InlineKeyboardButton]] =
@@ -57,17 +83,20 @@ class S10nsListMessageService[F[_] : Sync](
     }
 
     def createReplyMessage(subscriptions: List[Subscription]): F[ReplyMessage] =
-      moneyService.sum(subscriptions, defaultCurrency).map { sum =>
-        val from = page * DefaultPageSize
-        val until = from + DefaultPageSize
-        val indexedS10nsPage = subscriptions.slice(from, until).zipWithIndex.map {
-          case (s, i) => (s, i + 1)
+      moneyService.sum(subscriptions, defaultCurrency, period.chronoUnit)
+        .flatMap { sum =>
+          val from = page * DefaultPageSize
+          val until = from + DefaultPageSize
+          val indexedS10nsPage = subscriptions.slice(from, until).zipWithIndex.map {
+            case (s, i) => (s, i + 1)
+          }
+          createText(indexedS10nsPage, sum).map { text =>
+            val periodButtonRow = List(createPeriodButton())
+            val subscriptionButtons = createSubscriptionButtons(indexedS10nsPage)
+            val arrowButtons = createNavButtons(subscriptions.size)
+            ReplyMessage(text, InlineKeyboardMarkup(periodButtonRow +: subscriptionButtons :+ arrowButtons).some)
+          }
         }
-        val text = createText(indexedS10nsPage, sum)
-        val subscriptionButtons = createSubscriptionButtons(indexedS10nsPage)
-        val arrowButtons = createNavButtons(subscriptions.size)
-        ReplyMessage(text, InlineKeyboardMarkup(subscriptionButtons :+ arrowButtons).some)
-      }
 
     createReplyMessage(subscriptions)
   }

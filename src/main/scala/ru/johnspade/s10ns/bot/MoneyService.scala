@@ -19,11 +19,6 @@ class MoneyService[F[_] : Sync](private val exchangeRatesStorage: ExchangeRatesS
           .map(_.map((period, _)))
       }
 
-    def calcAmount(period: BillingPeriod, amount: Money) =
-      amount
-        .multipliedBy(unit.getDuration.getSeconds)
-        .dividedBy(period.unit.chronoUnit.getDuration.getSeconds * period.duration, RoundingMode.HALF_EVEN)
-
     exchangeRatesStorage.getRates
       .flatMap { rates =>
         subscriptions
@@ -31,12 +26,17 @@ class MoneyService[F[_] : Sync](private val exchangeRatesStorage: ExchangeRatesS
           .map {
             _.flatten
               .map {
-                case (period, amount) => calcAmount(period, amount)
+                case (period, amount) => calcAmount(period, amount, unit)
               }
               .foldLeft(Money.zero(defaultCurrency))(_ plus _)
           }
       }
   }
+
+  def calcAmount(period: BillingPeriod, amount: Money, unit: ChronoUnit = ChronoUnit.MONTHS): Money =
+    amount
+      .multipliedBy(unit.getDuration.getSeconds)
+      .dividedBy(period.unit.chronoUnit.getDuration.getSeconds * period.duration, RoundingMode.HALF_EVEN)
 
   def convert(amount: Money, currency: CurrencyUnit): F[Option[Money]] = {
     def calcRateAndConvert(moneyRate: BigDecimal, targetRate: BigDecimal) = {

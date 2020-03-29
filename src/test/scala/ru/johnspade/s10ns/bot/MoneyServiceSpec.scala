@@ -1,5 +1,7 @@
 package ru.johnspade.s10ns.bot
 
+import java.time.temporal.ChronoUnit
+
 import cats.effect.IO
 import cats.implicits._
 import com.softwaremill.quicklens._
@@ -71,6 +73,32 @@ class MoneyServiceSpec extends AnyFlatSpec with Matchers {
     )
 
     moneyService.sum(s10ns, CurrencyUnit.EUR).unsafeRunSync shouldBe Money.of(CurrencyUnit.EUR, 10)
+  }
+
+  behavior of "calcAmount"
+
+  it should "return a passed amount if periods are equal" in {
+    moneyService.calcAmount(
+      BillingPeriod(BillingPeriodDuration(1), BillingPeriodUnit.Month),
+      Money.of(rub, 256),
+      ChronoUnit.MONTHS
+    ) shouldBe Money.of(rub, 256)
+  }
+
+  it should "calculate an amount correctly if a period is larger than a billing period" in {
+    moneyService.calcAmount(
+      BillingPeriod(BillingPeriodDuration(1), BillingPeriodUnit.Day),
+      Money.of(rub, 256),
+      ChronoUnit.MONTHS
+    ) shouldBe Money.of(rub, 7791.84)
+  }
+
+  it should "calculate an amount correctly if a period is less than a billing period" in {
+    moneyService.calcAmount(
+      BillingPeriod(BillingPeriodDuration(2), BillingPeriodUnit.Year),
+      Money.of(rub, 256),
+      ChronoUnit.WEEKS
+    ) shouldBe Money.of(rub, 2.45)
   }
 
   private val s10n = Subscription(
