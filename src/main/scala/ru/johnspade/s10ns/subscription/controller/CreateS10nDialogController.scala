@@ -29,19 +29,26 @@ class CreateS10nDialogController[F[_] : Sync : Logger : Timer](
   def billingPeriodUnitCb(cb: CallbackQuery, data: PeriodUnit, user: User, dialog: CreateS10nDialog)(
     implicit bot: Api[F]
   ): F[Unit] =
-    clearMarkup(cb) *> createS10nDialogService.onBillingPeriodUnitCb(data, user, dialog).flatMap(handleCallback(cb, _))
+    clearMarkupAndSave(cb)(_.onBillingPeriodUnitCb(data, user, dialog))
+
+  def everyMonthCb(cb: CallbackQuery, user: User, dialog: CreateS10nDialog)(implicit bot: Api[F]): F[Unit] =
+    clearMarkupAndSave(cb)(_.onEveryMonthCb(user, dialog))
 
   def skipIsOneTimeCb(cb: CallbackQuery, user: User, dialog: CreateS10nDialog)(implicit bot: Api[F]): F[Unit] =
-    clearMarkup(cb) *> createS10nDialogService.onSkipIsOneTimeCb(user, dialog).flatMap(handleCallback(cb, _))
+    clearMarkupAndSave(cb)(_.onSkipIsOneTimeCb(user, dialog))
 
   def isOneTimeCb(cb: CallbackQuery, data: OneTime, user: User, dialog: CreateS10nDialog)(implicit bot: Api[F]): F[Unit] =
-    clearMarkup(cb) *> createS10nDialogService.onIsOneTimeCallback(data, user, dialog).flatMap(handleCallback(cb, _))
+    clearMarkupAndSave(cb)(_.onIsOneTimeCallback(data, user, dialog))
 
   def skipFirstPaymentDateCb(cb: CallbackQuery, user: User, dialog: CreateS10nDialog)(implicit bot: Api[F]): F[Unit] =
-    clearMarkup(cb) *> createS10nDialogService.onSkipFirstPaymentDateCb(user, dialog).flatMap(handleCallback(cb, _))
+    clearMarkupAndSave(cb)(_.onSkipFirstPaymentDateCb(user, dialog))
 
   def firstPaymentDateCb(cb: CallbackQuery, data: FirstPayment, user: User, dialog: CreateS10nDialog)(
     implicit bot: Api[F]
   ): F[Unit] =
-    clearMarkup(cb) *> createS10nDialogService.onFirstPaymentDateCallback(data, user, dialog).flatMap(handleCallback(cb, _))
+    clearMarkupAndSave(cb)(_.onFirstPaymentDateCallback(data, user, dialog))
+
+  private def clearMarkupAndSave(cb: CallbackQuery)(f: CreateS10nDialogService[F] => F[List[ReplyMessage]])
+    (implicit bot: Api[F]): F[Unit] =
+    clearMarkup(cb) *> f(createS10nDialogService).flatMap(handleCallback(cb, _))
 }

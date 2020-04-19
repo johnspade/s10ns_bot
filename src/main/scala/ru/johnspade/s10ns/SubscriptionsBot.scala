@@ -6,7 +6,7 @@ import cats.{Monad, ~>}
 import io.chrisdavenport.log4cats.Logger
 import ru.johnspade.s10ns.bot.engine.ReplyMessage
 import ru.johnspade.s10ns.bot.engine.TelegramOps.{TelegramUserOps, ackCb, sendReplyMessages, singleTextMessage}
-import ru.johnspade.s10ns.bot.{Calendar, CbDataService, CreateS10nDialog, DefCurrency, Dialog, DropFirstPayment, EditS10n, EditS10nAmount, EditS10nAmountDialog, EditS10nBillingPeriod, EditS10nBillingPeriodDialog, EditS10nCurrency, EditS10nCurrencyDialog, EditS10nFirstPaymentDate, EditS10nFirstPaymentDateDialog, EditS10nName, EditS10nNameDialog, EditS10nOneTime, EditS10nOneTimeDialog, Errors, FirstPayment, Ignore, OneTime, PeriodUnit, RemoveS10n, S10n, S10ns, S10nsPeriod, SettingsDialog, SkipIsOneTime, StartController, StartsDialog}
+import ru.johnspade.s10ns.bot.{Calendar, CbDataService, CreateS10nDialog, DefCurrency, Dialog, DropFirstPayment, EditS10n, EditS10nAmount, EditS10nAmountDialog, EditS10nBillingPeriod, EditS10nBillingPeriodDialog, EditS10nCurrency, EditS10nCurrencyDialog, EditS10nFirstPaymentDate, EditS10nFirstPaymentDateDialog, EditS10nName, EditS10nNameDialog, EditS10nOneTime, EditS10nOneTimeDialog, Errors, EveryMonth, FirstPayment, Ignore, OneTime, PeriodUnit, RemoveS10n, S10n, S10ns, S10nsPeriod, SettingsDialog, SkipIsOneTime, StartController, StartsDialog}
 import ru.johnspade.s10ns.calendar.CalendarController
 import ru.johnspade.s10ns.settings.SettingsController
 import ru.johnspade.s10ns.subscription.controller.{CreateS10nDialogController, EditS10nDialogController, SubscriptionListController}
@@ -30,7 +30,7 @@ class SubscriptionsBot[F[_] : Sync : Timer : Logger, D[_] : Monad](
 
   override def onMessage(msg: Message): F[Unit] =
     msg.from.map { user =>
-      routeMessage(msg.chat.id.toLong, user, msg)
+      routeMessage(msg.chat.id, user, msg)
     }
       .getOrElse(Monad[F].unit)
       .handleErrorWith(e => Logger[F].error(e)(e.getMessage))
@@ -38,7 +38,7 @@ class SubscriptionsBot[F[_] : Sync : Timer : Logger, D[_] : Monad](
   override def onCallbackQuery(query: CallbackQuery): F[Unit] = {
     def ackError = ackCb[F](query, Errors.Default.some)
 
-    val tgUser = query.from.toUser(query.message.map(_.chat.id.toLong))
+    val tgUser = query.from.toUser(query.message.map(_.chat.id))
 
     def route(data: String): F[Either[String, Unit]] =
       cbDataService.decode(data)
@@ -91,6 +91,15 @@ class SubscriptionsBot[F[_] : Sync : Timer : Logger, D[_] : Monad](
                 user.dialog.collect {
                   case d: CreateS10nDialog => createS10nDialogController.isOneTimeCb(query, oneTime, user, d)
                   case d: EditS10nOneTimeDialog => editS10nDialogController.s10nOneTimeCb(query, oneTime, user, d)
+                }
+                  .getOrElse(ackError)
+              }
+
+            case EveryMonth =>
+              withUser { user =>
+                user.dialog.collect {
+                  case d: CreateS10nDialog => createS10nDialogController.everyMonthCb(query, user, d)
+                  case d: EditS10nOneTimeDialog => editS10nDialogController.everyMonthCb(query, user, d)
                 }
                   .getOrElse(ackError)
               }

@@ -24,6 +24,9 @@ class DefaultEditS10nOneTimeDialogService[F[_] : Monad, D[_] : Monad](
   extends EditS10nDialogService[F, D, EditS10nOneTimeDialogState](
     s10nsListMessageService, stateMessageService, userRepo, s10nRepo, dialogEngine
   ) with EditS10nOneTimeDialogService[F] {
+  override def saveEveryMonth(cb: CallbackQuery, user: User, dialog: EditS10nOneTimeDialog): F[List[ReplyMessage]] =
+    saveEveryMonth(user, dialog)
+
   override def removeIsOneTime(cb: CallbackQuery, user: User, dialog: EditS10nOneTimeDialog): F[List[ReplyMessage]] =
     removeIsOneTime(user, dialog)
 
@@ -55,6 +58,14 @@ class DefaultEditS10nOneTimeDialogService[F[_] : Monad, D[_] : Monad](
       .andThen(validateDurationString)
       .andThen(duration => validateDuration(BillingPeriodDuration(duration)))
       .traverse(saveBillingPeriodDuration(user, dialog, _))
+
+  private def saveEveryMonth(user: User, dialog: EditS10nOneTimeDialog): F[List[ReplyMessage]] = {
+    val everyMonth = BillingPeriod(unit = BillingPeriodUnit.Month, duration = BillingPeriodDuration(1)).some
+    val updatedDialog = dialog
+      .modify(_.draft.oneTime).setTo(OneTimeSubscription(false).some)
+      .modify(_.draft.billingPeriod).setTo(everyMonth)
+    transition(user, updatedDialog)(EditS10nOneTimeDialogEvent.ChosenEveryMonth)
+  }
 
   private def removeIsOneTime(user: User, dialog: EditS10nOneTimeDialog): F[List[ReplyMessage]] = {
     val updatedDialog = dialog

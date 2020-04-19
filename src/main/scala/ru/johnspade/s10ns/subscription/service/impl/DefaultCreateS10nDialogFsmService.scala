@@ -49,6 +49,14 @@ class DefaultCreateS10nDialogFsmService[F[_] : Sync : Logger, D[_] : Monad](
     transition(user, dialog.copy(draft = draft), CreateS10nDialogEvent.ChosenBillingPeriodUnit)
   }
 
+  override def saveEveryMonth(user: User, dialog: CreateS10nDialog): F[List[ReplyMessage]] = {
+    val draft = dialog.draft.copy(
+      periodUnit = BillingPeriodUnit.Month.some,
+      periodDuration = BillingPeriodDuration(1).some
+    )
+    transition(user, dialog.copy(draft = draft), CreateS10nDialogEvent.ChosenEveryMonth)
+  }
+
   override def skipIsOneTime(user: User, dialog: CreateS10nDialog): F[List[ReplyMessage]] =
     transition(user, dialog, CreateS10nDialogEvent.SkippedIsOneTime)
 

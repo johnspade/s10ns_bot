@@ -61,6 +61,9 @@ class DefaultCreateS10nDialogService[F[_] : Sync, D[_] : Monad](
   override def onBillingPeriodUnitCb(data: PeriodUnit, user: User, dialog: CreateS10nDialog): F[List[ReplyMessage]] =
     createS10nDialogFsmService.saveBillingPeriodUnit(user, dialog, data.unit)
 
+  override def onEveryMonthCb(user: User, dialog: CreateS10nDialog): F[List[ReplyMessage]] =
+    createS10nDialogFsmService.saveEveryMonth(user, dialog)
+
   override def onSkipIsOneTimeCb(user: User, dialog: CreateS10nDialog): F[List[ReplyMessage]] =
     createS10nDialogFsmService.skipIsOneTime(user, dialog)
 

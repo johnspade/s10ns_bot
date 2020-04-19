@@ -47,7 +47,7 @@ object CreateS10nDialogState
         }
       case IsOneTime =>
         e match {
-          case SkippedIsOneTime => Finished
+          case SkippedIsOneTime | ChosenEveryMonth => Finished
           case ChosenOneTime => FirstPaymentDate
           case ChosenRecurring => BillingPeriodUnit
           case _ => state
@@ -78,6 +78,7 @@ object CreateS10nDialogEvent extends Enum[CreateS10nDialogEvent] with CirceEnum[
   case object EnteredName extends CreateS10nDialogEvent
   case object ChosenCurrency extends CreateS10nDialogEvent
   case object EnteredAmount extends CreateS10nDialogEvent
+  case object ChosenEveryMonth extends CreateS10nDialogEvent
   case object SkippedIsOneTime extends CreateS10nDialogEvent
   case object ChosenOneTime extends CreateS10nDialogEvent
   case object ChosenRecurring extends CreateS10nDialogEvent

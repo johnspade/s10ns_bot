@@ -24,6 +24,7 @@ final case class S10n(subscriptionId: SubscriptionId, page: PageNumber) extends 
 final case class PeriodUnit(unit: BillingPeriodUnit) extends CbData
 case object SkipIsOneTime extends CbData
 final case class OneTime(oneTime: OneTimeSubscription) extends CbData
+final case object EveryMonth extends CbData
 final case class Calendar(date: LocalDate) extends CbData
 final case class FirstPayment(date: FirstPaymentDate) extends CbData
 case object DropFirstPayment extends CbData
@@ -88,4 +89,6 @@ object CbData {
     caseObjectRowCodec(Ignore)
   implicit val defCurrencyRowCodec: RowCodec[DefCurrency.type] =
     caseObjectRowCodec(DefCurrency)
+  implicit val everyMonthRowCodec: RowCodec[EveryMonth.type] =
+    caseObjectRowCodec(EveryMonth)
 }

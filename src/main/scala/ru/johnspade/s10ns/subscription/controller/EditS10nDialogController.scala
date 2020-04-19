@@ -56,6 +56,9 @@ class EditS10nDialogController[F[_] : Sync : Logger : Timer](
   def editS10nOneTimeCb(user: User, cb: CallbackQuery, data: EditS10nOneTime)(implicit bot: Api[F]): F[Unit] =
     editS10nOneTimeDialogService.onEditS10nOneTimeCb(user, cb, data).flatMap(reply(cb, _))
 
+  def everyMonthCb(cb: CallbackQuery, user: User, dialog: EditS10nOneTimeDialog)(implicit bot: Api[F]): F[Unit] =
+    clearMarkup(cb) *> editS10nOneTimeDialogService.saveEveryMonth(cb, user, dialog).flatMap(handleCallback(cb, _))
+
   def removeS10nIsOneTimeCb(cb: CallbackQuery, user: User, dialog: EditS10nOneTimeDialog)(implicit bot: Api[F]): F[Unit] =
     clearMarkup(cb) *> editS10nOneTimeDialogService.removeIsOneTime(cb, user, dialog).flatMap(handleCallback(cb, _))
 

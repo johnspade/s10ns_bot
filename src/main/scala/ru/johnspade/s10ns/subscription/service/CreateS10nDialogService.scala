@@ -13,6 +13,8 @@ trait CreateS10nDialogService[F[_]] {
 
   def onBillingPeriodUnitCb(data: PeriodUnit, user: User, dialog: CreateS10nDialog): F[List[ReplyMessage]]
 
+  def onEveryMonthCb(user: User, dialog: CreateS10nDialog): F[List[ReplyMessage]]
+
   def onSkipIsOneTimeCb(user: User, dialog: CreateS10nDialog): F[List[ReplyMessage]]
 
   def onIsOneTimeCallback(data: OneTime, user: User, dialog: CreateS10nDialog): F[List[ReplyMessage]]

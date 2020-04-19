@@ -6,6 +6,8 @@ import ru.johnspade.s10ns.user.User
 import telegramium.bots.CallbackQuery
 
 trait EditS10nOneTimeDialogService[F[_]] {
+  def saveEveryMonth(cb: CallbackQuery, user: User, dialog: EditS10nOneTimeDialog): F[List[ReplyMessage]]
+
   def removeIsOneTime(cb: CallbackQuery, user: User, dialog: EditS10nOneTimeDialog): F[List[ReplyMessage]]
 
   def saveIsOneTime(cb: CallbackQuery, data: OneTime, user: User, dialog: EditS10nOneTimeDialog): F[List[ReplyMessage]]

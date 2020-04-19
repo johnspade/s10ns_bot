@@ -28,11 +28,14 @@ object Markup {
 
   def isOneTimeReplyMarkup(skipIsOneTimeMessage: String): InlineKeyboardMarkup =
     InlineKeyboardMarkup(
-      List(List(
-        inlineKeyboardButton("Recurring", OneTime(OneTimeSubscription(false))),
-        inlineKeyboardButton("One time", OneTime(OneTimeSubscription(true))),
-        inlineKeyboardButton(skipIsOneTimeMessage, SkipIsOneTime)
-      ))
+      List(
+        List(
+          inlineKeyboardButton("Recurring", OneTime(OneTimeSubscription(false))),
+          inlineKeyboardButton("One time", OneTime(OneTimeSubscription(true))),
+          inlineKeyboardButton("Every month", EveryMonth)
+        ),
+        List(inlineKeyboardButton(skipIsOneTimeMessage, SkipIsOneTime))
+      )
     )
 
   val BillingPeriodUnitReplyMarkup: InlineKeyboardMarkup = InlineKeyboardMarkup(

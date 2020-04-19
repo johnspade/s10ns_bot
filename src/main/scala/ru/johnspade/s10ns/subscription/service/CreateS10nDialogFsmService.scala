@@ -18,6 +18,8 @@ trait CreateS10nDialogFsmService[F[_]] {
 
   def saveBillingPeriodUnit(user: User, dialog: CreateS10nDialog, unit: BillingPeriodUnit): F[List[ReplyMessage]]
 
+  def saveEveryMonth(user: User, dialog: CreateS10nDialog): F[List[ReplyMessage]]
+
   def skipIsOneTime(user: User, dialog: CreateS10nDialog): F[List[ReplyMessage]]
 
   def saveIsOneTime(user: User, dialog: CreateS10nDialog, oneTime: OneTimeSubscription): F[List[ReplyMessage]]

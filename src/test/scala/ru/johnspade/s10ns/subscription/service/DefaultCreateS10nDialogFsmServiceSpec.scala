@@ -81,11 +81,14 @@ class DefaultCreateS10nDialogFsmServiceSpec extends AnyFlatSpec with Matchers wi
       List(ReplyMessage(
         "Recurring/one time:",
         markup = InlineKeyboardMarkup(
-          List(List(
-            InlineKeyboardButton("Recurring", callbackData = "OneTime\u001Dfalse".some),
-            InlineKeyboardButton("One time", callbackData = "OneTime\u001Dtrue".some),
-            InlineKeyboardButton("Skip", callbackData = "SkipIsOneTime".some)
-          ))
+          List(
+            List(
+              InlineKeyboardButton("Recurring", callbackData = "OneTime\u001Dfalse".some),
+              InlineKeyboardButton("One time", callbackData = "OneTime\u001Dtrue".some),
+              InlineKeyboardButton("Every month", callbackData = "EveryMonth".some)
+            ),
+            List(InlineKeyboardButton("Skip", callbackData = "SkipIsOneTime".some))
+          )
         ).some
       ))
     }
