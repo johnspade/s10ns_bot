@@ -24,14 +24,13 @@ class S10nsListMessageService[F[_] : Sync](
     page: PageNumber,
     defaultCurrency: CurrencyUnit,
     period: BillingPeriodUnit = BillingPeriodUnit.Month
-  ):
-  F[ReplyMessage] = {
+  ): F[ReplyMessage] = {
     def createText(indexedSubscriptions: List[(Subscription, Int)], sum: Money) = {
       val sumString = period.measureUnit.getSubtype.capitalize + "ly: " + MoneyFormatter.print(sum) + "\n"
       indexedSubscriptions
         .traverse {
           case (s, i) =>
-            s.billingPeriod.map { billingPeriod =>
+            s.billingPeriod.fold(s10nInfoService.printAmount(s.amount, defaultCurrency)) { billingPeriod =>
               val periodAmount = moneyService.calcAmount(billingPeriod, s.amount, period.chronoUnit)
               val periodAmountString = s10nInfoService.printAmount(periodAmount, defaultCurrency)
               val additionalAmount = period match {
@@ -43,14 +42,9 @@ class S10nsListMessageService[F[_] : Sync](
               }
               periodAmountString.flatMap(s => additionalAmount.map(s + _))
             }
-              .getOrElse(s10nInfoService.printAmount(s.amount, defaultCurrency))
-              .map { amount =>
-                s"$i. ${s.name} – $amount"
-              }
+              .map(amount => s"$i. ${s.name} – $amount")
         }
-        .map { s10ns =>
-          s"$sumString\n${s10ns.mkString("\n")}"
-        }
+        .map(s10ns => s"$sumString\n${s10ns.mkString("\n")}")
     }
 
     def createPeriodButton(): InlineKeyboardButton = {
@@ -107,7 +101,7 @@ class S10nsListMessageService[F[_] : Sync](
     val amountInDefaultCurrency = s10nInfoService.getAmountInDefaultCurrency(s10n.amount, defaultCurrency)
     val billingPeriod = s10n.billingPeriod.map(s10nInfoService.getBillingPeriod)
 
-    def calcWithPeriod(f: (FirstPaymentDate, BillingPeriod) => F[String]) =
+    def calcWithPeriod(f: (FirstPaymentDate, BillingPeriod) => F[String]): F[Option[String]] =
       s10n.firstPaymentDate.flatTraverse { start =>
         s10n.billingPeriod.traverse(f(start, _))
       }

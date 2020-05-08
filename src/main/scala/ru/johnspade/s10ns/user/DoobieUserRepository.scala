@@ -6,7 +6,7 @@ import cats.data.OptionT
 import doobie.free.connection
 import doobie.free.connection.ConnectionIO
 import doobie.implicits._
-import doobie.util.Meta
+import doobie.util.meta.Meta
 import doobie.util.query.Query0
 import doobie.util.update.Update0
 import org.joda.money.{CurrencyUnit, Money}

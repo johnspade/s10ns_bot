@@ -5,7 +5,7 @@ import java.time.{Instant, LocalDate, ZoneOffset}
 import java.util.concurrent.TimeUnit
 
 import cats.Monad
-import cats.effect.{Clock, Sync}
+import cats.effect.Clock
 import cats.implicits._
 import com.ibm.icu.text.MeasureFormat
 import com.ibm.icu.text.MeasureFormat.FormatWidth
@@ -16,7 +16,7 @@ import ru.johnspade.s10ns.bot.MoneyService
 import ru.johnspade.s10ns.subscription.BillingPeriod
 import ru.johnspade.s10ns.subscription.tags.{FirstPaymentDate, SubscriptionName}
 
-class S10nInfoService[F[_] : Sync : Clock](
+class S10nInfoService[F[_] : Monad : Clock](
   private val moneyService: MoneyService[F]
 ) {
   private implicit val localDateOrdering: Ordering[LocalDate] = _ compareTo _

@@ -1,8 +1,8 @@
 package ru.johnspade.s10ns.subscription.service.impl
 
 import cats.effect.Sync
-import cats.{Monad, ~>}
 import cats.implicits._
+import cats.{Monad, ~>}
 import ru.johnspade.s10ns.bot
 import ru.johnspade.s10ns.bot.ValidatorNec.{ValidationResult, validateAmount, validateAmountString, validateCurrency, validateDuration, validateDurationString, validateNameLength, validateText}
 import ru.johnspade.s10ns.bot.engine.{DialogEngine, ReplyMessage, StateMessageService}
@@ -11,10 +11,9 @@ import ru.johnspade.s10ns.subscription.SubscriptionDraft
 import ru.johnspade.s10ns.subscription.dialog.CreateS10nDialogState
 import ru.johnspade.s10ns.subscription.service.{CreateS10nDialogFsmService, CreateS10nDialogService}
 import ru.johnspade.s10ns.subscription.tags._
-import ru.johnspade.s10ns.user.{User, UserRepository}
+import ru.johnspade.s10ns.user.User
 
 class DefaultCreateS10nDialogService[F[_] : Sync, D[_] : Monad](
-  private val userRepo: UserRepository[D],
   private val createS10nDialogFsmService: CreateS10nDialogFsmService[F],
   private val stateMessageService: StateMessageService[F, CreateS10nDialogState],
   private val dialogEngine: DialogEngine[F]

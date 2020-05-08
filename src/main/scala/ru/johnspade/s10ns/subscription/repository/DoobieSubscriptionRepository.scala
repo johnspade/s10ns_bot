@@ -3,6 +3,8 @@ package ru.johnspade.s10ns.subscription.repository
 import doobie.free.connection
 import doobie.free.connection.ConnectionIO
 import doobie.implicits._
+import doobie.implicits.legacy.instant._
+import doobie.implicits.legacy.localdate._
 import doobie.postgres.implicits._
 import doobie.util.query.Query0
 import doobie.util.update.Update0
@@ -36,7 +38,7 @@ class DoobieSubscriptionRepository extends SubscriptionRepository[ConnectionIO] 
     for {
       oldS10n <- SubscriptionSql.get(s10n.id).option
       newS10n = oldS10n.map(_ => s10n)
-      _ <- newS10n.fold(connection.unit)(SubscriptionSql.update(_).run.map(_ => Unit))
+      _ <- newS10n.fold(connection.unit)(SubscriptionSql.update(_).run.map(_ => ()))
     } yield newS10n
 }
 

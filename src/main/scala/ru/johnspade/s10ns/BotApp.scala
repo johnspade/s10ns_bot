@@ -31,7 +31,6 @@ import ru.johnspade.s10ns.user.{DoobieUserRepository, UserRepository}
 import telegramium.bots.client.ApiHttp4sImp
 
 import scala.concurrent.ExecutionContext
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 
 object BotApp extends IOApp {
@@ -45,7 +44,7 @@ object BotApp extends IOApp {
     new DoobieExchangeRatesRefreshTimestampRepository
 
   override def run(args: List[String]): IO[ExitCode] = {
-    def createTransactor[F[_] : Async : ContextShift](connectionUrl: String) =
+    def createTransactor[F[_]: Async: ContextShift](connectionUrl: String) =
       for {
         ce <- ExecutionContexts.fixedThreadPool[F](32)
         te <- ExecutionContexts.cachedThreadPool[F]
@@ -59,7 +58,7 @@ object BotApp extends IOApp {
         )
       } yield xa
 
-    def startBot[F[_] : Sync : ConcurrentEffect : ContextShift : Logger : Timer](
+    def startBot[F[_]: Sync: ConcurrentEffect: ContextShift: Logger: Timer](
       token: String,
       s10nListController: SubscriptionListController[F],
       createS10nDialogController: CreateS10nDialogController[F],
@@ -67,11 +66,11 @@ object BotApp extends IOApp {
       settingsController: SettingsController[F],
       calendarController: CalendarController[F],
       startController: StartController[F],
-      cbDataService: CbDataService[F]
+      cbDataService: CbDataService[F],
+      blocker: Blocker
     )(implicit transact: D ~> F) =
       BlazeClientBuilder[F](ExecutionContext.global).resource.use { httpClient =>
-        val http = org.http4s.client.middleware.Logger(logBody = true, logHeaders = true)(httpClient)
-        val api = new ApiHttp4sImp(http, baseUrl = s"https://api.telegram.org/bot$token")
+        val api = new ApiHttp4sImp(httpClient, baseUrl = s"https://api.telegram.org/bot$token", blocker)
         val bot = new SubscriptionsBot[F, D](
           api,
           userRepo,
@@ -86,7 +85,7 @@ object BotApp extends IOApp {
         bot.start().handleErrorWith(e => Logger[F].error(e)(e.getMessage))
       }
 
-    def createEditS10nDialogController[F[_] : Sync : Logger : Timer, D[_] : Monad](
+    def createEditS10nDialogController[F[_]: Sync: Logger: Timer, D[_]: Monad](
       userRepo: UserRepository[D],
       s10nRepo: SubscriptionRepository[D],
       dialogEngine: TransactionalDialogEngine[F, D],
@@ -121,7 +120,7 @@ object BotApp extends IOApp {
       )
     }
 
-    def init[F[_] : ConcurrentEffect : ContextShift : Timer](conf: Config, transact: D ~> F) = {
+    def init[F[_]: ConcurrentEffect: ContextShift: Timer](conf: Config, transact: D ~> F, blocker: Blocker) = {
       implicit val xa: D ~> F = transact
       implicit val sttpBackend: SttpBackend[F, Nothing] = AsyncHttpClientCatsBackend[F]()
       val calendarService = new CalendarService
@@ -154,7 +153,6 @@ object BotApp extends IOApp {
         cbDataService = new CbDataService[F]
         s10nCbService = new DefaultSubscriptionListService[F, D](s10nRepo, s10nsListService)
         createS10nDialogService = new DefaultCreateS10nDialogService[F, D](
-          userRepo,
           createS10nDialogFsmService,
           createS10nMsgService,
           dialogEngine
@@ -182,26 +180,29 @@ object BotApp extends IOApp {
           settingsController,
           calendarController,
           startController,
-          cbDataService
+          cbDataService,
+          blocker
         )
       } yield ()
     }
 
-    ConfigSource.file("config.properties").loadF[IO, Config].flatMap { conf =>
-      createTransactor[IO](conf.app.db)
-        .use { xa =>
-          val transact = new ~>[ConnectionIO, IO] {
-            override def apply[A](fa: ConnectionIO[A]): IO[A] = fa.transact(xa)
-          }
-          xa.configure { dataSource =>
-            IO {
-              val flyWay = Flyway.configure().dataSource(dataSource).load()
-              flyWay.migrate()
-              ()
+    Blocker[IO].use { blocker =>
+      loadF[IO, Config](ConfigSource.file("config.properties"), blocker).flatMap { conf =>
+        createTransactor[IO](conf.app.db)
+          .use { xa =>
+            val transact = new ~>[ConnectionIO, IO] {
+              override def apply[A](fa: ConnectionIO[A]): IO[A] = fa.transact(xa)
             }
-          } *>
-            init[IO](conf, transact).map(_ => ExitCode.Success)
-        }
+            xa.configure { dataSource =>
+              IO {
+                val flyWay = Flyway.configure().dataSource(dataSource).load()
+                flyWay.migrate()
+                ()
+              }
+            } *>
+              init[IO](conf, transact, blocker).map(_ => ExitCode.Success)
+          }
+      }
     }
   }
 }

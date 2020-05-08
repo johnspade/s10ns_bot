@@ -42,7 +42,7 @@ class DefaultCreateS10nDialogServiceSpec
     mockS10nRepo, userRepo, dialogEngine, s10nsListMessageService, createS10nMsgService
   )
   private val createS10nDialogService = new DefaultCreateS10nDialogService[IO, Id](
-    userRepo, createS10nDialogFsmService, createS10nMsgService, dialogEngine
+    createS10nDialogFsmService, createS10nMsgService, dialogEngine
   )
 
   private val user = User(UserId(0L), FirstName("John"), None)

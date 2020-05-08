@@ -2,38 +2,39 @@ name := "s10ns_bot"
 
 version := "0.1"
 
-scalaVersion := "2.12.9"
+scalaVersion := "2.13.2"
 
 scalacOptions ++= Seq(
-  "-Ypartial-unification",
   "-language:higherKinds"
 )
 
-val DoobieVersion = "0.8.0-M1"
+val DoobieVersion = "0.9.0"
 val FuuidVersion = "0.2.0"
-val CirceVersion = "0.12.3"
-val SttpVersion = "1.6.4"
-val PureconfigVersion = "0.12.1"
-val CatsRetryVersion = "0.3.1"
+val CirceVersion = "0.13.0"
+val SttpVersion = "1.7.2"
+val PureconfigVersion = "0.12.3"
+val CatsRetryVersion = "0.3.2"
 val KantanVersion = "0.6.0"
+val EnumeratumVersion = "1.6.0"
+val TestcontainersScalaVersion = "0.37.0"
 
 libraryDependencies ++= Seq(
   "com.softwaremill.sttp" %% "core" % SttpVersion,
   "com.softwaremill.sttp" %% "async-http-client-backend-cats" % SttpVersion,
   "com.softwaremill.sttp" %% "circe" % SttpVersion,
-  "org.typelevel" %% "cats-effect" % "2.0.0-M4",
+  "org.typelevel" %% "cats-effect" % "2.1.3",
   "ch.qos.logback" % "logback-classic" % "1.2.3",
   "io.circe" %% "circe-core" % CirceVersion,
   "io.circe" %% "circe-generic" % CirceVersion,
-  "io.circe" %% "circe-generic-extras" % "0.12.2",
+  "io.circe" %% "circe-generic-extras" % CirceVersion,
   "io.circe" %% "circe-parser" % CirceVersion,
   "org.tpolecat" %% "doobie-core" % DoobieVersion,
   "org.tpolecat" %% "doobie-postgres" % DoobieVersion,
   "org.tpolecat" %% "doobie-hikari" % DoobieVersion,
   "org.tpolecat" %% "doobie-scalatest" % DoobieVersion,
-  "com.beachape" %% "enumeratum" % "1.5.13",
-  "com.beachape" %% "enumeratum-circe" % "1.5.20",
-  "com.beachape" %% "enumeratum-doobie" % "1.5.15",
+  "com.beachape" %% "enumeratum" % EnumeratumVersion,
+  "com.beachape" %% "enumeratum-circe" % EnumeratumVersion,
+  "com.beachape" %% "enumeratum-doobie" % EnumeratumVersion,
   "org.joda" % "joda-money" % "1.0.1",
   "io.chrisdavenport" %% "log4cats-slf4j" % "1.0.1",
   "com.github.pureconfig" %% "pureconfig" % PureconfigVersion,
@@ -43,14 +44,15 @@ libraryDependencies ++= Seq(
   "com.nrinaudo" %% "kantan.csv" % KantanVersion,
   "com.nrinaudo" %% "kantan.csv-java8" % KantanVersion,
   "com.nrinaudo" %% "kantan.csv-enumeratum" % KantanVersion,
-  "org.rudogma" %% "supertagged" % "1.4",
-  "org.flywaydb" % "flyway-core" % "6.1.1",
-  "com.propensive" %% "magnolia" % "0.12.3",
-  "com.softwaremill.quicklens" %% "quicklens" % "1.4.12",
+  "org.rudogma" %% "supertagged" % "1.5",
+  "org.flywaydb" % "flyway-core" % "6.4.1",
+  "com.propensive" %% "magnolia" % "0.16.0",
+  "com.softwaremill.quicklens" %% "quicklens" % "1.5.0",
   "com.ibm.icu" % "icu4j" % "65.1",
-  "org.scalatest" %% "scalatest" % "3.1.0" % Test,
-  "com.dimafeng" %% "testcontainers-scala-postgresql" % "0.35.0" % Test,
-  "com.softwaremill.diffx" %% "diffx-scalatest" % "0.3.16" % Test,
+  "org.scalatest" %% "scalatest" % "3.1.1" % Test,
+  "com.dimafeng" %% "testcontainers-scala-scalatest" % TestcontainersScalaVersion % Test,
+  "com.dimafeng" %% "testcontainers-scala-postgresql" % TestcontainersScalaVersion % Test,
+  "com.softwaremill.diffx" %% "diffx-scalatest" % "0.3.28" % Test,
   "org.scalamock" %% "scalamock" % "4.4.0" % Test
 )
 

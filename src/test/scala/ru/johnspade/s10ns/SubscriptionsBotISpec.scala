@@ -158,7 +158,7 @@ class SubscriptionsBotISpec
       s10nRepo, userRepo, dialogEngine, s10nsListMessageService, createS10nMsgService
     )
     private val createS10nDialogService = new DefaultCreateS10nDialogService[IO, ConnectionIO](
-      userRepo, createS10nDialogFsmService, createS10nMsgService, dialogEngine
+      createS10nDialogFsmService, createS10nMsgService, dialogEngine
     )
     private val createS10nDialogController = new CreateS10nDialogController[IO](createS10nDialogService)
     val editS10n1stPaymentDateDialogService = new DefaultEditS10n1stPaymentDateDialogService[IO, ConnectionIO](

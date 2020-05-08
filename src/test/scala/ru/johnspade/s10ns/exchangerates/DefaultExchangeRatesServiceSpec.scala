@@ -67,9 +67,9 @@ class DefaultExchangeRatesServiceSpec extends AnyFlatSpec with Matchers with Opt
       RetryPolicies.limitRetries(2)
     )
 
-    (mockFixerApi.getLatestRates _).when().throws(new RuntimeException())
+    (() => mockFixerApi.getLatestRates).when().throws(new RuntimeException())
 
     exchangeRatesService.saveRates().unsafeRunSync
-    (mockFixerApi.getLatestRates _).verify().repeat(3)
+    (() => mockFixerApi.getLatestRates).verify().repeat(3)
   }
 }
