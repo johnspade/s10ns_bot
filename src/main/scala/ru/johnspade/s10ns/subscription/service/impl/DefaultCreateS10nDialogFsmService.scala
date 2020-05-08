@@ -3,7 +3,6 @@ package ru.johnspade.s10ns.subscription.service.impl
 import cats.effect.Sync
 import cats.implicits._
 import cats.{Monad, ~>}
-import io.chrisdavenport.log4cats.Logger
 import org.joda.money.{CurrencyUnit, Money}
 import ru.johnspade.s10ns.bot.CreateS10nDialog
 import ru.johnspade.s10ns.bot.engine.{ReplyMessage, StateMessageService, TransactionalDialogEngine}
@@ -14,7 +13,7 @@ import ru.johnspade.s10ns.subscription.service.{CreateS10nDialogFsmService, S10n
 import ru.johnspade.s10ns.subscription.tags._
 import ru.johnspade.s10ns.user.{User, UserRepository}
 
-class DefaultCreateS10nDialogFsmService[F[_] : Sync : Logger, D[_] : Monad](
+class DefaultCreateS10nDialogFsmService[F[_]: Sync, D[_]: Monad](
   private val subscriptionRepo: SubscriptionRepository[D],
   private val userRepo: UserRepository[D],
   private val dialogEngine: TransactionalDialogEngine[F, D],

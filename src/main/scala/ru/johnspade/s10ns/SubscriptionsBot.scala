@@ -3,7 +3,6 @@ package ru.johnspade.s10ns
 import cats.effect.{Sync, Timer}
 import cats.implicits._
 import cats.{Monad, ~>}
-import io.chrisdavenport.log4cats.Logger
 import ru.johnspade.s10ns.bot.engine.ReplyMessage
 import ru.johnspade.s10ns.bot.engine.TelegramOps.{TelegramUserOps, ackCb, sendReplyMessages, singleTextMessage}
 import ru.johnspade.s10ns.bot.{Calendar, CbDataService, CreateS10nDialog, DefCurrency, Dialog, DropFirstPayment, EditS10n, EditS10nAmount, EditS10nAmountDialog, EditS10nBillingPeriod, EditS10nBillingPeriodDialog, EditS10nCurrency, EditS10nCurrencyDialog, EditS10nFirstPaymentDate, EditS10nFirstPaymentDateDialog, EditS10nName, EditS10nNameDialog, EditS10nOneTime, EditS10nOneTimeDialog, Errors, EveryMonth, FirstPayment, Ignore, OneTime, PeriodUnit, RemoveS10n, S10n, S10ns, S10nsPeriod, SettingsDialog, SkipIsOneTime, StartController, StartsDialog}
@@ -14,8 +13,9 @@ import ru.johnspade.s10ns.user.{User, UserRepository}
 import telegramium.bots.client.Api
 import telegramium.bots.high.LongPollBot
 import telegramium.bots.{CallbackQuery, Message, User => TgUser}
+import tofu.logging.{Logging, Logs}
 
-class SubscriptionsBot[F[_] : Sync : Timer : Logger, D[_] : Monad](
+class SubscriptionsBot[F[_]: Sync: Timer: Logging, D[_]: Monad](
   private val bot: Api[F],
   private val userRepo: UserRepository[D],
   private val s10nListController: SubscriptionListController[F],
@@ -33,7 +33,7 @@ class SubscriptionsBot[F[_] : Sync : Timer : Logger, D[_] : Monad](
       routeMessage(msg.chat.id, user, msg)
     }
       .getOrElse(Monad[F].unit)
-      .handleErrorWith(e => Logger[F].error(e)(e.getMessage))
+      .handleErrorWith(e => Logging[F].errorCause(e.getMessage, e))
 
   override def onCallbackQuery(query: CallbackQuery): F[Unit] = {
     def ackError = ackCb[F](query, Errors.Default.some)
@@ -163,7 +163,7 @@ class SubscriptionsBot[F[_] : Sync : Timer : Logger, D[_] : Monad](
       }
     }
       .getOrElse(Monad[F].unit)
-      .handleErrorWith(e => Logger[F].error(e)(e.getMessage))
+      .handleErrorWith(e => Logging[F].errorCause(e.getMessage, e))
   }
 
   private def routeMessage(chatId: Long, from: TgUser, message: Message): F[Unit] = {
@@ -232,4 +232,31 @@ class SubscriptionsBot[F[_] : Sync : Timer : Logger, D[_] : Monad](
   }
 
   private val importantCommands = Seq("/start", "/reset")
+}
+
+object SubscriptionsBot {
+  def apply[F[_]: Sync: Timer, D[_]: Monad](
+    bot: Api[F],
+    userRepo: UserRepository[D],
+    s10nListController: SubscriptionListController[F],
+    createS10nDialogController: CreateS10nDialogController[F],
+    editS10nDialogController: EditS10nDialogController[F],
+    calendarController: CalendarController[F],
+    settingsController: SettingsController[F],
+    startController: StartController[F],
+    cbDataService: CbDataService[F]
+  )(implicit transact: D ~> F, logs: Logs[F, F]): F[SubscriptionsBot[F, D]] =
+    logs.forService[SubscriptionsBot[F, D]].map { implicit l =>
+      new SubscriptionsBot[F, D](
+        bot,
+        userRepo,
+        s10nListController,
+        createS10nDialogController,
+        editS10nDialogController,
+        calendarController,
+        settingsController,
+        startController,
+        cbDataService
+      )
+    }
 }

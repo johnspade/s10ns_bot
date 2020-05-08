@@ -4,13 +4,13 @@ import cats.Monad
 import cats.data.Validated.{Invalid, Valid}
 import cats.effect.{Sync, Timer}
 import cats.implicits._
-import io.chrisdavenport.log4cats.Logger
 import ru.johnspade.s10ns.bot.ValidatorNec.ValidationResult
 import ru.johnspade.s10ns.bot.{CbData, Dialog}
 import ru.johnspade.s10ns.user._
 import ru.johnspade.s10ns.user.tags._
 import telegramium.bots.client.{AnswerCallbackQueryReq, Api, EditMessageReplyMarkupReq, SendMessageReq}
 import telegramium.bots.{CallbackQuery, ChatIntId, InlineKeyboardButton, Message}
+import tofu.logging.Logging
 
 import scala.concurrent.duration.FiniteDuration
 
@@ -64,7 +64,7 @@ object TelegramOps {
     )
       .void
 
-  def handleCallback[F[_] : Sync : Logger : Timer](query: CallbackQuery, replies: List[ReplyMessage])(
+  def handleCallback[F[_] : Sync : Logging : Timer](query: CallbackQuery, replies: List[ReplyMessage])(
     implicit bot: Api[F]
   ): F[Unit] = {
     def sendReplies() =
@@ -77,13 +77,13 @@ object TelegramOps {
     ackCb(query) *> sendReplies()
   }
 
-  def sendReplyMessages[F[_] : Sync : Logger : Timer](msg: Message, replies: List[ReplyMessage])(
+  def sendReplyMessages[F[_] : Sync : Logging : Timer](msg: Message, replies: List[ReplyMessage])(
     implicit bot: Api[F]
   ): F[Unit] =
     replies.map { reply =>
       sendReplyMessage(msg, reply)
         .void
-        .handleErrorWith(e => Logger[F].error(e)(e.getMessage)) *>
+        .handleErrorWith(e => Logging[F].errorCause(e.getMessage, e)) *>
         Timer[F].sleep(FiniteDuration(1, "second"))
     }
       .sequence_

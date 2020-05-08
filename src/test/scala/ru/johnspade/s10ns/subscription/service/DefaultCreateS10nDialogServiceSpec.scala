@@ -4,8 +4,6 @@ import cats.Id
 import cats.effect.{Clock, IO}
 import cats.implicits._
 import com.softwaremill.diffx.scalatest.DiffMatcher
-import io.chrisdavenport.log4cats.SelfAwareStructuredLogger
-import io.chrisdavenport.log4cats.slf4j.Slf4jLogger
 import org.joda.money.CurrencyUnit
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.PartialFunctionValues
@@ -29,7 +27,6 @@ import scala.concurrent.ExecutionContext
 class DefaultCreateS10nDialogServiceSpec
   extends AnyFlatSpec with Matchers with DiffMatcher with PartialFunctionValues with MockFactory {
   private implicit val clock: Clock[IO] = IO.timer(ExecutionContext.global).clock
-  private implicit val logger: SelfAwareStructuredLogger[IO] = Slf4jLogger.create[IO].unsafeRunSync
 
   private val userRepo = new InMemoryUserRepository
   private val mockS10nRepo = mock[SubscriptionRepository[Id]]

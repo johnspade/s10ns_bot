@@ -2,7 +2,6 @@ package ru.johnspade.s10ns.subscription.controller
 
 import cats.effect.{Sync, Timer}
 import cats.implicits._
-import io.chrisdavenport.log4cats.Logger
 import ru.johnspade.s10ns.bot.engine.ReplyMessage
 import ru.johnspade.s10ns.bot.engine.TelegramOps.{clearMarkup, handleCallback, singleTextMessage, toReplyMessages}
 import ru.johnspade.s10ns.bot.{CreateS10nDialog, Errors, FirstPayment, OneTime, PeriodUnit}
@@ -10,8 +9,9 @@ import ru.johnspade.s10ns.subscription.service.CreateS10nDialogService
 import ru.johnspade.s10ns.user.User
 import telegramium.bots.client.Api
 import telegramium.bots.{CallbackQuery, Message}
+import tofu.logging.{Logging, Logs}
 
-class CreateS10nDialogController[F[_] : Sync : Logger : Timer](
+class CreateS10nDialogController[F[_]: Sync: Timer: Logging](
   private val createS10nDialogService: CreateS10nDialogService[F]
 ) {
   def createCommand(user: User): F[List[ReplyMessage]] = createS10nDialogService.onCreateCommand(user)
@@ -51,4 +51,13 @@ class CreateS10nDialogController[F[_] : Sync : Logger : Timer](
   private def clearMarkupAndSave(cb: CallbackQuery)(f: CreateS10nDialogService[F] => F[List[ReplyMessage]])
     (implicit bot: Api[F]): F[Unit] =
     clearMarkup(cb) *> f(createS10nDialogService).flatMap(handleCallback(cb, _))
+}
+
+object CreateS10nDialogController {
+  def apply[F[_]: Sync: Timer](createS10nDialogService: CreateS10nDialogService[F])(
+    implicit logs: Logs[F, F]
+  ): F[CreateS10nDialogController[F]] =
+    logs.forService[CreateS10nDialogController[F]].map { implicit l =>
+      new CreateS10nDialogController[F](createS10nDialogService)
+    }
 }

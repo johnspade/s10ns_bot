@@ -7,11 +7,10 @@ import java.util.concurrent.TimeUnit
 import cats.effect.{Clock, Concurrent, Sync, Timer}
 import cats.implicits._
 import cats.{Apply, ~>}
-import io.chrisdavenport.log4cats.Logger
 
 import scala.concurrent.duration._
 
-class DefaultExchangeRatesJobService[F[_] : Concurrent : Clock : Timer : Logger, D[_] : Apply](
+class DefaultExchangeRatesJobService[F[_]: Concurrent: Clock: Timer, D[_]: Apply](
   private val exchangeRatesService: ExchangeRatesService[F],
   private val exchangeRatesRefreshTimestampRepo: ExchangeRatesRefreshTimestampRepository[D]
 )(private implicit val transact: D ~> F) extends ExchangeRatesJobService[F] {

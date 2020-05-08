@@ -3,7 +3,6 @@ package ru.johnspade.s10ns.subscription.controller
 import cats.Monad.ops._
 import cats.effect.{Sync, Timer}
 import cats.syntax.option._
-import io.chrisdavenport.log4cats.Logger
 import ru.johnspade.s10ns.bot.engine.ReplyMessage
 import ru.johnspade.s10ns.bot.engine.TelegramOps.{ackCb, clearMarkup, handleCallback, sendReplyMessages, singleTextMessage, toReplyMessages}
 import ru.johnspade.s10ns.bot.{EditS10nAmount, EditS10nAmountDialog, EditS10nBillingPeriod, EditS10nBillingPeriodDialog, EditS10nCurrency, EditS10nCurrencyDialog, EditS10nFirstPaymentDate, EditS10nFirstPaymentDateDialog, EditS10nName, EditS10nNameDialog, EditS10nOneTime, EditS10nOneTimeDialog, Errors, FirstPayment, OneTime, PeriodUnit}
@@ -12,8 +11,9 @@ import ru.johnspade.s10ns.subscription.service.{EditS10n1stPaymentDateDialogServ
 import ru.johnspade.s10ns.user.User
 import telegramium.bots.client.Api
 import telegramium.bots.{CallbackQuery, Message}
+import tofu.logging.{Logging, Logs}
 
-class EditS10nDialogController[F[_] : Sync : Logger : Timer](
+class EditS10nDialogController[F[_]: Sync: Logging: Timer](
   private val editS10n1stPaymentDateDialogService: EditS10n1stPaymentDateDialogService[F],
   private val editS10nNameDialogService: EditS10nNameDialogService[F],
   private val editS10nAmountDialogService: EditS10nAmountDialogService[F],
@@ -110,4 +110,25 @@ class EditS10nDialogController[F[_] : Sync : Logger : Timer](
   }
 
   private val useInlineKeyboardError = Sync[F].pure(singleTextMessage(Errors.UseInlineKeyboard))
+}
+
+object EditS10nDialogController {
+  def apply[F[_]: Sync: Timer](
+    editS10n1stPaymentDateDialogService: EditS10n1stPaymentDateDialogService[F],
+    editS10nNameDialogService: EditS10nNameDialogService[F],
+    editS10nAmountDialogService: EditS10nAmountDialogService[F],
+    editS10nBillingPeriodDialogService: EditS10nBillingPeriodDialogService[F],
+    editS10nCurrencyDialogService: EditS10nCurrencyDialogService[F],
+    editS10nOneTimeDialogService: EditS10nOneTimeDialogService[F]
+  )(implicit logs: Logs[F, F]): F[EditS10nDialogController[F]] =
+    logs.forService[EditS10nDialogController[F]].map { implicit l =>
+      new EditS10nDialogController[F](
+        editS10n1stPaymentDateDialogService,
+        editS10nNameDialogService,
+        editS10nAmountDialogService,
+        editS10nBillingPeriodDialogService,
+        editS10nCurrencyDialogService,
+        editS10nOneTimeDialogService
+      )
+    }
 }

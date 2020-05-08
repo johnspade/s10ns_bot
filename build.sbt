@@ -36,7 +36,7 @@ libraryDependencies ++= Seq(
   "com.beachape" %% "enumeratum-circe" % EnumeratumVersion,
   "com.beachape" %% "enumeratum-doobie" % EnumeratumVersion,
   "org.joda" % "joda-money" % "1.0.1",
-  "io.chrisdavenport" %% "log4cats-slf4j" % "1.0.1",
+  "ru.tinkoff" %% "tofu-logging" % "0.7.4",
   "com.github.pureconfig" %% "pureconfig" % PureconfigVersion,
   "com.github.pureconfig" %% "pureconfig-cats-effect" % PureconfigVersion,
   "com.github.cb372" %% "cats-retry-core" % CatsRetryVersion,

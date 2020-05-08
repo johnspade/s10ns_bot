@@ -5,12 +5,13 @@ import java.time.Instant
 import cats.effect.{Sync, Timer}
 import cats.implicits._
 import cats.{Monad, ~>}
-import io.chrisdavenport.log4cats.Logger
 import retry.CatsEffect._
 import retry.RetryDetails.{GivingUp, WillDelayAndRetry}
 import retry._
+import tofu.logging._
+import tofu.syntax.logging._
 
-class DefaultExchangeRatesService[F[_] : Sync : Logger : Timer, D[_] : Monad](
+class DefaultExchangeRatesService[F[_]: Sync: Logging: Timer, D[_]: Monad](
   private val fixerApi: FixerApi[F],
   private val exchangeRatesRepository: ExchangeRatesRepository[D],
   private val exchangeRatesRefreshTimestampRepo: ExchangeRatesRefreshTimestampRepository[D],
@@ -28,9 +29,9 @@ class DefaultExchangeRatesService[F[_] : Sync : Logger : Timer, D[_] : Monad](
 
     def logError(err: Throwable, details: RetryDetails): F[Unit] = details match {
       case WillDelayAndRetry(_, retriesSoFar: Int, _) =>
-        Logger[F].error(s"Failed to get rates. So far we have retried $retriesSoFar times.")
+        error"Failed to get rates. So far we have retried $retriesSoFar times."
       case GivingUp(totalRetries: Int, _) =>
-        Logger[F].error(s"Giving up after $totalRetries retries. Last error: $err")
+        error"Giving up after $totalRetries retries. Last error: ${err.toString}"
     }
 
     retryingOnAllErrors[Unit](
@@ -38,7 +39,7 @@ class DefaultExchangeRatesService[F[_] : Sync : Logger : Timer, D[_] : Monad](
       onError = logError
     ) {
       for {
-        _ <- Logger[F].info("Refreshing rates")
+        _ <- info"Refreshing rates"
         rates <- fixerApi.getLatestRates
         _ <- saveToDb(rates) *> cache.set(rates.rates)
       } yield ()
@@ -46,4 +47,23 @@ class DefaultExchangeRatesService[F[_] : Sync : Logger : Timer, D[_] : Monad](
   }
 
   override def getRates: F[Map[String, BigDecimal]] = cache.get
+}
+
+object DefaultExchangeRatesService {
+  def apply[F[_]: Sync: Timer, D[_]: Monad](
+    fixerApi: FixerApi[F],
+    exchangeRatesRepository: ExchangeRatesRepository[D],
+    exchangeRatesRefreshTimestampRepo: ExchangeRatesRefreshTimestampRepository[D],
+    cache: ExchangeRatesCache[F],
+    retryPolicy: RetryPolicy[F]
+  )(implicit transact: D ~> F, logs: Logs[F, F]): F[DefaultExchangeRatesService[F, D]] =
+    logs.forService[DefaultExchangeRatesService[F, D]].map { implicit l =>
+      new DefaultExchangeRatesService[F, D](
+        fixerApi,
+        exchangeRatesRepository,
+        exchangeRatesRefreshTimestampRepo,
+        cache,
+        retryPolicy
+      )
+    }
 }

@@ -3,15 +3,15 @@ package ru.johnspade.s10ns.settings
 import cats.Monad
 import cats.effect.{Sync, Timer}
 import cats.implicits._
-import io.chrisdavenport.log4cats.Logger
 import ru.johnspade.s10ns.bot.engine.ReplyMessage
 import ru.johnspade.s10ns.bot.engine.TelegramOps.{ackCb, sendReplyMessages, toReplyMessage}
 import ru.johnspade.s10ns.bot.{Errors, SettingsDialog}
 import ru.johnspade.s10ns.user.User
 import telegramium.bots.client.Api
 import telegramium.bots.{CallbackQuery, Message}
+import tofu.logging.{Logging, Logs}
 
-class SettingsController[F[_] : Sync : Logger : Timer](
+class SettingsController[F[_]: Sync: Logging: Timer](
   private val settingsService: SettingsService[F]
 ) {
   def message(user: User, dialog: SettingsDialog, message: Message): F[List[ReplyMessage]] =
@@ -29,4 +29,13 @@ class SettingsController[F[_] : Sync : Logger : Timer](
     }.getOrElse(Monad[F].unit)
 
   val settingsCommand: F[ReplyMessage] = settingsService.onSettingsCommand
+}
+
+object SettingsController {
+  def apply[F[_]: Sync: Timer](
+    settingsService: SettingsService[F]
+  )(implicit logs: Logs[F, F]): F[SettingsController[F]] =
+    logs.forService[SettingsController[F]].map { implicit l =>
+      new SettingsController[F](settingsService)
+    }
 }

@@ -10,8 +10,6 @@ import com.dimafeng.testcontainers.{ForAllTestContainer, PostgreSQLContainer}
 import doobie.free.connection.ConnectionIO
 import doobie.implicits._
 import doobie.util.transactor.Transactor
-import io.chrisdavenport.log4cats.SelfAwareStructuredLogger
-import io.chrisdavenport.log4cats.slf4j.Slf4jLogger
 import org.flywaydb.core.Flyway
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.BeforeAndAfterAll
@@ -31,6 +29,7 @@ import ru.johnspade.s10ns.subscription.tags.{PageNumber, SubscriptionId}
 import ru.johnspade.s10ns.user.DoobieUserRepository
 import telegramium.bots.client.{AnswerCallbackQueryReq, AnswerCallbackQueryRes, Api, EditMessageReplyMarkupReq, EditMessageReplyMarkupRes, SendMessageReq, SendMessageRes}
 import telegramium.bots.{CallbackQuery, Chat, ChatIntId, InlineKeyboardMarkup, KeyboardMarkup, Markdown, Message, ParseMode, User}
+import tofu.logging.Logs
 
 import scala.concurrent.ExecutionContext
 
@@ -133,7 +132,6 @@ class SubscriptionsBotISpec
 
   private trait Wiring {
     private implicit val cs: ContextShift[IO] = IO.contextShift(ExecutionContext.global)
-    private implicit val logger: SelfAwareStructuredLogger[IO] = Slf4jLogger.getLogger
     private implicit val timer: Timer[IO] = IO.timer(ExecutionContext.global)
     protected implicit val transactor: Transactor[IO] = Transactor.fromDriverManager[IO](
       "org.postgresql.Driver",
@@ -145,6 +143,7 @@ class SubscriptionsBotISpec
       override def apply[A](fa: ConnectionIO[A]): IO[A] = fa.transact(transactor)
     }
 
+    private implicit val logs: Logs[IO, IO] = Logs.sync[IO, IO]
     protected val userRepo = new DoobieUserRepository
     private val s10nRepo = new DoobieSubscriptionRepository
     private val moneyService = new MoneyService[IO](new InMemoryExchangeRatesStorage)
@@ -160,7 +159,7 @@ class SubscriptionsBotISpec
     private val createS10nDialogService = new DefaultCreateS10nDialogService[IO, ConnectionIO](
       createS10nDialogFsmService, createS10nMsgService, dialogEngine
     )
-    private val createS10nDialogController = new CreateS10nDialogController[IO](createS10nDialogService)
+    private val createS10nDialogController = CreateS10nDialogController[IO](createS10nDialogService).unsafeRunSync
     val editS10n1stPaymentDateDialogService = new DefaultEditS10n1stPaymentDateDialogService[IO, ConnectionIO](
       s10nsListMessageService, new EditS10n1stPaymentDateMsgService[IO](calendarService), userRepo, s10nRepo, dialogEngine
     )
@@ -179,20 +178,20 @@ class SubscriptionsBotISpec
     val editS10nOneTimeDialogService = new DefaultEditS10nOneTimeDialogService[IO, ConnectionIO](
       s10nsListMessageService, new DefaultMsgService[IO, EditS10nOneTimeDialogState], userRepo, s10nRepo, dialogEngine
     )
-    private val editS10nDialogController = new EditS10nDialogController[IO](
+    private val editS10nDialogController = EditS10nDialogController[IO](
       editS10n1stPaymentDateDialogService,
       editS10nNameDialogService,
       editS10nAmountDialogService,
       editS10nBillingPeriodDialogService,
       editS10nCurrencyDialogService,
       editS10nOneTimeDialogService
-    )
+    ).unsafeRunSync
     private val calendarController = new CalendarController[IO](calendarService)
     private val settingsService = new DefaultSettingsService[IO](dialogEngine, new DefaultMsgService[IO, SettingsDialogState])
-    private val settingsController = new SettingsController[IO](settingsService)
+    private val settingsController = SettingsController[IO](settingsService).unsafeRunSync
     private val startController = new StartController[IO](dialogEngine)
     private val cbDataService = new CbDataService[IO]
-    protected val bot = new SubscriptionsBot[IO, ConnectionIO](
+    protected val bot: SubscriptionsBot[IO, ConnectionIO] = SubscriptionsBot[IO, ConnectionIO](
       api,
       userRepo,
       s10nListController,
@@ -202,7 +201,7 @@ class SubscriptionsBotISpec
       settingsController,
       startController,
       cbDataService
-    )
+    ).unsafeRunSync
 
     protected def sendMessage(text: String): Unit = bot.onMessage(createMessage(text)).unsafeRunSync
 

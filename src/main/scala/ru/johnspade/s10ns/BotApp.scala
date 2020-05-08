@@ -9,8 +9,6 @@ import doobie.free.connection.ConnectionIO
 import doobie.hikari.HikariTransactor
 import doobie.implicits._
 import doobie.util.ExecutionContexts
-import io.chrisdavenport.log4cats.Logger
-import io.chrisdavenport.log4cats.slf4j.Slf4jLogger
 import org.flywaydb.core.Flyway
 import org.http4s.client.blaze.BlazeClientBuilder
 import pureconfig.ConfigSource
@@ -29,6 +27,7 @@ import ru.johnspade.s10ns.subscription.service.impl.{DefaultCreateS10nDialogFsmS
 import ru.johnspade.s10ns.subscription.service.{S10nInfoService, S10nsListMessageService}
 import ru.johnspade.s10ns.user.{DoobieUserRepository, UserRepository}
 import telegramium.bots.client.ApiHttp4sImp
+import tofu.logging._
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
@@ -58,7 +57,7 @@ object BotApp extends IOApp {
         )
       } yield xa
 
-    def startBot[F[_]: Sync: ConcurrentEffect: ContextShift: Logger: Timer](
+    def startBot[F[_]: Sync: ConcurrentEffect: ContextShift: Timer](
       token: String,
       s10nListController: SubscriptionListController[F],
       createS10nDialogController: CreateS10nDialogController[F],
@@ -68,30 +67,33 @@ object BotApp extends IOApp {
       startController: StartController[F],
       cbDataService: CbDataService[F],
       blocker: Blocker
-    )(implicit transact: D ~> F) =
+    )(implicit transact: D ~> F, logs: Logs[F, F]) =
       BlazeClientBuilder[F](ExecutionContext.global).resource.use { httpClient =>
         val api = new ApiHttp4sImp(httpClient, baseUrl = s"https://api.telegram.org/bot$token", blocker)
-        val bot = new SubscriptionsBot[F, D](
-          api,
-          userRepo,
-          s10nListController,
-          createS10nDialogController,
-          editS10nDialogController,
-          calendarController,
-          settingsController,
-          startController,
-          cbDataService
-        )
-        bot.start().handleErrorWith(e => Logger[F].error(e)(e.getMessage))
+        for {
+          bot <- SubscriptionsBot[F, D](
+            api,
+            userRepo,
+            s10nListController,
+            createS10nDialogController,
+            editS10nDialogController,
+            calendarController,
+            settingsController,
+            startController,
+            cbDataService
+          )
+          logger <- logs.forService[BotApp.type]
+          _ <- bot.start().handleErrorWith(e => logger.errorCause(e.getMessage, e))
+        } yield ()
       }
 
-    def createEditS10nDialogController[F[_]: Sync: Logger: Timer, D[_]: Monad](
+    def createEditS10nDialogController[F[_]: Sync: Timer, D[_]: Monad](
       userRepo: UserRepository[D],
       s10nRepo: SubscriptionRepository[D],
       dialogEngine: TransactionalDialogEngine[F, D],
       s10nsListService: S10nsListMessageService[F],
       calendarService: CalendarService
-    )(implicit transact: D ~> F): EditS10nDialogController[F] = {
+    )(implicit transact: D ~> F, logs: Logs[F, F]): F[EditS10nDialogController[F]] = {
       val editS10n1stPaymentDateDialogService = new DefaultEditS10n1stPaymentDateDialogService[F, D](
         s10nsListService, new EditS10n1stPaymentDateMsgService[F](calendarService), userRepo, s10nRepo, dialogEngine
       )
@@ -110,7 +112,7 @@ object BotApp extends IOApp {
       val editS10nOneTimeDialogService = new DefaultEditS10nOneTimeDialogService[F, D](
         s10nsListService, new DefaultMsgService[F, EditS10nOneTimeDialogState], userRepo, s10nRepo, dialogEngine
       )
-      new EditS10nDialogController[F](
+      EditS10nDialogController[F](
         editS10n1stPaymentDateDialogService,
         editS10nNameDialogService,
         editS10nAmountDialogService,
@@ -121,18 +123,18 @@ object BotApp extends IOApp {
     }
 
     def init[F[_]: ConcurrentEffect: ContextShift: Timer](conf: Config, transact: D ~> F, blocker: Blocker) = {
+      implicit val logs: Logs[F, F] = Logs.sync[F, F]
       implicit val xa: D ~> F = transact
       implicit val sttpBackend: SttpBackend[F, Nothing] = AsyncHttpClientCatsBackend[F]()
       val calendarService = new CalendarService
 
       for {
-        implicit0(logger: Logger[F]) <- Slf4jLogger.create[F]
         exchangeRates <- transact(exchangeRatesRepo.get())
         exchangeRatesCache <- ExchangeRatesCache.create[F](exchangeRates)
         dialogEngine = new DefaultDialogEngine[F, D](userRepo)
         fixerApi = new FixerApiInterpreter[F](conf.fixer.token)
         retryPolicy = RetryPolicies.limitRetries[F](3) join RetryPolicies.exponentialBackoff[F](1.minute)
-        exchangeRatesService = new DefaultExchangeRatesService[F, D](
+        exchangeRatesService <- DefaultExchangeRatesService[F, D](
           fixerApi,
           exchangeRatesRepo,
           exchangeRatesRefreshTimestampRepo,
@@ -164,11 +166,11 @@ object BotApp extends IOApp {
           exchangeRatesRefreshTimestampRepo
         )
         s10nListController = new SubscriptionListController[F](s10nCbService)
-        createS10nDialogController = new CreateS10nDialogController[F](createS10nDialogService)
-        editS10nDialogController = createEditS10nDialogController[F, D](
+        createS10nDialogController <- CreateS10nDialogController[F](createS10nDialogService)
+        editS10nDialogController <- createEditS10nDialogController[F, D](
           userRepo, s10nRepo, dialogEngine, s10nsListService, calendarService
         )
-        settingsController = new SettingsController[F](settingsService)
+        settingsController <- SettingsController[F](settingsService)
         calendarController = new CalendarController[F](calendarService)
         startController = new StartController[F](dialogEngine)
         _ <- exchangeRatesJobService.startExchangeRatesJob()

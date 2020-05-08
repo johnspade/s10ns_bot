@@ -2,7 +2,6 @@ package ru.johnspade.s10ns.subscription.controller
 
 import cats.effect.Sync
 import cats.implicits._
-import io.chrisdavenport.log4cats.Logger
 import ru.johnspade.s10ns.bot.engine.ReplyMessage
 import ru.johnspade.s10ns.bot.engine.TelegramOps.ackCb
 import ru.johnspade.s10ns.bot.{EditS10n, RemoveS10n, S10n, S10ns, S10nsPeriod}
@@ -12,7 +11,7 @@ import ru.johnspade.s10ns.user.User
 import telegramium.bots.client.{Api, EditMessageReplyMarkupReq, EditMessageTextReq}
 import telegramium.bots.{CallbackQuery, ChatIntId, InlineKeyboardMarkup}
 
-class SubscriptionListController[F[_] : Sync : Logger](
+class SubscriptionListController[F[_] : Sync](
   private val s10nListService: SubscriptionListService[F]
 ) {
   def subscriptionsCb(user: User, cb: CallbackQuery, data: S10ns)(implicit bot: Api[F]): F[Unit] =

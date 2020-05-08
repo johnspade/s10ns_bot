@@ -6,8 +6,6 @@ import cats.Id
 import cats.effect.{Clock, IO}
 import cats.syntax.option._
 import com.softwaremill.diffx.scalatest.DiffMatcher
-import io.chrisdavenport.log4cats.SelfAwareStructuredLogger
-import io.chrisdavenport.log4cats.slf4j.Slf4jLogger
 import org.joda.money.CurrencyUnit
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.flatspec.AnyFlatSpec
@@ -26,12 +24,13 @@ import ru.johnspade.s10ns.subscription.{BillingPeriodUnit, Subscription, Subscri
 import ru.johnspade.s10ns.user.tags.{FirstName, UserId}
 import ru.johnspade.s10ns.user.{InMemoryUserRepository, User}
 import telegramium.bots.{InlineKeyboardButton, InlineKeyboardMarkup, Markdown}
+import tofu.logging.Logs
 
 import scala.concurrent.ExecutionContext
 
 class DefaultCreateS10nDialogFsmServiceSpec extends AnyFlatSpec with Matchers with DiffMatcher with MockFactory {
   private implicit val clock: Clock[IO] = IO.timer(ExecutionContext.global).clock
-  private implicit val logger: SelfAwareStructuredLogger[IO] = Slf4jLogger.create[IO].unsafeRunSync
+  private implicit val logs: Logs[IO, IO] = Logs.sync[IO, IO]
 
   private val mockS10nRepo = mock[SubscriptionRepository[Id]]
   private val userRepository = new InMemoryUserRepository

@@ -4,11 +4,10 @@ import cats.effect.Sync
 import cats.implicits._
 import com.softwaremill.sttp._
 import com.softwaremill.sttp.circe._
-import io.chrisdavenport.log4cats.Logger
-import io.circe.generic.auto._
 import io.circe.Error
+import io.circe.generic.auto._
 
-class FixerApiInterpreter[F[_] : Sync : Logger](private val token: String)(implicit sttpBackend: SttpBackend[F, Nothing])
+class FixerApiInterpreter[F[_] : Sync](private val token: String)(implicit sttpBackend: SttpBackend[F, Nothing])
   extends FixerApi[F] {
   override def getLatestRates: F[ExchangeRates] = {
     def handleErrors(response: Response[Either[DeserializationError[Error], ExchangeRates]]) =
