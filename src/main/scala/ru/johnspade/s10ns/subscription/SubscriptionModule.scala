@@ -1,0 +1,86 @@
+package ru.johnspade.s10ns.subscription
+
+import cats.effect.{Clock, Sync, Timer}
+import cats.implicits._
+import cats.~>
+import doobie.free.connection.ConnectionIO
+import ru.johnspade.s10ns.bot.BotModule
+import ru.johnspade.s10ns.bot.engine.DefaultMsgService
+import ru.johnspade.s10ns.calendar.CalendarModule
+import ru.johnspade.s10ns.subscription.controller.{CreateS10nDialogController, EditS10nDialogController, SubscriptionListController}
+import ru.johnspade.s10ns.subscription.dialog.{CreateS10nMsgService, EditS10n1stPaymentDateMsgService, EditS10nAmountDialogState, EditS10nBillingPeriodDialogState, EditS10nCurrencyDialogState, EditS10nNameDialogState, EditS10nOneTimeDialogState}
+import ru.johnspade.s10ns.subscription.repository.DoobieSubscriptionRepository
+import ru.johnspade.s10ns.subscription.service.impl.{DefaultCreateS10nDialogFsmService, DefaultCreateS10nDialogService, DefaultEditS10n1stPaymentDateDialogService, DefaultEditS10nAmountDialogService, DefaultEditS10nBillingPeriodDialogService, DefaultEditS10nCurrencyDialogService, DefaultEditS10nNameDialogService, DefaultEditS10nOneTimeDialogService, DefaultSubscriptionListService}
+import ru.johnspade.s10ns.subscription.service.{S10nInfoService, S10nsListMessageService}
+import ru.johnspade.s10ns.user.UserModule
+import tofu.logging.Logs
+
+final class SubscriptionModule[F[_], D[_]](
+  val createS10nDialogController: CreateS10nDialogController[F],
+  val editS10nDialogController: EditS10nDialogController[F],
+  val subscriptionListController: SubscriptionListController[F]
+)
+
+object SubscriptionModule {
+  def make[F[_]: Sync: Clock: Timer](
+    userModule: UserModule[ConnectionIO],
+    botModule: BotModule[F, ConnectionIO],
+    calendarModule: CalendarModule[F]
+  )(implicit transact: ConnectionIO ~> F, logs: Logs[F, F]): F[SubscriptionModule[F, ConnectionIO]] = {
+    import botModule.{dialogEngine, moneyService}
+    import calendarModule.calendarService
+    import userModule.userRepository
+
+    val subscriptionRepo = new DoobieSubscriptionRepository
+    val s10nInfoSrv = new S10nInfoService[F](moneyService)
+    val s10nsListMessageSrv = new S10nsListMessageService(moneyService, s10nInfoSrv)
+    val createS10nMsgSrv = new CreateS10nMsgService[F](calendarService)
+    val createS10nDialogFsmSrv = new DefaultCreateS10nDialogFsmService[F, ConnectionIO](
+      subscriptionRepo,
+      userRepository,
+      botModule.dialogEngine,
+      s10nsListMessageSrv,
+      createS10nMsgSrv
+    )
+    val createS10nDialogSrv = new DefaultCreateS10nDialogService[F, ConnectionIO](
+      createS10nDialogFsmSrv,
+      createS10nMsgSrv,
+      botModule.dialogEngine
+    )
+    val editS10n1stPaymentDateDialogService = new DefaultEditS10n1stPaymentDateDialogService[F, ConnectionIO](
+      s10nsListMessageSrv, new EditS10n1stPaymentDateMsgService[F](calendarService), userRepository, subscriptionRepo, dialogEngine
+    )
+    val editS10nNameDialogService = new DefaultEditS10nNameDialogService[F, ConnectionIO](
+      s10nsListMessageSrv, new DefaultMsgService[F, EditS10nNameDialogState], userRepository, subscriptionRepo, dialogEngine
+    )
+    val editS10nAmountDialogService = new DefaultEditS10nAmountDialogService[F, ConnectionIO](
+      s10nsListMessageSrv, new DefaultMsgService[F, EditS10nAmountDialogState], userRepository, subscriptionRepo, dialogEngine
+    )
+    val editS10nBillingPeriodDialogService = new DefaultEditS10nBillingPeriodDialogService[F, ConnectionIO](
+      s10nsListMessageSrv, new DefaultMsgService[F, EditS10nBillingPeriodDialogState], userRepository, subscriptionRepo, dialogEngine
+    )
+    val editS10nCurrencyDialogService = new DefaultEditS10nCurrencyDialogService[F, ConnectionIO](
+      s10nsListMessageSrv, new DefaultMsgService[F, EditS10nCurrencyDialogState], userRepository, subscriptionRepo, dialogEngine
+    )
+    val editS10nOneTimeDialogService = new DefaultEditS10nOneTimeDialogService[F, ConnectionIO](
+      s10nsListMessageSrv, new DefaultMsgService[F, EditS10nOneTimeDialogState], userRepository, subscriptionRepo, dialogEngine
+    )
+    val s10nsListSrv = new DefaultSubscriptionListService[F, ConnectionIO](subscriptionRepo, s10nsListMessageSrv)
+    val subscriptionListController = new SubscriptionListController[F](s10nsListSrv)
+    for {
+      createS10nDialogController <- CreateS10nDialogController[F](createS10nDialogSrv)
+      editS10nDialogController <- EditS10nDialogController(
+        editS10n1stPaymentDateDialogService,
+        editS10nNameDialogService,
+        editS10nAmountDialogService,
+        editS10nBillingPeriodDialogService,
+        editS10nCurrencyDialogService,
+        editS10nOneTimeDialogService
+      )
+    } yield new SubscriptionModule[F, ConnectionIO] (
+      createS10nDialogController = createS10nDialogController,
+      editS10nDialogController = editS10nDialogController,
+      subscriptionListController = subscriptionListController
+    )
+  }
+}
