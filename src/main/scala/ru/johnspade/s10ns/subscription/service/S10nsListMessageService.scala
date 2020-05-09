@@ -40,7 +40,15 @@ class S10nsListMessageService[F[_] : Sync](
                   yearAmountString.map(s => s" ($s / y)")
                 case _ => Sync[F].pure("")
               }
-              periodAmountString.flatMap(s => additionalAmount.map(s + _))
+              val remainingTime = s.firstPaymentDate.flatTraverse { date =>
+                s10nInfoService.getRemainingTime(date, billingPeriod)
+              }
+                  .map(_.map(" " + _).getOrElse(""))
+              for {
+                periodAmountStr <- periodAmountString
+                addAmount <- additionalAmount
+                remaining <- remainingTime
+              } yield periodAmountStr + addAmount + remaining
             }
               .map(amount => s"$i. ${s.name} – $amount")
         }
@@ -107,7 +115,7 @@ class S10nsListMessageService[F[_] : Sync](
       }
 
     val nextPayment = calcWithPeriod { (start, billingPeriod) =>
-      s10nInfoService.getNextPaymentDate(start, billingPeriod)
+      s10nInfoService.printNextPaymentDate(start, billingPeriod)
     }
     val firstPaymentDate = s10n.firstPaymentDate.map(s10nInfoService.getFirstPaymentDate)
     val paidInTotal = calcWithPeriod { (start, billingPeriod) =>

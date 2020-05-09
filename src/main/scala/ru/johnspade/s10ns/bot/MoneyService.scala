@@ -13,23 +13,20 @@ import scala.math.max
 
 class MoneyService[F[_] : Monad](private val exchangeRatesStorage: ExchangeRatesStorage[F]) {
   def sum(subscriptions: List[Subscription], defaultCurrency: CurrencyUnit, unit: ChronoUnit = ChronoUnit.MONTHS): F[Money] = {
-    def getAmountInDefCurrencyAndPeriod(s10n: Subscription, rates: Map[String, BigDecimal]) =
+    def getAmountInDefCurrencyAndPeriod(s10n: Subscription) =
       s10n.billingPeriod.flatTraverse { period =>
         convert(s10n.amount, defaultCurrency)
           .map(_.map((period, _)))
       }
 
-    exchangeRatesStorage.getRates
-      .flatMap { rates =>
-        subscriptions
-          .traverse(getAmountInDefCurrencyAndPeriod(_, rates))
+    subscriptions
+      .traverse(getAmountInDefCurrencyAndPeriod)
+      .map {
+        _.flatten
           .map {
-            _.flatten
-              .map {
-                case (period, amount) => calcAmount(period, amount, unit)
-              }
-              .foldLeft(Money.zero(defaultCurrency))(_ plus _)
+            case (period, amount) => calcAmount(period, amount, unit)
           }
+          .foldLeft(Money.zero(defaultCurrency))(_ plus _)
       }
   }
 

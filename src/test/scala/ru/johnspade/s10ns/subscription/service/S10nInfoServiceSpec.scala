@@ -66,20 +66,20 @@ class S10nInfoServiceSpec extends AnyFlatSpec with Matchers with OptionValues {
     s10nInfoService.getBillingPeriod(billingPeriodYear) shouldBe "_Billing period:_ every 1 year"
   }
 
-  "getNextPaymentDate" should "calculate a next payment date" in {
-    val result = s10nInfoService.getNextPaymentDate(firstPaymentDate, billingPeriod).unsafeRunSync
+  "printNextPaymentDate" should "calculate a next payment date" in {
+    val result = s10nInfoService.printNextPaymentDate(firstPaymentDate, billingPeriod).unsafeRunSync
     result shouldBe s"_Next payment:_ ${DateTimeFormatter.ISO_DATE.format(firstPaymentDate.plusDays(periodDuration))}"
   }
 
   it should "calculate a next payment date in future" in {
     val firstPaymentDate = FirstPaymentDate(LocalDate.now(ZoneOffset.UTC).plusMonths(2))
-    s10nInfoService.getNextPaymentDate(firstPaymentDate, BillingPeriod(BillingPeriodDuration(1), BillingPeriodUnit.Month))
+    s10nInfoService.printNextPaymentDate(firstPaymentDate, BillingPeriod(BillingPeriodDuration(1), BillingPeriodUnit.Month))
       .unsafeRunSync shouldBe s"_Next payment:_ ${DateTimeFormatter.ISO_DATE.format(firstPaymentDate)}"
   }
 
   it should "calculate that you have to pay today" in {
     val firstPaymentDate = FirstPaymentDate(LocalDate.now(ZoneOffset.UTC))
-    s10nInfoService.getNextPaymentDate(firstPaymentDate, BillingPeriod(BillingPeriodDuration(1), BillingPeriodUnit.Month))
+    s10nInfoService.printNextPaymentDate(firstPaymentDate, BillingPeriod(BillingPeriodDuration(1), BillingPeriodUnit.Month))
       .unsafeRunSync shouldBe s"_Next payment:_ ${DateTimeFormatter.ISO_DATE.format(firstPaymentDate)}"
   }
 
@@ -105,5 +105,22 @@ class S10nInfoServiceSpec extends AnyFlatSpec with Matchers with OptionValues {
 
   it should "convert the amount to default currency" in {
     s10nInfoService.printAmount(amount, CurrencyUnit.EUR).unsafeRunSync shouldBe "≈11.97 €"
+  }
+
+  "getRemainingTime" should "calculate time left" in {
+    val result = s10nInfoService.getRemainingTime(firstPaymentDate, billingPeriod).unsafeRunSync
+    result.value shouldBe "[1 d]"
+  }
+
+  it should "calculate time left in years" in {
+    val firstPaymentDate = FirstPaymentDate(LocalDate.now(ZoneOffset.UTC).plusYears(1))
+    val result = s10nInfoService.getRemainingTime(firstPaymentDate, billingPeriod).unsafeRunSync
+    result.value shouldBe "[1 y]"
+  }
+
+  it should "calculate time left in months" in {
+    val firstPaymentDate = FirstPaymentDate(LocalDate.now(ZoneOffset.UTC).plusMonths(1))
+    val result = s10nInfoService.getRemainingTime(firstPaymentDate, billingPeriod).unsafeRunSync
+    result.value shouldBe "[1 m]"
   }
 }

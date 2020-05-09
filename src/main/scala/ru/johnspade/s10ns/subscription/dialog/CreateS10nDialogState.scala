@@ -47,8 +47,8 @@ object CreateS10nDialogState
         }
       case IsOneTime =>
         e match {
-          case SkippedIsOneTime | ChosenEveryMonth => Finished
-          case ChosenOneTime => FirstPaymentDate
+          case SkippedIsOneTime => Finished
+          case ChosenOneTime | ChosenEveryMonth => FirstPaymentDate
           case ChosenRecurring => BillingPeriodUnit
           case _ => state
         }
