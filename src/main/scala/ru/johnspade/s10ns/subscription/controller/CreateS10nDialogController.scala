@@ -4,11 +4,11 @@ import cats.effect.{Sync, Timer}
 import cats.implicits._
 import ru.johnspade.s10ns.bot.engine.ReplyMessage
 import ru.johnspade.s10ns.bot.engine.TelegramOps.{clearMarkup, handleCallback, singleTextMessage, toReplyMessages}
-import ru.johnspade.s10ns.bot.{CreateS10nDialog, Errors, FirstPayment, OneTime, PeriodUnit}
+import ru.johnspade.s10ns.bot.{CbData, CreateS10nDialog, DropFirstPayment, Errors, EveryMonth, FirstPayment, OneTime, PeriodUnit, SkipIsOneTime}
 import ru.johnspade.s10ns.subscription.service.CreateS10nDialogService
 import ru.johnspade.s10ns.user.User
-import telegramium.bots.client.Api
-import telegramium.bots.{CallbackQuery, Message}
+import telegramium.bots.client.{Api, EditMessageTextReq}
+import telegramium.bots.{CallbackQuery, ChatIntId, Html, Message}
 import tofu.logging.{Logging, Logs}
 
 class CreateS10nDialogController[F[_]: Sync: Timer: Logging](
@@ -28,29 +28,36 @@ class CreateS10nDialogController[F[_]: Sync: Timer: Logging](
 
   def billingPeriodUnitCb(cb: CallbackQuery, data: PeriodUnit, user: User, dialog: CreateS10nDialog)(
     implicit bot: Api[F]
-  ): F[Unit] =
-    clearMarkupAndSave(cb)(_.onBillingPeriodUnitCb(data, user, dialog))
+  ): F[Unit] = clearMarkupAndSave(cb)(_.onBillingPeriodUnitCb(data, user, dialog)) *> showSelected(cb, data)
 
   def everyMonthCb(cb: CallbackQuery, user: User, dialog: CreateS10nDialog)(implicit bot: Api[F]): F[Unit] =
-    clearMarkupAndSave(cb)(_.onEveryMonthCb(user, dialog))
+    clearMarkupAndSave(cb)(_.onEveryMonthCb(user, dialog)) *> showSelected(cb, EveryMonth)
 
   def skipIsOneTimeCb(cb: CallbackQuery, user: User, dialog: CreateS10nDialog)(implicit bot: Api[F]): F[Unit] =
-    clearMarkupAndSave(cb)(_.onSkipIsOneTimeCb(user, dialog))
+    clearMarkupAndSave(cb)(_.onSkipIsOneTimeCb(user, dialog)) *> showSelected(cb, SkipIsOneTime)
 
   def isOneTimeCb(cb: CallbackQuery, data: OneTime, user: User, dialog: CreateS10nDialog)(implicit bot: Api[F]): F[Unit] =
-    clearMarkupAndSave(cb)(_.onIsOneTimeCallback(data, user, dialog))
+    clearMarkupAndSave(cb)(_.onIsOneTimeCallback(data, user, dialog)) *> showSelected(cb, data)
 
   def skipFirstPaymentDateCb(cb: CallbackQuery, user: User, dialog: CreateS10nDialog)(implicit bot: Api[F]): F[Unit] =
-    clearMarkupAndSave(cb)(_.onSkipFirstPaymentDateCb(user, dialog))
+    clearMarkupAndSave(cb)(_.onSkipFirstPaymentDateCb(user, dialog)) *> showSelected(cb, DropFirstPayment)
 
   def firstPaymentDateCb(cb: CallbackQuery, data: FirstPayment, user: User, dialog: CreateS10nDialog)(
     implicit bot: Api[F]
-  ): F[Unit] =
-    clearMarkupAndSave(cb)(_.onFirstPaymentDateCallback(data, user, dialog))
+  ): F[Unit] = clearMarkupAndSave(cb)(_.onFirstPaymentDateCallback(data, user, dialog)) *> showSelected(cb, data)
 
-  private def clearMarkupAndSave(cb: CallbackQuery)(f: CreateS10nDialogService[F] => F[List[ReplyMessage]])
-    (implicit bot: Api[F]): F[Unit] =
-    clearMarkup(cb) *> f(createS10nDialogService).flatMap(handleCallback(cb, _))
+  private def clearMarkupAndSave(cb: CallbackQuery)(f: CreateS10nDialogService[F] => F[List[ReplyMessage]])(
+    implicit bot: Api[F]
+  ): F[Unit] = clearMarkup(cb) *> f(createS10nDialogService).flatMap(handleCallback(cb, _))
+
+  private def showSelected(cb: CallbackQuery, data: CbData)(implicit bot: Api[F]): F[Unit] = {
+    bot.editMessageText(EditMessageTextReq(
+      cb.message.map(msg => ChatIntId(msg.chat.id)),
+      cb.message.map(_.messageId),
+      text = cb.message.flatMap(_.text).map(t => s"$t <em>${data.print}</em>").orEmpty,
+      parseMode = Html.some
+    )).void
+  }
 }
 
 object CreateS10nDialogController {

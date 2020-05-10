@@ -27,8 +27,8 @@ import ru.johnspade.s10ns.subscription.service.impl.{DefaultCreateS10nDialogFsmS
 import ru.johnspade.s10ns.subscription.service.{S10nInfoService, S10nsListMessageService}
 import ru.johnspade.s10ns.subscription.tags.{PageNumber, SubscriptionId}
 import ru.johnspade.s10ns.user.DoobieUserRepository
-import telegramium.bots.client.{AnswerCallbackQueryReq, AnswerCallbackQueryRes, Api, EditMessageReplyMarkupReq, EditMessageReplyMarkupRes, SendMessageReq, SendMessageRes}
-import telegramium.bots.{CallbackQuery, Chat, ChatIntId, InlineKeyboardMarkup, KeyboardMarkup, Markdown, Message, ParseMode, User}
+import telegramium.bots.client.{AnswerCallbackQueryReq, AnswerCallbackQueryRes, Api, EditMessageReplyMarkupReq, EditMessageReplyMarkupRes, EditMessageTextReq, EditMessageTextRes, SendMessageReq, SendMessageRes}
+import telegramium.bots.{CallbackQuery, Chat, ChatIntId, Html, InlineKeyboardMarkup, KeyboardMarkup, Markdown, Message, ParseMode, User}
 import tofu.logging.Logs
 
 import scala.concurrent.ExecutionContext
@@ -77,12 +77,16 @@ class SubscriptionsBotISpec
 
     sendCallbackQuery("PeriodUnit\u001DMonth")
     verifySendMessage(Messages.BillingPeriodDuration).once
+    verifyEditMessageText(" <em>Recurring</em>")
+
 
     sendMessage("1")
     verifySendMessage(
       Messages.FirstPaymentDate,
       calendarService.generateKeyboard(LocalDate.now(ZoneOffset.UTC)).some
     ).once
+    verifyEditMessageText(" <em>Months</em>")
+
 
     sendCallbackQuery(s"FirstPayment\u001D$today")
     verifySendMessage(Messages.S10nSaved, BotStart.markup.some).once
@@ -102,6 +106,7 @@ class SubscriptionsBotISpec
       )).some,
       Markdown.some
     ).once
+    verifyEditMessageText(s" <em>${DateTimeFormatter.ISO_DATE.format(LocalDate.now(ZoneOffset.UTC))}</em>")
 
     (api.editMessageReplyMarkup _).verify(EditMessageReplyMarkupReq(ChatIntId(0).some, 0.some)).repeat(3)
     (api.answerCallbackQuery _).verify(AnswerCallbackQueryReq("0")).repeat(3)
@@ -129,6 +134,9 @@ class SubscriptionsBotISpec
 
   private def verifySendMessage(text: String, markup: Option[KeyboardMarkup] = None, parseMode: Option[ParseMode] = None) =
     (api.sendMessage _).verify(SendMessageReq(ChatIntId(0), text, replyMarkup = markup, parseMode = parseMode))
+
+  private def verifyEditMessageText(text: String) =
+    (api.editMessageText _).verify(EditMessageTextReq(ChatIntId(0).some, messageId = 0.some, text = text, parseMode = Html.some))
 
   private trait Wiring {
     private implicit val cs: ContextShift[IO] = IO.contextShift(ExecutionContext.global)
@@ -213,6 +221,7 @@ class SubscriptionsBotISpec
       (api.sendMessage _).when(*).returns(sendMessageResOk)
       (api.editMessageReplyMarkup _).when(*).returns(IO(EditMessageReplyMarkupRes(ok = true)))
       (api.answerCallbackQuery _).when(*).returns(IO(AnswerCallbackQueryRes(ok = true)))
+      (api.editMessageText _).when(*).returns(IO(EditMessageTextRes(ok = true)))
     }
   }
 }

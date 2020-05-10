@@ -1,6 +1,7 @@
 package ru.johnspade.s10ns.bot
 
 import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
 import kantan.csv._
 import kantan.csv.java8._
@@ -14,29 +15,62 @@ import kantan.csv.enumeratum._
 
 sealed abstract class CbData extends Product with Serializable {
   def toCsv: String = this.writeCsvRow(csvConfig)
+
+  def print: String = ""
 }
 
 sealed trait StartsDialog extends CbData
 
+sealed trait Skip extends CbData {
+  override def print: String = "Skipped"
+}
+
 case object Ignore extends CbData
+
 final case class S10ns(page: PageNumber) extends CbData
+
 final case class S10n(subscriptionId: SubscriptionId, page: PageNumber) extends CbData
-final case class PeriodUnit(unit: BillingPeriodUnit) extends CbData
-case object SkipIsOneTime extends CbData
-final case class OneTime(oneTime: OneTimeSubscription) extends CbData
-final case object EveryMonth extends CbData
+
+final case class PeriodUnit(unit: BillingPeriodUnit) extends CbData {
+  override def print: String = unit.chronoUnit.toString
+}
+
+case object SkipIsOneTime extends CbData with Skip
+
+final case class OneTime(oneTime: OneTimeSubscription) extends CbData {
+  override def print: String = if (oneTime) "One time" else "Recurring"
+}
+
+case object EveryMonth extends CbData {
+  override def print: String = "Every month"
+}
+
 final case class Calendar(date: LocalDate) extends CbData
-final case class FirstPayment(date: FirstPaymentDate) extends CbData
-case object DropFirstPayment extends CbData
+
+final case class FirstPayment(date: FirstPaymentDate) extends CbData {
+  override def print: String = DateTimeFormatter.ISO_DATE.format(date)
+}
+
+case object DropFirstPayment extends CbData with Skip
+
 final case class RemoveS10n(subscriptionId: SubscriptionId, page: PageNumber) extends CbData
+
 final case class EditS10n(subscriptionId: SubscriptionId, page: PageNumber) extends CbData
+
 final case class EditS10nName(subscriptionId: SubscriptionId) extends CbData with StartsDialog
+
 final case class EditS10nCurrency(subscriptionId: SubscriptionId) extends CbData with StartsDialog
+
 final case class EditS10nAmount(subscriptionId: SubscriptionId) extends CbData with StartsDialog
+
 final case class EditS10nOneTime(subscriptionId: SubscriptionId) extends CbData with StartsDialog
+
 final case class EditS10nBillingPeriod(subscriptionId: SubscriptionId) extends CbData with StartsDialog
+
 final case class EditS10nFirstPaymentDate(subscriptionId: SubscriptionId) extends CbData with StartsDialog
+
 case object DefCurrency extends CbData with StartsDialog
+
 final case class S10nsPeriod(period: BillingPeriodUnit, page: PageNumber) extends CbData
 
 object CbData {
