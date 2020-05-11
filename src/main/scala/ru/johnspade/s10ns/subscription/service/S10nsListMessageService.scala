@@ -11,7 +11,7 @@ import ru.johnspade.s10ns.bot.engine.TelegramOps.inlineKeyboardButton
 import ru.johnspade.s10ns.bot.{EditS10n, EditS10nAmount, EditS10nBillingPeriod, EditS10nCurrency, EditS10nFirstPaymentDate, EditS10nName, EditS10nOneTime, MoneyService, RemoveS10n, S10n, S10ns, S10nsPeriod}
 import ru.johnspade.s10ns.subscription.tags.{FirstPaymentDate, PageNumber}
 import ru.johnspade.s10ns.subscription.{BillingPeriod, BillingPeriodUnit, Subscription}
-import telegramium.bots.{InlineKeyboardButton, InlineKeyboardMarkup, Markdown}
+import telegramium.bots.{Html, InlineKeyboardButton, InlineKeyboardMarkup, Markdown}
 
 class S10nsListMessageService[F[_] : Sync](
   private val moneyService: MoneyService[F],
@@ -40,10 +40,10 @@ class S10nsListMessageService[F[_] : Sync](
                   yearAmountString.map(s => s" ($s / y)")
                 case _ => Sync[F].pure("")
               }
-              val remainingTime = s.firstPaymentDate.flatTraverse { date =>
-                s10nInfoService.getRemainingTime(date, billingPeriod)
+              val remainingTime = s.firstPaymentDate.flatTraverse {
+                s10nInfoService.getRemainingTime(_, billingPeriod)
               }
-                  .map(_.map(" " + _).getOrElse(""))
+                  .map(_.map(rem => s" <b>$rem</b>").getOrElse(""))
               for {
                 periodAmountStr <- periodAmountString
                 addAmount <- additionalAmount
@@ -96,7 +96,7 @@ class S10nsListMessageService[F[_] : Sync](
             val periodButtonRow = List(createPeriodButton())
             val subscriptionButtons = createSubscriptionButtons(indexedS10nsPage)
             val arrowButtons = createNavButtons(subscriptions.size)
-            ReplyMessage(text, InlineKeyboardMarkup(periodButtonRow +: subscriptionButtons :+ arrowButtons).some)
+            ReplyMessage(text, InlineKeyboardMarkup(periodButtonRow +: subscriptionButtons :+ arrowButtons).some, Html.some)
           }
         }
 
