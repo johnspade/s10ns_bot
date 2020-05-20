@@ -53,7 +53,7 @@ class S10nInfoService[F[_]: Monad: Clock](
         .map(unit => (unit, between.get(unit)))
         .find(_._2 != 0)
         .map {
-          case (unit, count) => s"[$count ${unit.toString.head.toLower}]"
+          case (unit, count) => s"[$count${unit.toString.head.toLower}]"
         }
     }
 

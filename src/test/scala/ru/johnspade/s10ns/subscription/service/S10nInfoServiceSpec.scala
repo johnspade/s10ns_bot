@@ -109,18 +109,18 @@ class S10nInfoServiceSpec extends AnyFlatSpec with Matchers with OptionValues {
 
   "getRemainingTime" should "calculate time left" in {
     val result = s10nInfoService.getRemainingTime(firstPaymentDate, billingPeriod).unsafeRunSync
-    result.value shouldBe "[1 d]"
+    result.value shouldBe "[1d]"
   }
 
   it should "calculate time left in years" in {
     val firstPaymentDate = FirstPaymentDate(LocalDate.now(ZoneOffset.UTC).plusYears(1))
     val result = s10nInfoService.getRemainingTime(firstPaymentDate, billingPeriod).unsafeRunSync
-    result.value shouldBe "[1 y]"
+    result.value shouldBe "[1y]"
   }
 
   it should "calculate time left in months" in {
     val firstPaymentDate = FirstPaymentDate(LocalDate.now(ZoneOffset.UTC).plusMonths(1))
     val result = s10nInfoService.getRemainingTime(firstPaymentDate, billingPeriod).unsafeRunSync
-    result.value shouldBe "[1 m]"
+    result.value shouldBe "[1m]"
   }
 }
