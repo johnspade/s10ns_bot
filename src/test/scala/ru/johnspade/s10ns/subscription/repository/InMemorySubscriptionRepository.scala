@@ -1,5 +1,7 @@
 package ru.johnspade.s10ns.subscription.repository
 
+import java.time.{Instant, LocalDate}
+
 import cats.Id
 import cats.syntax.option._
 import ru.johnspade.s10ns.subscription.{Subscription, SubscriptionDraft}
@@ -22,6 +24,15 @@ class InMemorySubscriptionRepository extends SubscriptionRepository[Id] {
   override def getById(id: SubscriptionId): Option[Subscription] = subscriptions.get(id)
   
   override def getByUserId(userId: UserId): List[Subscription] = subscriptions.values.filter(_.userId == userId).toList
+
+  def collectNotifiable(cutoff: Instant): Id[List[Subscription]] =
+    subscriptions
+      .values
+      .filter { s =>
+        s.sendNotifications &&
+          (s.firstPaymentDate.isDefined && s.billingPeriod.isDefined || s.firstPaymentDate.exists(_.isAfter(LocalDate.now)))
+      }
+      .toList
 
   override def remove(id: SubscriptionId): Unit = subscriptions.remove(id)
 

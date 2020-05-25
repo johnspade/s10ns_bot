@@ -17,7 +17,8 @@ case class Subscription(
   amount: Money,
   oneTime: Option[OneTimeSubscription],
   billingPeriod: Option[BillingPeriod],
-  firstPaymentDate: Option[FirstPaymentDate]
+  firstPaymentDate: Option[FirstPaymentDate],
+  sendNotifications: Boolean = false
 )
 
 object Subscription {

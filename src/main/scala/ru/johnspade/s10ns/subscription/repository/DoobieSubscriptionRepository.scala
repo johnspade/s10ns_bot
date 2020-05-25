@@ -1,5 +1,7 @@
 package ru.johnspade.s10ns.subscription.repository
 
+import java.time.Instant
+
 import doobie.free.connection
 import doobie.free.connection.ConnectionIO
 import doobie.implicits._
@@ -32,6 +34,11 @@ class DoobieSubscriptionRepository extends SubscriptionRepository[ConnectionIO] 
       .getByUserId(userId)
       .to[List]
 
+  def collectNotifiable(cutoff: Instant): ConnectionIO[List[Subscription]] =
+    SubscriptionSql
+      .collectNotifiable(cutoff)
+      .to[List]
+
   override def remove(id: SubscriptionId): ConnectionIO[Unit] = SubscriptionSql.remove(id).run.map(_ => ())
 
   override def update(s10n: Subscription): ConnectionIO[Option[Subscription]] =
@@ -49,22 +56,33 @@ object DoobieSubscriptionRepository {
 
       sql"""
         insert into subscriptions
-        (user_id, name, amount, currency, one_time, period_duration, period_unit, first_payment_date)
-        values ($userId, $name, $amount, ${currency.getCode}, $oneTime,
+        (user_id, name, amount, currency, one_time, period_duration, period_unit, first_payment_date, send_notifications)
+        values ($userId, $name, $amount, ${currency.getCode}, $oneTime, false,
         $periodDuration, $periodUnit, $firstPaymentDate)
       """.update
     }
 
     def get(id: SubscriptionId): Query0[Subscription] = sql"""
-        select id, user_id, name, amount, currency, one_time, period_duration, period_unit, first_payment_date
+        select id, user_id, name, amount, currency, one_time, period_duration, period_unit, first_payment_date, send_notifications
         from subscriptions
         where id = $id
       """.query[Subscription]
 
     def getByUserId(userId: UserId): Query0[Subscription] = sql"""
-        select id, user_id, name, amount, currency, one_time, period_duration, period_unit, first_payment_date
+        select id, user_id, name, amount, currency, one_time, period_duration, period_unit, first_payment_date, send_notifications
         from subscriptions
         where user_id = $userId
+      """.query[Subscription]
+
+    def collectNotifiable(cutoff: Instant): Query0[Subscription] =
+      sql"""
+        select id, user_id, name, amount, currency, one_time, period_duration, period_unit, first_payment_date, send_notifications
+        from subscriptions
+        where send_notifications = true
+        and (
+          (first_payment_date is not null and period_unit is not null and period_duration is not null)
+          or (first_payment_date is not null and first_payment_date > $cutoff)
+        )
       """.query[Subscription]
 
     def remove(id: SubscriptionId): Update0 = sql"delete from subscriptions where id = $id".update
@@ -81,7 +99,8 @@ object DoobieSubscriptionRepository {
         one_time = $oneTime,
         period_duration = ${billingPeriod.map(_.duration)},
         period_unit = ${billingPeriod.map(_.unit)},
-        first_payment_date = $firstPaymentDate
+        first_payment_date = $firstPaymentDate,
+        send_notifications = $sendNotifications
         where id = $id
       """.update
     }
