@@ -7,16 +7,16 @@ import java.util.concurrent.TimeUnit
 import cats.effect.{Clock, Concurrent, Sync, Timer}
 import cats.implicits._
 import cats.{Apply, ~>}
+import ru.johnspade.s10ns.repeat
+import tofu.logging.{Logging, Logs}
 
 import scala.concurrent.duration._
 
-class DefaultExchangeRatesJobService[F[_]: Concurrent: Clock: Timer, D[_]: Apply](
+class DefaultExchangeRatesJobService[F[_]: Concurrent: Clock: Timer: Logging, D[_]: Apply](
   private val exchangeRatesService: ExchangeRatesService[F],
   private val exchangeRatesRefreshTimestampRepo: ExchangeRatesRefreshTimestampRepository[D]
 )(private implicit val transact: D ~> F) extends ExchangeRatesJobService[F] {
-  override def startExchangeRatesJob(): F[Unit] = {
-    def repeatDaily(io: F[Unit]): F[Unit] = io >> Timer[F].sleep(24.hours) >> repeatDaily(io)
-
+  override def startExchangeRatesJob(): F[Unit] =
     for {
       now <- Clock[F].realTime(TimeUnit.MILLISECONDS)
       xRatesRefreshTimestamp <- transact(exchangeRatesRefreshTimestampRepo.get())
@@ -32,8 +32,17 @@ class DefaultExchangeRatesJobService[F[_]: Concurrent: Clock: Timer, D[_]: Apply
         .toInstant
         .toEpochMilli
       _ <- Concurrent[F].start(
-        initRates >> Timer[F].sleep((midnight - now).millis) >> repeatDaily(exchangeRatesService.saveRates())
+        initRates >> Timer[F].sleep((midnight - now).millis) >> repeat(exchangeRatesService.saveRates(), 24.hours)
       )
     } yield ()
-  }
+}
+
+object DefaultExchangeRatesJobService {
+  def apply[F[_]: Concurrent: Clock: Timer, D[_]: Apply](
+    exchangeRatesService: ExchangeRatesService[F],
+    exchangeRatesRefreshTimestampRepo: ExchangeRatesRefreshTimestampRepository[D]
+  )(implicit transact: D ~> F, logs: Logs[F, F]): F[DefaultExchangeRatesJobService[F, D]] =
+    Logs[F, F].forService[DefaultExchangeRatesJobService[F, D]].map { implicit l =>
+      new DefaultExchangeRatesJobService[F, D](exchangeRatesService, exchangeRatesRefreshTimestampRepo)
+    }
 }

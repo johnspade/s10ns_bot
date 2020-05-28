@@ -8,14 +8,16 @@ import doobie.implicits._
 import doobie.implicits.legacy.instant._
 import doobie.implicits.legacy.localdate._
 import doobie.postgres.implicits._
-import doobie.util.query.Query0
-import doobie.util.update.Update0
+import doobie.Query0
+import doobie.Update0
 import doobie.util.{Read, Write}
 import org.joda.money.{CurrencyUnit, Money}
 import ru.johnspade.s10ns.subscription.repository.DoobieSubscriptionRepository.SubscriptionSql
 import ru.johnspade.s10ns.subscription.tags._
 import ru.johnspade.s10ns.subscription.{Subscription, SubscriptionDraft}
+import ru.johnspade.s10ns.user.User
 import ru.johnspade.s10ns.user.tags._
+import ru.johnspade.s10ns.user.DoobieUserMeta._
 
 class DoobieSubscriptionRepository extends SubscriptionRepository[ConnectionIO] {
   override def create(draft: SubscriptionDraft): ConnectionIO[Subscription] =
@@ -28,6 +30,11 @@ class DoobieSubscriptionRepository extends SubscriptionRepository[ConnectionIO] 
     SubscriptionSql
       .get(id)
       .option
+
+  def getByIdWithUser(id: SubscriptionId): ConnectionIO[Option[(Subscription, User)]] =
+    SubscriptionSql
+    .getWithUser(id)
+    .option
 
   override def getByUserId(userId: UserId): ConnectionIO[List[Subscription]] =
     SubscriptionSql
@@ -57,26 +64,35 @@ object DoobieSubscriptionRepository {
       sql"""
         insert into subscriptions
         (user_id, name, amount, currency, one_time, period_duration, period_unit, first_payment_date, send_notifications)
-        values ($userId, $name, $amount, ${currency.getCode}, $oneTime, false,
-        $periodDuration, $periodUnit, $firstPaymentDate)
+        values ($userId, $name, $amount, ${currency.getCode}, $oneTime, $periodDuration, $periodUnit, $firstPaymentDate, false)
       """.update
     }
 
     def get(id: SubscriptionId): Query0[Subscription] = sql"""
-        select id, user_id, name, amount, currency, one_time, period_duration, period_unit, first_payment_date, send_notifications
+        select id, user_id, name, amount, currency, one_time, period_duration, period_unit, first_payment_date, send_notifications, last_notification
         from subscriptions
         where id = $id
       """.query[Subscription]
 
+    def getWithUser(id: SubscriptionId): Query0[(Subscription, User)] =
+      sql"""
+        select s.id, s.user_id, s.name, s.amount, s.currency, s.one_time, s.period_duration, s.period_unit,
+        s.first_payment_date, s.send_notifications, s.last_notification, u.id, u.first_name, u.chat_id,
+        u.default_currency, u.dialog
+        from subscriptions s
+        left join users u on s.user_id = u.id
+        where s.id = $id
+      """.query[(Subscription, User)]
+
     def getByUserId(userId: UserId): Query0[Subscription] = sql"""
-        select id, user_id, name, amount, currency, one_time, period_duration, period_unit, first_payment_date, send_notifications
+        select id, user_id, name, amount, currency, one_time, period_duration, period_unit, first_payment_date, send_notifications, last_notification
         from subscriptions
         where user_id = $userId
       """.query[Subscription]
 
     def collectNotifiable(cutoff: Instant): Query0[Subscription] =
       sql"""
-        select id, user_id, name, amount, currency, one_time, period_duration, period_unit, first_payment_date, send_notifications
+        select id, user_id, name, amount, currency, one_time, period_duration, period_unit, first_payment_date, send_notifications, last_notification
         from subscriptions
         where send_notifications = true
         and (
@@ -100,7 +116,8 @@ object DoobieSubscriptionRepository {
         period_duration = ${billingPeriod.map(_.duration)},
         period_unit = ${billingPeriod.map(_.unit)},
         first_payment_date = $firstPaymentDate,
-        send_notifications = $sendNotifications
+        send_notifications = $sendNotifications,
+        last_notification = $lastNotification
         where id = $id
       """.update
     }

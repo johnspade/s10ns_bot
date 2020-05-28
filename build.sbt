@@ -9,7 +9,7 @@ scalacOptions ++= Seq(
 )
 
 val DoobieVersion = "0.9.0"
-val FuuidVersion = "0.2.0"
+val FuuidVersion = "0.3.0"
 val CirceVersion = "0.13.0"
 val SttpVersion = "1.7.2"
 val PureconfigVersion = "0.12.3"
@@ -49,6 +49,8 @@ libraryDependencies ++= Seq(
   "com.propensive" %% "magnolia" % "0.16.0",
   "com.softwaremill.quicklens" %% "quicklens" % "1.5.0",
   "com.ibm.icu" % "icu4j" % "65.1",
+  "io.chrisdavenport" %% "fuuid" % FuuidVersion,
+  "io.chrisdavenport" %% "fuuid-doobie" % FuuidVersion,
   "org.scalatest" %% "scalatest" % "3.1.1" % Test,
   "com.dimafeng" %% "testcontainers-scala-scalatest" % TestcontainersScalaVersion % Test,
   "com.dimafeng" %% "testcontainers-scala-postgresql" % TestcontainersScalaVersion % Test,

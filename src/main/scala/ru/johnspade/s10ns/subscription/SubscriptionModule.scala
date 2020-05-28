@@ -9,16 +9,18 @@ import ru.johnspade.s10ns.bot.engine.DefaultMsgService
 import ru.johnspade.s10ns.calendar.CalendarModule
 import ru.johnspade.s10ns.subscription.controller.{CreateS10nDialogController, EditS10nDialogController, SubscriptionListController}
 import ru.johnspade.s10ns.subscription.dialog.{CreateS10nMsgService, EditS10n1stPaymentDateMsgService, EditS10nAmountDialogState, EditS10nBillingPeriodDialogState, EditS10nCurrencyDialogState, EditS10nNameDialogState, EditS10nOneTimeDialogState}
-import ru.johnspade.s10ns.subscription.repository.DoobieSubscriptionRepository
+import ru.johnspade.s10ns.subscription.repository.{DoobieSubscriptionRepository, SubscriptionRepository}
 import ru.johnspade.s10ns.subscription.service.impl.{DefaultCreateS10nDialogFsmService, DefaultCreateS10nDialogService, DefaultEditS10n1stPaymentDateDialogService, DefaultEditS10nAmountDialogService, DefaultEditS10nBillingPeriodDialogService, DefaultEditS10nCurrencyDialogService, DefaultEditS10nNameDialogService, DefaultEditS10nOneTimeDialogService, DefaultSubscriptionListService}
 import ru.johnspade.s10ns.subscription.service.{S10nInfoService, S10nsListMessageService}
 import ru.johnspade.s10ns.user.UserModule
 import tofu.logging.Logs
 
 final class SubscriptionModule[F[_], D[_]](
+  val subscriptionRepository: SubscriptionRepository[D],
   val createS10nDialogController: CreateS10nDialogController[F],
   val editS10nDialogController: EditS10nDialogController[F],
-  val subscriptionListController: SubscriptionListController[F]
+  val subscriptionListController: SubscriptionListController[F],
+  val s10nInfoService: S10nInfoService[F]
 )
 
 object SubscriptionModule {
@@ -78,9 +80,11 @@ object SubscriptionModule {
         editS10nOneTimeDialogService
       )
     } yield new SubscriptionModule[F, ConnectionIO] (
+      subscriptionRepository = subscriptionRepo,
       createS10nDialogController = createS10nDialogController,
       editS10nDialogController = editS10nDialogController,
-      subscriptionListController = subscriptionListController
+      subscriptionListController = subscriptionListController,
+      s10nInfoService = s10nInfoSrv
     )
   }
 }

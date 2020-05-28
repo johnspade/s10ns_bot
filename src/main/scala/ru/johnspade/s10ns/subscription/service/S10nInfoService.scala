@@ -42,6 +42,20 @@ class S10nInfoService[F[_]: Monad: Clock](
     s"_Billing period:_ every $measure"
   }
 
+  def getNextPaymentTimestamp(start: FirstPaymentDate, billingPeriod: Option[BillingPeriod]): F[Instant] = {
+    Clock[F].realTime(TimeUnit.MILLISECONDS).map { millis =>
+      val now = Instant.ofEpochMilli(millis)
+      val today = now.atZone(ZoneOffset.UTC).toLocalDate
+      billingPeriod.map { period =>
+        val periodsPassed = calcPeriodsPassed(today, start, period)
+        start.plus(periodsPassed * period.duration, period.unit.chronoUnit)
+      }
+        .getOrElse(start)
+        .atStartOfDay(ZoneOffset.UTC)
+        .toInstant
+    }
+  }
+
   def getRemainingTime(start: FirstPaymentDate, billingPeriod: BillingPeriod): F[Option[String]] =
     Clock[F].realTime(TimeUnit.MILLISECONDS).map { millis =>
       val today = Instant.ofEpochMilli(millis).atZone(ZoneOffset.UTC).toLocalDate

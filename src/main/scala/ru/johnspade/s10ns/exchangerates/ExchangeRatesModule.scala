@@ -40,16 +40,17 @@ object ExchangeRatesModule {
         exchangeRatesCache,
         retryPolicy
       )
+      exchangeRatesJobService <- DefaultExchangeRatesJobService(
+        exchangeRatesService,
+        exchangeRatesRefreshTimestampRepo
+      )
     } yield new ExchangeRatesModule[F, ConnectionIO](
       fixerApi = fixerApi,
       exchangeRatesRepository = exchangeRatesRepo,
       exchangeRatesRefreshTimestampRepository = exchangeRatesRefreshTimestampRepo,
       exchangeRatesCache = exchangeRatesCache,
       exchangeRatesService = exchangeRatesService,
-      exchangeRatesJobService = new DefaultExchangeRatesJobService(
-        exchangeRatesService,
-        exchangeRatesRefreshTimestampRepo
-      )
+      exchangeRatesJobService = exchangeRatesJobService
     )
   }
 }

@@ -1,5 +1,7 @@
 package ru.johnspade.s10ns.subscription
 
+import java.time.Instant
+
 import org.joda.money.CurrencyUnit.EUR
 import org.joda.money.{CurrencyUnit, Money}
 import ru.johnspade.s10ns.subscription.tags._
@@ -18,7 +20,8 @@ case class Subscription(
   oneTime: Option[OneTimeSubscription],
   billingPeriod: Option[BillingPeriod],
   firstPaymentDate: Option[FirstPaymentDate],
-  sendNotifications: Boolean = false
+  sendNotifications: Boolean = false,
+  lastNotification: Option[Instant] = None
 )
 
 object Subscription {

@@ -1,13 +1,6 @@
 package ru.johnspade.s10ns.notifications
 
-import java.time.Instant
-import java.util.UUID
-
+import io.chrisdavenport.fuuid.FUUID
 import ru.johnspade.s10ns.subscription.tags.SubscriptionId
 
-case class Notification(
-  id: UUID,
-  timestamp: Instant,
-  retriesRemaining: Int,
-  subscriptionId: SubscriptionId
-)
+case class Notification(id: FUUID, retriesRemaining: Int, subscriptionId: SubscriptionId)

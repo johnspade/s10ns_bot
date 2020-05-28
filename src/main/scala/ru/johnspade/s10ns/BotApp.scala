@@ -15,10 +15,11 @@ import pureconfig.module.catseffect._
 import ru.johnspade.s10ns.bot.{BotModule, Config}
 import ru.johnspade.s10ns.calendar.CalendarModule
 import ru.johnspade.s10ns.exchangerates.ExchangeRatesModule
+import ru.johnspade.s10ns.notifications.NotificationsModule
 import ru.johnspade.s10ns.settings.SettingsModule
 import ru.johnspade.s10ns.subscription.SubscriptionModule
 import ru.johnspade.s10ns.user.UserModule
-import telegramium.bots.client.ApiHttp4sImp
+import telegramium.bots.client.{Api, ApiHttp4sImp}
 import tofu.logging._
 
 import scala.concurrent.ExecutionContext
@@ -53,10 +54,15 @@ object BotApp extends IOApp {
         botModule <- BotModule.make[F](userModule, exchangeRatesModule)
         settingsModule <- SettingsModule.make[F](botModule)
         subscriptionModule <- SubscriptionModule.make[F](userModule, botModule, calendarModule)
+        logger <- logs.forService[BotApp.type]
+        notificationsModule <- NotificationsModule.make[F](subscriptionModule)
         _ <- exchangeRatesModule.exchangeRatesJobService.startExchangeRatesJob()
+        _ <- notificationsModule.prepareNotificationsJobService.startPrepareNotificationsJob()
         _ <- BlazeClientBuilder[F](ExecutionContext.global).resource.use { httpClient =>
-          val api = new ApiHttp4sImp(httpClient, baseUrl = s"https://api.telegram.org/bot${conf.telegram.token}", blocker)
+          implicit val api: Api[F] =
+            new ApiHttp4sImp(httpClient, baseUrl = s"https://api.telegram.org/bot${conf.telegram.token}", blocker)
           for {
+            _ <- notificationsModule.notificationsJobService.startNotificationsJob
             bot <- SubscriptionsBot[F, D](
               api,
               userModule.userRepository,
@@ -68,7 +74,6 @@ object BotApp extends IOApp {
               botModule.startController,
               botModule.cbDataService
             )
-            logger <- logs.forService[BotApp.type]
             _ <- bot.start().handleErrorWith(e => logger.errorCause(e.getMessage, e))
           } yield ()
         }

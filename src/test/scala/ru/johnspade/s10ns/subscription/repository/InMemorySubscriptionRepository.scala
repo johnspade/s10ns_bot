@@ -6,6 +6,7 @@ import cats.Id
 import cats.syntax.option._
 import ru.johnspade.s10ns.subscription.{Subscription, SubscriptionDraft}
 import ru.johnspade.s10ns.subscription.tags.SubscriptionId
+import ru.johnspade.s10ns.user.User
 import ru.johnspade.s10ns.user.tags.UserId
 
 import scala.collection.concurrent.TrieMap
@@ -22,7 +23,9 @@ class InMemorySubscriptionRepository extends SubscriptionRepository[Id] {
   }
   
   override def getById(id: SubscriptionId): Option[Subscription] = subscriptions.get(id)
-  
+
+  def getByIdWithUser(id: SubscriptionId): Id[Option[(Subscription, User)]] = ???
+
   override def getByUserId(userId: UserId): List[Subscription] = subscriptions.values.filter(_.userId == userId).toList
 
   def collectNotifiable(cutoff: Instant): Id[List[Subscription]] =
