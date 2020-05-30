@@ -27,7 +27,7 @@ import ru.johnspade.s10ns.subscription.service.impl.{DefaultCreateS10nDialogFsmS
 import ru.johnspade.s10ns.subscription.service.{S10nInfoService, S10nsListMessageService}
 import ru.johnspade.s10ns.subscription.tags.{PageNumber, SubscriptionId}
 import ru.johnspade.s10ns.user.DoobieUserRepository
-import telegramium.bots.client.{AnswerCallbackQueryReq, AnswerCallbackQueryRes, Api, EditMessageReplyMarkupReq, EditMessageReplyMarkupRes, EditMessageTextReq, EditMessageTextRes, SendMessageReq, SendMessageRes}
+import telegramium.bots.client.{AnswerCallbackQueryReq, Api, EditMessageReplyMarkupReq, EditMessageTextReq, SendMessageReq}
 import telegramium.bots.{CallbackQuery, Chat, ChatIntId, Html, InlineKeyboardMarkup, KeyboardMarkup, Markdown, Message, ParseMode, User}
 import tofu.logging.Logs
 
@@ -51,8 +51,6 @@ class SubscriptionsBotISpec
   }
 
   private val api = stub[Api[IO]]
-
-  private val sendMessageResOk = IO(SendMessageRes(ok = true))
 
   "test /create" in new Wiring {
     prepareStubs()
@@ -217,11 +215,13 @@ class SubscriptionsBotISpec
 
     protected val today: String = DateTimeFormatter.ISO_DATE.format(LocalDate.now(ZoneOffset.UTC))
 
+    private val mockMessage = Message(0, date = 0, chat = Chat(0, `type` = ""))
+
     protected def prepareStubs(): Unit = {
-      (api.sendMessage _).when(*).returns(sendMessageResOk)
-      (api.editMessageReplyMarkup _).when(*).returns(IO(EditMessageReplyMarkupRes(ok = true)))
-      (api.answerCallbackQuery _).when(*).returns(IO(AnswerCallbackQueryRes(ok = true)))
-      (api.editMessageText _).when(*).returns(IO(EditMessageTextRes(ok = true)))
+      (api.sendMessage _).when(*).returns(IO(mockMessage))
+      (api.editMessageReplyMarkup _).when(*).returns(IO(Right(mockMessage)))
+      (api.answerCallbackQuery _).when(*).returns(IO(true))
+      (api.editMessageText _).when(*).returns(IO(Right(mockMessage)))
     }
   }
 }
