@@ -6,7 +6,7 @@ import cats.data.OptionT
 import cats.effect.{Clock, Concurrent, Timer}
 import cats.implicits._
 import cats.{Monad, ~>}
-import ru.johnspade.s10ns.repeat
+import ru.johnspade.s10ns.{currentTimestamp, repeat}
 import ru.johnspade.s10ns.subscription.Subscription
 import ru.johnspade.s10ns.subscription.repository.SubscriptionRepository
 import ru.johnspade.s10ns.subscription.service.S10nsListMessageService
@@ -44,7 +44,7 @@ class DefaultNotificationsJobService[F[_]: Concurrent: Clock: Timer: Logging, D[
     }
 
     def executeTask(): F[Unit] =
-      Clock[F].realTime(MILLISECONDS).map(Instant.ofEpochMilli).flatMap { now =>
+      currentTimestamp.flatMap { now =>
         transact {
           (for {
             notification <- OptionT(notificationRepo.retrieveForSending())

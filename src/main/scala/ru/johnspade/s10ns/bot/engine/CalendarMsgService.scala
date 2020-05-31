@@ -1,13 +1,13 @@
 package ru.johnspade.s10ns.bot.engine
 
-import java.time.{Instant, LocalDate, ZoneOffset}
-import java.util.concurrent.TimeUnit
+import java.time.{LocalDate, ZoneOffset}
 
 import cats.Applicative.ops._
 import cats.Monad
 import cats.effect.Clock
 import cats.syntax.option._
 import ru.johnspade.s10ns.calendar.CalendarService
+import ru.johnspade.s10ns.currentTimestamp
 import telegramium.bots.InlineKeyboardMarkup
 
 class CalendarMsgService[F[_] : Monad : Clock, S <: DialogState](
@@ -15,8 +15,8 @@ class CalendarMsgService[F[_] : Monad : Clock, S <: DialogState](
 ) extends StateMessageService[F, S] {
   protected def createMessageWithCalendar(state: DialogState): F[ReplyMessage] = {
     def generateCalendar: F[InlineKeyboardMarkup] =
-      Clock[F].realTime(TimeUnit.MILLISECONDS).map { millis =>
-        val today = LocalDate.ofInstant(Instant.ofEpochMilli(millis), ZoneOffset.UTC)
+      currentTimestamp.map { now =>
+        val today = LocalDate.ofInstant(now, ZoneOffset.UTC)
         calendarService.generateKeyboard(today)
       }
 

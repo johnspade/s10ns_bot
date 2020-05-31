@@ -18,7 +18,7 @@ class DoobieNotificationRepository extends NotificationRepository[ConnectionIO] 
     NotificationSql.create(notification).run.void
 
   def create(notifications: List[Notification]): ConnectionIO[Unit] =
-    NotificationSql.create.updateMany(notifications.map(Notification.unapply(_).get)).void
+    NotificationSql.createMany.updateMany(notifications.map(Notification.unapply(_).get)).void
 
   def retrieveForSending(): ConnectionIO[Option[Notification]] =
     NotificationSql.retrieveForSending().option
@@ -29,20 +29,20 @@ class DoobieNotificationRepository extends NotificationRepository[ConnectionIO] 
 
 object DoobieNotificationRepository {
   object NotificationSql {
-    type NotificationInfo = (FUUID, Int, SubscriptionId)
+    type NotificationInfo = (FUUID, SubscriptionId, Int)
 
     def create(notification: Notification): Update0 = {
       import notification._
 
       sql"""
-        insert into notifications (id, retries_remaining, subscription_id)
-        values ($id, $retriesRemaining, $subscriptionId)
+        insert into notifications (id, subscription_id, retries_remaining)
+        values ($id, $subscriptionId, $retriesRemaining)
       """.update
     }
 
-    val create: Update[NotificationInfo] = Update[NotificationInfo](
+    val createMany: Update[NotificationInfo] = Update[NotificationInfo](
       """
-        insert into notifications (id, retries_remaining, subscription_id) values (?, ?, ?)
+        insert into notifications (id, subscription_id, retries_remaining) values (?, ?, ?)
         on conflict do nothing
       """
     )
@@ -55,7 +55,7 @@ object DoobieNotificationRepository {
           where n2.retries_remaining > 0
           for update skip locked limit 1
         )
-        returning (n1.*)
+        returning n1.id, n1.subscription_id, n1.retries_remaining
       """.query[Notification]
 
     def delete(id: FUUID): Update0 =

@@ -6,7 +6,7 @@ import cats.effect.{Clock, Concurrent, Timer}
 import cats.implicits._
 import cats.{Monad, ~>}
 import io.chrisdavenport.fuuid.FUUID
-import ru.johnspade.s10ns.repeat
+import ru.johnspade.s10ns.{currentTimestamp, repeat}
 import ru.johnspade.s10ns.subscription.Subscription
 import ru.johnspade.s10ns.subscription.repository.SubscriptionRepository
 import ru.johnspade.s10ns.subscription.service.S10nInfoService
@@ -28,7 +28,7 @@ class DefaultPrepareNotificationsJobService[F[_]: Concurrent: Clock: Timer: Logg
             val needNotification = lessThan23Hours(cutoff, timestamp)
             val notified = isNotified(s10n, timestamp)
             Option.when(needNotification && !notified) {
-              FUUID.randomFUUID[F].map((id: FUUID) => Notification(id, 3, s10n.id))
+              FUUID.randomFUUID[F].map((id: FUUID) => Notification(id, s10n.id))
             }
               .sequence
           }
@@ -38,8 +38,7 @@ class DefaultPrepareNotificationsJobService[F[_]: Concurrent: Clock: Timer: Logg
 
     def prepareNotifications(): F[Unit] =
       for {
-        millis <- Clock[F].realTime(MILLISECONDS)
-        now = Instant.ofEpochMilli(millis)
+        now <- currentTimestamp
         notifiable <- transact(s10nRepo.collectNotifiable(now))
         notifications <- createNotifications(notifiable, now)
         _ <- info"Notifiable: ${notifications.map(_.subscriptionId).mkString(", ")}".unlessA(notifications.isEmpty)

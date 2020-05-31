@@ -1,7 +1,9 @@
 package ru.johnspade
 
-import cats.{Monad, MonadError}
-import cats.effect.Timer
+import java.time.Instant
+
+import cats.{Functor, Monad, MonadError}
+import cats.effect.{Clock, Timer}
 import cats.implicits._
 import tofu.logging.Logging
 
@@ -15,4 +17,6 @@ package object s10ns {
 
     FWithErrorHandling >> Timer[F].sleep(duration) >> repeat(FWithErrorHandling, duration)
   }
+
+  def currentTimestamp[F[_]: Clock: Functor]: F[Instant] = Clock[F].realTime(MILLISECONDS).map(Instant.ofEpochMilli)
 }

@@ -7,15 +7,20 @@ import ru.johnspade.s10ns.subscription.{Subscription, SubscriptionDraft}
 import ru.johnspade.s10ns.user.tags.UserId
 
 class DoobieSubscriptionRepositorySpec extends DoobieRepositorySpec {
+  private val sampleS10nId = SubscriptionId(0L)
   private val sampleS10nDraft = SubscriptionDraft.create(UserId(0L))
-  private val sampleS10n = Subscription.fromDraft(sampleS10nDraft, SubscriptionId(0L))
+  private val sampleS10n = Subscription.fromDraft(sampleS10nDraft, sampleS10nId)
 
   test("create") {
     check(create(sampleS10nDraft))
   }
 
   test("get") {
-    check(get(SubscriptionId(0L)))
+    check(get(sampleS10nId))
+  }
+
+  test("getWithUser") {
+    check(getWithUser(sampleS10nId))
   }
 
   test("getByUserId") {
@@ -23,7 +28,7 @@ class DoobieSubscriptionRepositorySpec extends DoobieRepositorySpec {
   }
 
   test("remove") {
-    check(remove(SubscriptionId(0L)))
+    check(remove(sampleS10nId))
   }
 
   test("update") {

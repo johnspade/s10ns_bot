@@ -2,7 +2,6 @@ package ru.johnspade.s10ns.exchangerates
 
 import java.time.temporal.ChronoUnit
 import java.time.{Instant, OffsetDateTime, ZoneId}
-import java.util.concurrent.TimeUnit
 
 import cats.effect.{Clock, Concurrent, Sync, Timer}
 import cats.implicits._
@@ -18,7 +17,7 @@ class DefaultExchangeRatesJobService[F[_]: Concurrent: Clock: Timer: Logging, D[
 )(private implicit val transact: D ~> F) extends ExchangeRatesJobService[F] {
   override def startExchangeRatesJob(): F[Unit] =
     for {
-      now <- Clock[F].realTime(TimeUnit.MILLISECONDS)
+      now <- Clock[F].realTime(MILLISECONDS)
       xRatesRefreshTimestamp <- transact(exchangeRatesRefreshTimestampRepo.get())
       duration = xRatesRefreshTimestamp.map(java.time.Duration.between(_, Instant.ofEpochMilli(now)).toHours)
       initRates = duration match {
