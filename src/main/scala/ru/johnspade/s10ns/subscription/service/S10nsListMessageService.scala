@@ -103,7 +103,7 @@ class S10nsListMessageService[F[_] : Sync](
     createReplyMessage(subscriptions)
   }
 
-  def createSubscriptionMessage(defaultCurrency: CurrencyUnit, s10n: Subscription, page: PageNumber): F[ReplyMessage] = {
+  def createSubscriptionMessage(defaultCurrency: CurrencyUnit, s10n: Subscription, page: PageNumber = PageNumber(0)): F[ReplyMessage] = {
     val name = s10nInfoService.getName(s10n.name)
     val amount = s10nInfoService.getAmount(s10n.amount)
     val amountInDefaultCurrency = s10nInfoService.getAmountInDefaultCurrency(s10n.amount, defaultCurrency)

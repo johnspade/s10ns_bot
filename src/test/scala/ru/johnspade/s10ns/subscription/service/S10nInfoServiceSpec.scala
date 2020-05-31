@@ -119,7 +119,7 @@ class S10nInfoServiceSpec extends AnyFlatSpec with Matchers with OptionValues {
   }
 
   it should "calculate time left in months" in {
-    val firstPaymentDate = FirstPaymentDate(LocalDate.now(ZoneOffset.UTC).plusMonths(1))
+    val firstPaymentDate = FirstPaymentDate(LocalDate.now(ZoneOffset.UTC).plusDays(32))
     val result = s10nInfoService.getRemainingTime(firstPaymentDate, billingPeriod).unsafeRunSync
     result.value shouldBe "[1m]"
   }

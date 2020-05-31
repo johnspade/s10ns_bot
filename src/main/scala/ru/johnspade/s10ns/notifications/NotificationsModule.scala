@@ -16,7 +16,7 @@ object NotificationsModule {
   def make[F[_]: Concurrent: Timer: Clock](
     subscriptionModule: SubscriptionModule[F, ConnectionIO]
   )(implicit transact: ConnectionIO ~> F, logs: Logs[F, F]): F[NotificationsModule[F, ConnectionIO]] = {
-    import subscriptionModule.{subscriptionRepository, s10nInfoService}
+    import subscriptionModule.{subscriptionRepository, s10nInfoService, s10nsListMessageService}
 
     val notificationRepo = new DoobieNotificationRepository
     for {
@@ -27,7 +27,8 @@ object NotificationsModule {
       )
       notificationsJobService <- DefaultNotificationsJobService[F, ConnectionIO](
         notificationRepo,
-        subscriptionRepository
+        subscriptionRepository,
+        s10nsListMessageService
       )
     } yield new NotificationsModule[F, ConnectionIO](
       prepareNotificationsJobService = prepareNotificationsJobService,

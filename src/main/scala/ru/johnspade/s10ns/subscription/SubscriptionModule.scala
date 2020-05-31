@@ -20,7 +20,8 @@ final class SubscriptionModule[F[_], D[_]](
   val createS10nDialogController: CreateS10nDialogController[F],
   val editS10nDialogController: EditS10nDialogController[F],
   val subscriptionListController: SubscriptionListController[F],
-  val s10nInfoService: S10nInfoService[F]
+  val s10nInfoService: S10nInfoService[F],
+  val s10nsListMessageService: S10nsListMessageService[F]
 )
 
 object SubscriptionModule {
@@ -84,7 +85,8 @@ object SubscriptionModule {
       createS10nDialogController = createS10nDialogController,
       editS10nDialogController = editS10nDialogController,
       subscriptionListController = subscriptionListController,
-      s10nInfoService = s10nInfoSrv
+      s10nInfoService = s10nInfoSrv,
+      s10nsListMessageService = s10nsListMessageSrv
     )
   }
 }
