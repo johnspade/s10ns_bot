@@ -64,7 +64,7 @@ object DoobieSubscriptionRepository {
       sql"""
         insert into subscriptions
         (user_id, name, amount, currency, one_time, period_duration, period_unit, first_payment_date, send_notifications)
-        values ($userId, $name, $amount, ${currency.getCode}, $oneTime, $periodDuration, $periodUnit, $firstPaymentDate, false)
+        values ($userId, $name, $amount, ${currency.getCode}, $oneTime, $periodDuration, $periodUnit, $firstPaymentDate, $sendNotifications)
       """.update
     }
 

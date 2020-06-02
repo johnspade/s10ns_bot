@@ -6,14 +6,13 @@ import java.time.{LocalDate, ZoneOffset}
 import cats.effect.{ContextShift, IO, Timer}
 import cats.syntax.option._
 import cats.~>
-import com.dimafeng.testcontainers.{ForAllTestContainer, PostgreSQLContainer}
 import doobie.free.connection.ConnectionIO
 import doobie.implicits._
 import doobie.util.transactor.Transactor
-import org.flywaydb.core.Flyway
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.freespec.AnyFreeSpec
+import ru.johnspade.s10ns.PostgresContainer.container
 import ru.johnspade.s10ns.bot.engine.TelegramOps.inlineKeyboardButton
 import ru.johnspade.s10ns.bot.engine.{DefaultDialogEngine, DefaultMsgService}
 import ru.johnspade.s10ns.bot.{BotStart, CbDataService, EditS10n, Markup, Messages, MoneyService, RemoveS10n, S10ns, StartController}
@@ -27,6 +26,7 @@ import ru.johnspade.s10ns.subscription.service.impl.{DefaultCreateS10nDialogFsmS
 import ru.johnspade.s10ns.subscription.service.{S10nInfoService, S10nsListMessageService}
 import ru.johnspade.s10ns.subscription.tags.{PageNumber, SubscriptionId}
 import ru.johnspade.s10ns.user.DoobieUserRepository
+import ru.johnspade.s10ns.user.tags.UserId
 import telegramium.bots.client.{AnswerCallbackQueryReq, Api, EditMessageReplyMarkupReq, EditMessageTextReq, SendMessageReq}
 import telegramium.bots.{CallbackQuery, Chat, ChatIntId, Html, InlineKeyboardMarkup, KeyboardMarkup, Markdown, Message, ParseMode, User}
 import tofu.logging.Logs
@@ -36,19 +36,7 @@ import scala.concurrent.ExecutionContext
 class SubscriptionsBotISpec
   extends AnyFreeSpec
     with BeforeAndAfterAll
-    with ForAllTestContainer
     with MockFactory {
-  override val container: PostgreSQLContainer = PostgreSQLContainer()
-
-  import container.{container => pgContainer}
-
-  override protected def beforeAll(): Unit = {
-    Flyway
-      .configure()
-      .dataSource(pgContainer.getJdbcUrl, pgContainer.getUsername, pgContainer.getPassword)
-      .load()
-      .migrate
-  }
 
   private val api = stub[Api[IO]]
 
@@ -77,14 +65,12 @@ class SubscriptionsBotISpec
     verifySendMessage(Messages.BillingPeriodDuration).once
     verifyEditMessageText(" <em>Recurring</em>")
 
-
     sendMessage("1")
     verifySendMessage(
       Messages.FirstPaymentDate,
       calendarService.generateKeyboard(LocalDate.now(ZoneOffset.UTC)).some
     ).once
     verifyEditMessageText(" <em>Months</em>")
-
 
     sendCallbackQuery(s"FirstPayment\u001D$today")
     verifySendMessage(Messages.S10nSaved, BotStart.markup.some).once
@@ -98,8 +84,8 @@ class SubscriptionsBotISpec
          |_First payment:_ $today
          |_Paid in total:_ 0.00 €""".stripMargin,
       InlineKeyboardMarkup(List(
-        List(inlineKeyboardButton("Edit", EditS10n(SubscriptionId(1L), PageNumber(0)))),
-        List(inlineKeyboardButton("Remove", RemoveS10n(SubscriptionId(1L), PageNumber(0)))),
+        List(inlineKeyboardButton("Edit", EditS10n(s10nId, PageNumber(0)))),
+        List(inlineKeyboardButton("Remove", RemoveS10n(s10nId, PageNumber(0)))),
         List(inlineKeyboardButton("List", S10ns(PageNumber(0))))
       )).some,
       Markdown.some
@@ -110,7 +96,8 @@ class SubscriptionsBotISpec
     (api.answerCallbackQuery _).verify(AnswerCallbackQueryReq("0")).repeat(3)
   }
 
-  private val user = User(0, isBot = false, "John")
+  private val userId = 1337
+  private val user = User(userId, isBot = false, "John")
 
   private def createMessage(text: String) =
     Message(
@@ -136,22 +123,28 @@ class SubscriptionsBotISpec
   private def verifyEditMessageText(text: String) =
     (api.editMessageText _).verify(EditMessageTextReq(ChatIntId(0).some, messageId = 0.some, text = text, parseMode = Html.some))
 
+
+  private val s10nRepo = new DoobieSubscriptionRepository
+  private implicit val cs: ContextShift[IO] = IO.contextShift(ExecutionContext.global)
+  private implicit val timer: Timer[IO] = IO.timer(ExecutionContext.global)
+  protected implicit val transactor: Transactor[IO] = Transactor.fromDriverManager[IO](
+    "org.postgresql.Driver",
+    container.jdbcUrl,
+    container.username,
+    container.password
+  )
+
+  private lazy val s10nId = s10nRepo.getByUserId(UserId(userId.toLong)).transact(transactor).unsafeRunSync.head.id
+
   private trait Wiring {
-    private implicit val cs: ContextShift[IO] = IO.contextShift(ExecutionContext.global)
-    private implicit val timer: Timer[IO] = IO.timer(ExecutionContext.global)
-    protected implicit val transactor: Transactor[IO] = Transactor.fromDriverManager[IO](
-      "org.postgresql.Driver",
-      container.jdbcUrl,
-      container.username,
-      container.password
-    )
+
     protected implicit val transact: ~>[ConnectionIO, IO] = new ~>[ConnectionIO, IO] {
       override def apply[A](fa: ConnectionIO[A]): IO[A] = fa.transact(transactor)
     }
 
     private implicit val logs: Logs[IO, IO] = Logs.sync[IO, IO]
     protected val userRepo = new DoobieUserRepository
-    private val s10nRepo = new DoobieSubscriptionRepository
+
     private val moneyService = new MoneyService[IO](new InMemoryExchangeRatesStorage)
     private val s10nsListMessageService = new S10nsListMessageService[IO](moneyService, new S10nInfoService[IO](moneyService))
     private val s10nsListService = new DefaultSubscriptionListService[IO, ConnectionIO](s10nRepo, s10nsListMessageService)

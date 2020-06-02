@@ -35,7 +35,8 @@ object Subscription {
       billingPeriod = draft.periodDuration.flatMap { duration =>
         draft.periodUnit.map(BillingPeriod(duration, _))
       },
-      firstPaymentDate = draft.firstPaymentDate
+      firstPaymentDate = draft.firstPaymentDate,
+      sendNotifications = draft.sendNotifications
     )
 }
 
@@ -47,7 +48,8 @@ case class SubscriptionDraft(
   oneTime: Option[OneTimeSubscription],
   periodDuration: Option[BillingPeriodDuration],
   periodUnit: Option[BillingPeriodUnit],
-  firstPaymentDate: Option[FirstPaymentDate]
+  firstPaymentDate: Option[FirstPaymentDate],
+  sendNotifications: Boolean = false
 )
 
 object SubscriptionDraft {

@@ -10,4 +10,6 @@ trait NotificationRepository[D[_]] {
   def retrieveForSending(): D[Option[Notification]]
 
   def delete(id: FUUID): D[Unit]
+
+  def getAll: D[List[Notification]]
 }

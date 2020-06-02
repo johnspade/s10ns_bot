@@ -1,7 +1,8 @@
 package ru.johnspade.s10ns.notifications
 
 import cats.effect.{Clock, Concurrent, Timer}
-import cats.implicits._
+import cats.syntax.flatMap._
+import cats.syntax.functor._
 import cats.~>
 import doobie.free.connection.ConnectionIO
 import ru.johnspade.s10ns.subscription.SubscriptionModule
@@ -16,19 +17,24 @@ object NotificationsModule {
   def make[F[_]: Concurrent: Timer: Clock](
     subscriptionModule: SubscriptionModule[F, ConnectionIO]
   )(implicit transact: ConnectionIO ~> F, logs: Logs[F, F]): F[NotificationsModule[F, ConnectionIO]] = {
-    import subscriptionModule.{subscriptionRepository, s10nInfoService, s10nsListMessageService}
+    import subscriptionModule.{s10nInfoService, s10nsListMessageService, subscriptionRepository}
 
     val notificationRepo = new DoobieNotificationRepository
+    val notificationService = new NotificationService[F](
+      hoursBefore = 23,
+      s10nInfoService
+    )
     for {
       prepareNotificationsJobService <- DefaultPrepareNotificationsJobService[F, ConnectionIO](
         subscriptionRepository,
         notificationRepo,
-        s10nInfoService
+        notificationService
       )
       notificationsJobService <- DefaultNotificationsJobService[F, ConnectionIO](
         notificationRepo,
         subscriptionRepository,
-        s10nsListMessageService
+        s10nsListMessageService,
+        notificationService
       )
     } yield new NotificationsModule[F, ConnectionIO](
       prepareNotificationsJobService = prepareNotificationsJobService,

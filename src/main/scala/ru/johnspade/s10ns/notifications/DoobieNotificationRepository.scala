@@ -25,6 +25,8 @@ class DoobieNotificationRepository extends NotificationRepository[ConnectionIO] 
 
   def delete(id: FUUID): ConnectionIO[Unit] =
     NotificationSql.delete(id).run.void
+
+  def getAll: ConnectionIO[List[Notification]] = NotificationSql.getAll.to[List]
 }
 
 object DoobieNotificationRepository {
@@ -62,5 +64,8 @@ object DoobieNotificationRepository {
       sql"""
         delete from notifications where id = $id
       """.update
+
+    def getAll: Query0[Notification] =
+      sql"select id, subscription_id, retries_remaining from notifications".query[Notification]
   }
 }
