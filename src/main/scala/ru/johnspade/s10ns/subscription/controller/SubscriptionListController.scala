@@ -4,7 +4,7 @@ import cats.effect.Sync
 import cats.implicits._
 import ru.johnspade.s10ns.bot.engine.ReplyMessage
 import ru.johnspade.s10ns.bot.engine.TelegramOps.ackCb
-import ru.johnspade.s10ns.bot.{EditS10n, RemoveS10n, S10n, S10ns, S10nsPeriod}
+import ru.johnspade.s10ns.bot.{EditS10n, Notify, RemoveS10n, S10n, S10ns, S10nsPeriod}
 import ru.johnspade.s10ns.subscription.service.SubscriptionListService
 import ru.johnspade.s10ns.subscription.tags.PageNumber
 import ru.johnspade.s10ns.user.User
@@ -32,21 +32,19 @@ class SubscriptionListController[F[_] : Sync](
   def listCommand(from: User): F[ReplyMessage] = s10nListService.onListCommand(from, PageNumber(0))
 
   def editS10nCb(cb: CallbackQuery, data: EditS10n)(implicit bot: Api[F]): F[Unit] = {
-    def editMarkup(markup: InlineKeyboardMarkup) = {
-      val req = EditMessageReplyMarkupReq(
-        cb.message.map(msg => ChatIntId(msg.chat.id)),
-        cb.message.map(_.messageId),
-        replyMarkup = markup.some
-      )
-      bot.editMessageReplyMarkup(req).void
-    }
-
     s10nListService.onEditS10nCb(cb, data)
       .flatMap {
         case Left(error) => ackCb(cb, error.some)
-        case Right(markup) => ackCb(cb) *> editMarkup(markup)
+        case Right(markup) => ackCb(cb) *> editMarkup(cb, markup)
       }
   }
+
+  def notifyCb(user: User, cb: CallbackQuery, data: Notify)(implicit bot: Api[F]): F[Unit] =
+    s10nListService.onNotifyCb(user, cb, data)
+      .flatMap {
+        case Left(error) => ackCb(cb, error.some)
+        case Right(markup) => ackCb(cb) *> editMarkup(cb, markup)
+      }
 
   private def editMessage(cb: CallbackQuery, reply: ReplyMessage)(implicit bot: Api[F]) = {
     val markup = reply.markup match {
@@ -68,4 +66,13 @@ class SubscriptionListController[F[_] : Sync](
       case Left(error) => ackCb(cb, error.some)
       case Right(reply) => ackCb(cb) *> editMessage(cb, reply)
     }
+
+  private def editMarkup(cb: CallbackQuery, markup: InlineKeyboardMarkup)(implicit bot: Api[F]) = {
+    val req = EditMessageReplyMarkupReq(
+      cb.message.map(msg => ChatIntId(msg.chat.id)),
+      cb.message.map(_.messageId),
+      replyMarkup = markup.some
+    )
+    bot.editMessageReplyMarkup(req).void
+  }
 }

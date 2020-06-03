@@ -1,5 +1,5 @@
 package ru.johnspade.s10ns.subscription.service
-import ru.johnspade.s10ns.bot.{EditS10n, RemoveS10n, S10n, S10ns, S10nsPeriod}
+import ru.johnspade.s10ns.bot.{EditS10n, Notify, RemoveS10n, S10n, S10ns, S10nsPeriod}
 import ru.johnspade.s10ns.bot.engine.ReplyMessage
 import ru.johnspade.s10ns.subscription.tags.PageNumber
 import ru.johnspade.s10ns.user.User
@@ -17,4 +17,6 @@ trait SubscriptionListService[F[_]] {
   def onListCommand(from: User, page: PageNumber): F[ReplyMessage]
 
   def onEditS10nCb(cb: CallbackQuery, data: EditS10n): F[Either[String, InlineKeyboardMarkup]]
+
+  def onNotifyCb(user: User, cb: CallbackQuery, data: Notify): F[Either[String, InlineKeyboardMarkup]]
 }

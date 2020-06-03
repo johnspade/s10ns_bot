@@ -5,7 +5,7 @@ import cats.implicits._
 import cats.{Monad, ~>}
 import ru.johnspade.s10ns.bot.engine.ReplyMessage
 import ru.johnspade.s10ns.bot.engine.TelegramOps.{TelegramUserOps, ackCb, sendReplyMessages, singleTextMessage}
-import ru.johnspade.s10ns.bot.{Calendar, CbDataService, CreateS10nDialog, DefCurrency, Dialog, DropFirstPayment, EditS10n, EditS10nAmount, EditS10nAmountDialog, EditS10nBillingPeriod, EditS10nBillingPeriodDialog, EditS10nCurrency, EditS10nCurrencyDialog, EditS10nFirstPaymentDate, EditS10nFirstPaymentDateDialog, EditS10nName, EditS10nNameDialog, EditS10nOneTime, EditS10nOneTimeDialog, Errors, EveryMonth, FirstPayment, Ignore, OneTime, PeriodUnit, RemoveS10n, S10n, S10ns, S10nsPeriod, SettingsDialog, SkipIsOneTime, StartController, StartsDialog}
+import ru.johnspade.s10ns.bot.{Calendar, CbDataService, CreateS10nDialog, DefCurrency, Dialog, DropFirstPayment, EditS10n, EditS10nAmount, EditS10nAmountDialog, EditS10nBillingPeriod, EditS10nBillingPeriodDialog, EditS10nCurrency, EditS10nCurrencyDialog, EditS10nFirstPaymentDate, EditS10nFirstPaymentDateDialog, EditS10nName, EditS10nNameDialog, EditS10nOneTime, EditS10nOneTimeDialog, Errors, EveryMonth, FirstPayment, Ignore, Notify, OneTime, PeriodUnit, RemoveS10n, S10n, S10ns, S10nsPeriod, SettingsDialog, SkipIsOneTime, StartController, StartsDialog}
 import ru.johnspade.s10ns.calendar.CalendarController
 import ru.johnspade.s10ns.settings.SettingsController
 import ru.johnspade.s10ns.subscription.controller.{CreateS10nDialogController, EditS10nDialogController, SubscriptionListController}
@@ -132,6 +132,9 @@ class SubscriptionsBot[F[_]: Sync: Timer: Logging, D[_]: Monad](
 
             case editS10n: EditS10n =>
               s10nListController.editS10nCb(query, editS10n).map(Either.right(_))
+
+            case notify: Notify =>
+              withUser(s10nListController.notifyCb(_, query, notify))
 
             case editS10nName: EditS10nName =>
               withUser(editS10nDialogController.editS10nNameCb(_, query, editS10nName))

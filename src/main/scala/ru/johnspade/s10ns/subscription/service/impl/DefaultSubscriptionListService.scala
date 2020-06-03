@@ -1,10 +1,15 @@
 package ru.johnspade.s10ns.subscription.service.impl
 
+import cats.data.EitherT
 import cats.effect.Sync
-import cats.implicits._
+import cats.instances.either._
+import cats.instances.option._
+import cats.syntax.flatMap._
+import cats.syntax.functor._
+import cats.syntax.traverse._
 import cats.{Monad, ~>}
 import ru.johnspade.s10ns.bot.engine.ReplyMessage
-import ru.johnspade.s10ns.bot.{EditS10n, Errors, RemoveS10n, S10n, S10ns, S10nsPeriod}
+import ru.johnspade.s10ns.bot.{EditS10n, Errors, Notify, RemoveS10n, S10n, S10ns, S10nsPeriod}
 import ru.johnspade.s10ns.subscription.Subscription
 import ru.johnspade.s10ns.subscription.repository.SubscriptionRepository
 import ru.johnspade.s10ns.subscription.service.{S10nsListMessageService, SubscriptionListService}
@@ -13,7 +18,7 @@ import ru.johnspade.s10ns.user.User
 import ru.johnspade.s10ns.user.tags._
 import telegramium.bots.{CallbackQuery, InlineKeyboardMarkup}
 
-class DefaultSubscriptionListService[F[_] : Sync, D[_] : Monad](
+class DefaultSubscriptionListService[F[_]: Sync, D[_]: Monad](
   private val s10nRepo: SubscriptionRepository[D],
   private val s10nsListMessageService: S10nsListMessageService[F]
 )(private implicit val transact: D ~> F) extends SubscriptionListService[F] {
@@ -72,5 +77,29 @@ class DefaultSubscriptionListService[F[_] : Sync, D[_] : Monad](
           .toRight[String](Errors.NotFound)
           .flatten
       }
+  }
+
+  override def onNotifyCb(user: User, cb: CallbackQuery, data: Notify): F[Either[String, InlineKeyboardMarkup]] = {
+    val updateD = (for {
+      s10n <- EitherT.fromOptionF(s10nRepo.getById(data.subscriptionId), Errors.NotFound)
+      s10nOpt <- EitherT {
+        Either.cond(
+          s10n.userId == user.id,
+          s10nRepo.update(s10n.copy(sendNotifications = data.enable)),
+          Errors.AccessDenied
+        )
+          .sequence
+      }
+    } yield s10nOpt)
+      .value
+
+    (for {
+      s10nOpt <- EitherT(transact(updateD))
+      markup <- EitherT.fromOption[F](
+        s10nOpt.map(s10nsListMessageService.createS10nMessageMarkup(_, data.page)),
+        Errors.NotFound
+      )
+    } yield markup)
+      .value
   }
 }
