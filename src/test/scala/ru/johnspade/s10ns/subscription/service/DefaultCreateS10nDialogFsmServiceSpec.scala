@@ -13,7 +13,7 @@ import org.scalatest.matchers.should.Matchers
 import ru.johnspade.s10ns.TestTransactor.transact
 import ru.johnspade.s10ns.bot.engine.TelegramOps.inlineKeyboardButton
 import ru.johnspade.s10ns.bot.engine.{DefaultDialogEngine, ReplyMessage}
-import ru.johnspade.s10ns.bot.{BotStart, CreateS10nDialog, EditS10n, MoneyService, RemoveS10n, S10ns}
+import ru.johnspade.s10ns.bot.{BotStart, CreateS10nDialog, EditS10n, MoneyService, Notify, RemoveS10n, S10ns}
 import ru.johnspade.s10ns.calendar.CalendarService
 import ru.johnspade.s10ns.exchangerates.InMemoryExchangeRatesStorage
 import ru.johnspade.s10ns.subscription.dialog.{CreateS10nDialogState, CreateS10nMsgService}
@@ -43,17 +43,21 @@ class DefaultCreateS10nDialogFsmServiceSpec extends AnyFlatSpec with Matchers wi
     mockS10nRepo, userRepository, dialogEngine, s10nsListMessageService, createS10nMsgService
   )
 
+  private val s10nId = SubscriptionId(0L)
+  private val page = PageNumber(0)
+
   private val user = User(UserId(0L), FirstName("John"), None)
   private val draft = SubscriptionDraft.create(UserId(0L))
-  private val s10n = Subscription.fromDraft(draft, SubscriptionId(0L))
+  private val s10n = Subscription.fromDraft(draft, s10nId)
   private val finish = List(
     ReplyMessage("Saved.", BotStart.markup.some),
     ReplyMessage(
       "**\n\n0.00 €\n",
       InlineKeyboardMarkup(List(
-        List(inlineKeyboardButton("Edit", EditS10n(SubscriptionId(0L), PageNumber(0)))),
-        List(inlineKeyboardButton("Remove", RemoveS10n(SubscriptionId(0L), PageNumber(0)))),
-        List(inlineKeyboardButton("List", S10ns(PageNumber(0))))
+        List(inlineKeyboardButton("Edit", EditS10n(s10nId, page))),
+        List(inlineKeyboardButton("Enable notifications", Notify(s10nId, enable = true, page))),
+        List(inlineKeyboardButton("Remove", RemoveS10n(s10nId, page))),
+        List(inlineKeyboardButton("List", S10ns(page)))
       )).some,
       Markdown.some
     )

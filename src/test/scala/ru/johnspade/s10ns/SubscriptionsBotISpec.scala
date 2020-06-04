@@ -15,7 +15,7 @@ import org.scalatest.freespec.AnyFreeSpec
 import ru.johnspade.s10ns.PostgresContainer.container
 import ru.johnspade.s10ns.bot.engine.TelegramOps.inlineKeyboardButton
 import ru.johnspade.s10ns.bot.engine.{DefaultDialogEngine, DefaultMsgService}
-import ru.johnspade.s10ns.bot.{BotStart, CbDataService, EditS10n, Markup, Messages, MoneyService, RemoveS10n, S10ns, StartController}
+import ru.johnspade.s10ns.bot.{BotStart, CbDataService, EditS10n, Markup, Messages, MoneyService, Notify, RemoveS10n, S10ns, StartController}
 import ru.johnspade.s10ns.calendar.{CalendarController, CalendarService}
 import ru.johnspade.s10ns.exchangerates.InMemoryExchangeRatesStorage
 import ru.johnspade.s10ns.settings.{DefaultSettingsService, SettingsController, SettingsDialogState}
@@ -24,7 +24,7 @@ import ru.johnspade.s10ns.subscription.dialog.{CreateS10nMsgService, EditS10n1st
 import ru.johnspade.s10ns.subscription.repository.DoobieSubscriptionRepository
 import ru.johnspade.s10ns.subscription.service.impl.{DefaultCreateS10nDialogFsmService, DefaultCreateS10nDialogService, DefaultEditS10n1stPaymentDateDialogService, DefaultEditS10nAmountDialogService, DefaultEditS10nBillingPeriodDialogService, DefaultEditS10nCurrencyDialogService, DefaultEditS10nNameDialogService, DefaultEditS10nOneTimeDialogService, DefaultSubscriptionListService}
 import ru.johnspade.s10ns.subscription.service.{S10nInfoService, S10nsListMessageService}
-import ru.johnspade.s10ns.subscription.tags.{PageNumber, SubscriptionId}
+import ru.johnspade.s10ns.subscription.tags.PageNumber
 import ru.johnspade.s10ns.user.DoobieUserRepository
 import ru.johnspade.s10ns.user.tags.UserId
 import telegramium.bots.client.{AnswerCallbackQueryReq, Api, EditMessageReplyMarkupReq, EditMessageTextReq, SendMessageReq}
@@ -85,6 +85,7 @@ class SubscriptionsBotISpec
          |_Paid in total:_ 0.00 €""".stripMargin,
       InlineKeyboardMarkup(List(
         List(inlineKeyboardButton("Edit", EditS10n(s10nId, PageNumber(0)))),
+        List(inlineKeyboardButton("Enable notifications", Notify(s10nId, enable = true, PageNumber(0)))),
         List(inlineKeyboardButton("Remove", RemoveS10n(s10nId, PageNumber(0)))),
         List(inlineKeyboardButton("List", S10ns(PageNumber(0))))
       )).some,

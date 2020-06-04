@@ -17,7 +17,7 @@ import org.scalamock.scalatest.MockFactory
 import org.scalatest.BeforeAndAfterAll
 import ru.johnspade.s10ns.SpecBase
 import ru.johnspade.s10ns.bot.engine.TelegramOps.inlineKeyboardButton
-import ru.johnspade.s10ns.bot.{EditS10n, MoneyService, RemoveS10n, S10ns}
+import ru.johnspade.s10ns.bot.{EditS10n, MoneyService, Notify, RemoveS10n, S10ns}
 import ru.johnspade.s10ns.exchangerates.InMemoryExchangeRatesStorage
 import ru.johnspade.s10ns.subscription.repository.DoobieSubscriptionRepository
 import ru.johnspade.s10ns.subscription.service.{S10nInfoService, S10nsListMessageService}
@@ -76,6 +76,7 @@ class DefaultNotificationsJobServiceSpec
       Markdown.some,
       replyMarkup = InlineKeyboardMarkup(List(
         List(inlineKeyboardButton("Edit", EditS10n(s10nId, PageNumber(0)))),
+        List(inlineKeyboardButton("Disable notifications", Notify(s10nId, enable = false, PageNumber(0)))),
         List(inlineKeyboardButton("Remove", RemoveS10n(s10nId, PageNumber(0)))),
         List(inlineKeyboardButton("List", S10ns(PageNumber(0))))
       )).some

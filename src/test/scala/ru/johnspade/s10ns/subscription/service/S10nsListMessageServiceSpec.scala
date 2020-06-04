@@ -11,7 +11,7 @@ import org.scalatest.OptionValues
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import ru.johnspade.s10ns.bot.engine.TelegramOps.inlineKeyboardButton
-import ru.johnspade.s10ns.bot.{EditS10n, EditS10nAmount, EditS10nBillingPeriod, EditS10nCurrency, EditS10nFirstPaymentDate, EditS10nName, EditS10nOneTime, MoneyService, RemoveS10n, S10n, S10ns, S10nsPeriod}
+import ru.johnspade.s10ns.bot.{EditS10n, EditS10nAmount, EditS10nBillingPeriod, EditS10nCurrency, EditS10nFirstPaymentDate, EditS10nName, EditS10nOneTime, MoneyService, Notify, RemoveS10n, S10n, S10ns, S10nsPeriod}
 import ru.johnspade.s10ns.exchangerates.InMemoryExchangeRatesStorage
 import ru.johnspade.s10ns.subscription.tags.{BillingPeriodDuration, FirstPaymentDate, OneTimeSubscription, PageNumber, SubscriptionId, SubscriptionName}
 import ru.johnspade.s10ns.subscription.{BillingPeriod, BillingPeriodUnit, Subscription}
@@ -282,6 +282,7 @@ class S10nsListMessageServiceSpec extends AnyFlatSpec with Matchers with OptionV
     markup.value should matchTo[KeyboardMarkup] {
       InlineKeyboardMarkup(List(
         List(inlineKeyboardButton("Edit", EditS10n(s10nId, page))),
+        List(inlineKeyboardButton("Enable notifications", Notify(s10nId, enable = true, page))),
         List(inlineKeyboardButton("Remove", RemoveS10n(s10nId, page))),
         List(inlineKeyboardButton("List", S10ns(page)))
       ))
