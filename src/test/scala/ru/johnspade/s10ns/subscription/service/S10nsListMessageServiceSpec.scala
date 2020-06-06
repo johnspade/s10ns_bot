@@ -16,7 +16,8 @@ import ru.johnspade.s10ns.exchangerates.InMemoryExchangeRatesStorage
 import ru.johnspade.s10ns.subscription.tags.{BillingPeriodDuration, FirstPaymentDate, OneTimeSubscription, PageNumber, SubscriptionId, SubscriptionName}
 import ru.johnspade.s10ns.subscription.{BillingPeriod, BillingPeriodUnit, Subscription}
 import ru.johnspade.s10ns.user.tags.UserId
-import telegramium.bots.{InlineKeyboardMarkup, KeyboardMarkup}
+import telegramium.bots.KeyboardMarkup
+import telegramium.bots.high._
 
 import scala.concurrent.ExecutionContext
 
@@ -97,10 +98,10 @@ class S10nsListMessageServiceSpec extends AnyFlatSpec with Matchers with OptionV
           |
           |1. s10n10 – 1.00 €""".stripMargin
     page.markup.value should matchTo[KeyboardMarkup] {
-      InlineKeyboardMarkup(List(
-        List(inlineKeyboardButton("Yearly", S10nsPeriod(BillingPeriodUnit.Year, PageNumber(1)))),
-        List(inlineKeyboardButton("1", S10n(SubscriptionId(10L), PageNumber(1)))),
-        List(inlineKeyboardButton("⬅", S10ns(PageNumber(0))))
+      InlineKeyboardMarkup.singleColumn(List(
+        inlineKeyboardButton("Yearly", S10nsPeriod(BillingPeriodUnit.Year, PageNumber(1))),
+        inlineKeyboardButton("1", S10n(SubscriptionId(10L), PageNumber(1))),
+        inlineKeyboardButton("⬅", S10ns(PageNumber(0)))
       ))
     }
   }
@@ -225,14 +226,14 @@ class S10nsListMessageServiceSpec extends AnyFlatSpec with Matchers with OptionV
 
     val markup = s10nsListMessageService.createEditS10nMarkup(s10n1, PageNumber(0))
     markup should matchTo {
-      InlineKeyboardMarkup(List(
-        List(inlineKeyboardButton("Name", EditS10nName(id))),
-        List(inlineKeyboardButton("Amount", EditS10nAmount(id))),
-        List(inlineKeyboardButton("Currency/amount", EditS10nCurrency(id))),
-        List(inlineKeyboardButton("Recurring/one time", EditS10nOneTime(id))),
-        List(inlineKeyboardButton("Billing period", EditS10nBillingPeriod(id))),
-        List(inlineKeyboardButton("First payment date", EditS10nFirstPaymentDate(id))),
-        List(inlineKeyboardButton("Back", S10n(id, PageNumber(0))))
+      InlineKeyboardMarkup.singleColumn(List(
+        inlineKeyboardButton("Name", EditS10nName(id)),
+        inlineKeyboardButton("Amount", EditS10nAmount(id)),
+        inlineKeyboardButton("Currency/amount", EditS10nCurrency(id)),
+        inlineKeyboardButton("Recurring/one time", EditS10nOneTime(id)),
+        inlineKeyboardButton("Billing period", EditS10nBillingPeriod(id)),
+        inlineKeyboardButton("First payment date", EditS10nFirstPaymentDate(id)),
+        inlineKeyboardButton("Back", S10n(id, PageNumber(0)))
       ))
     }
   }
@@ -280,11 +281,11 @@ class S10nsListMessageServiceSpec extends AnyFlatSpec with Matchers with OptionV
 
   private def checkS10nMessageMarkup(markup: Option[KeyboardMarkup], s10nId: SubscriptionId, page: PageNumber): Unit =
     markup.value should matchTo[KeyboardMarkup] {
-      InlineKeyboardMarkup(List(
-        List(inlineKeyboardButton("Edit", EditS10n(s10nId, page))),
-        List(inlineKeyboardButton("Enable notifications", Notify(s10nId, enable = true, page))),
-        List(inlineKeyboardButton("Remove", RemoveS10n(s10nId, page))),
-        List(inlineKeyboardButton("List", S10ns(page)))
+      InlineKeyboardMarkup.singleColumn(List(
+        inlineKeyboardButton("Edit", EditS10n(s10nId, page)),
+        inlineKeyboardButton("Enable notifications", Notify(s10nId, enable = true, page)),
+        inlineKeyboardButton("Remove", RemoveS10n(s10nId, page)),
+        inlineKeyboardButton("List", S10ns(page))
       ))
     }
 }

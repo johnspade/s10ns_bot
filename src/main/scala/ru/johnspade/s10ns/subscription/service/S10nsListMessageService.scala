@@ -11,8 +11,8 @@ import ru.johnspade.s10ns.bot.engine.TelegramOps.inlineKeyboardButton
 import ru.johnspade.s10ns.bot.{EditS10n, EditS10nAmount, EditS10nBillingPeriod, EditS10nCurrency, EditS10nFirstPaymentDate, EditS10nName, EditS10nOneTime, MoneyService, Notify, RemoveS10n, S10n, S10ns, S10nsPeriod}
 import ru.johnspade.s10ns.subscription.tags.{FirstPaymentDate, PageNumber}
 import ru.johnspade.s10ns.subscription.{BillingPeriod, BillingPeriodUnit, Subscription}
-import telegramium.bots.{Html, InlineKeyboardButton, Markdown}
 import telegramium.bots.high._
+import telegramium.bots.{Html, InlineKeyboardButton, Markdown}
 
 class S10nsListMessageService[F[_] : Sync](
   private val moneyService: MoneyService[F],
@@ -97,7 +97,7 @@ class S10nsListMessageService[F[_] : Sync](
             val periodButtonRow = List(createPeriodButton())
             val subscriptionButtons = createSubscriptionButtons(indexedS10nsPage)
             val arrowButtons = createNavButtons(subscriptions.size)
-            ReplyMessage(text, new InlineKeyboardMarkup(periodButtonRow +: subscriptionButtons :+ arrowButtons).some, Html.some)
+            ReplyMessage(text, InlineKeyboardMarkup(periodButtonRow +: subscriptionButtons :+ arrowButtons).some, Html.some)
           }
         }
 
@@ -175,7 +175,7 @@ class S10nsListMessageService[F[_] : Sync](
     else List(inlineKeyboardButton("Billing period", EditS10nBillingPeriod(id)))
     val firstPaymentDateButton = inlineKeyboardButton("First payment date", EditS10nFirstPaymentDate(id))
     val backButton = inlineKeyboardButton("Back", S10n(id, page))
-    new InlineKeyboardMarkup(List(
+    InlineKeyboardMarkup(List(
       List(nameButton),
       List(amountButton),
       List(currencyButton),

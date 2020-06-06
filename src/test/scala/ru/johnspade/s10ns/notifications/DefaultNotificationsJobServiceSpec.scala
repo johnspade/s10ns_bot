@@ -26,7 +26,8 @@ import ru.johnspade.s10ns.subscription.{BillingPeriodUnit, SubscriptionDraft}
 import ru.johnspade.s10ns.user.tags.{ChatId, FirstName, UserId}
 import ru.johnspade.s10ns.user.{DoobieUserRepository, User}
 import telegramium.bots.client.{Api, SendMessageReq}
-import telegramium.bots.{Chat, ChatIntId, InlineKeyboardMarkup, Markdown, Message}
+import telegramium.bots.high._
+import telegramium.bots.{Chat, ChatIntId, Markdown, Message}
 
 class DefaultNotificationsJobServiceSpec
   extends SpecBase
@@ -74,11 +75,11 @@ class DefaultNotificationsJobServiceSpec
            |_First payment:_ $today
            |_Paid in total:_ 0.00 €""".stripMargin,
       Markdown.some,
-      replyMarkup = InlineKeyboardMarkup(List(
-        List(inlineKeyboardButton("Edit", EditS10n(s10nId, PageNumber(0)))),
-        List(inlineKeyboardButton("Disable notifications", Notify(s10nId, enable = false, PageNumber(0)))),
-        List(inlineKeyboardButton("Remove", RemoveS10n(s10nId, PageNumber(0)))),
-        List(inlineKeyboardButton("List", S10ns(PageNumber(0))))
+      replyMarkup = InlineKeyboardMarkup.singleColumn(List(
+        inlineKeyboardButton("Edit", EditS10n(s10nId, PageNumber(0))),
+        inlineKeyboardButton("Disable notifications", Notify(s10nId, enable = false, PageNumber(0))),
+        inlineKeyboardButton("Remove", RemoveS10n(s10nId, PageNumber(0))),
+        inlineKeyboardButton("List", S10ns(PageNumber(0)))
       )).some
     ))
   }

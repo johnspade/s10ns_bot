@@ -28,7 +28,8 @@ import ru.johnspade.s10ns.subscription.tags.PageNumber
 import ru.johnspade.s10ns.user.DoobieUserRepository
 import ru.johnspade.s10ns.user.tags.UserId
 import telegramium.bots.client.{AnswerCallbackQueryReq, Api, EditMessageReplyMarkupReq, EditMessageTextReq, SendMessageReq}
-import telegramium.bots.{CallbackQuery, Chat, ChatIntId, Html, InlineKeyboardMarkup, KeyboardMarkup, Markdown, Message, ParseMode, User}
+import telegramium.bots.high._
+import telegramium.bots.{CallbackQuery, Chat, ChatIntId, Html, KeyboardMarkup, Markdown, Message, ParseMode, User}
 import tofu.logging.Logs
 
 import scala.concurrent.ExecutionContext
@@ -83,11 +84,11 @@ class SubscriptionsBotISpec
          |_Next payment:_ $today
          |_First payment:_ $today
          |_Paid in total:_ 0.00 €""".stripMargin,
-      InlineKeyboardMarkup(List(
-        List(inlineKeyboardButton("Edit", EditS10n(s10nId, PageNumber(0)))),
-        List(inlineKeyboardButton("Enable notifications", Notify(s10nId, enable = true, PageNumber(0)))),
-        List(inlineKeyboardButton("Remove", RemoveS10n(s10nId, PageNumber(0)))),
-        List(inlineKeyboardButton("List", S10ns(PageNumber(0))))
+      InlineKeyboardMarkup.singleColumn(List(
+        inlineKeyboardButton("Edit", EditS10n(s10nId, PageNumber(0))),
+        inlineKeyboardButton("Enable notifications", Notify(s10nId, enable = true, PageNumber(0))),
+        inlineKeyboardButton("Remove", RemoveS10n(s10nId, PageNumber(0))),
+        inlineKeyboardButton("List", S10ns(PageNumber(0)))
       )).some,
       Markdown.some
     ).once
