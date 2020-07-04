@@ -27,10 +27,14 @@ import ru.johnspade.s10ns.subscription.service.{S10nInfoService, S10nsListMessag
 import ru.johnspade.s10ns.subscription.tags.PageNumber
 import ru.johnspade.s10ns.user.DoobieUserRepository
 import ru.johnspade.s10ns.user.tags.UserId
-import telegramium.bots.client.{AnswerCallbackQueryReq, Api, EditMessageReplyMarkupReq, EditMessageTextReq, SendMessageReq}
+import telegramium.bots.high.Api
+import telegramium.bots.client.{AnswerCallbackQueryReq, EditMessageReplyMarkupReq, EditMessageTextReq, MethodReq, SendMessageReq}
 import telegramium.bots.high._
 import telegramium.bots.{CallbackQuery, Chat, ChatIntId, Html, KeyboardMarkup, Markdown, Message, ParseMode, User}
 import tofu.logging.Logs
+import telegramium.bots.client.CirceImplicits._
+import telegramium.bots.CirceImplicits._
+import io.circe.syntax._
 
 import scala.concurrent.ExecutionContext
 
@@ -39,7 +43,7 @@ class SubscriptionsBotISpec
     with BeforeAndAfterAll
     with MockFactory {
 
-  private val api = stub[Api[IO]]
+  private implicit val api: Api[IO] = stub[Api[IO]]
 
   "test /create" in new Wiring {
     prepareStubs()
@@ -94,8 +98,13 @@ class SubscriptionsBotISpec
     ).once
     verifyEditMessageText(s" <em>${DateTimeFormatter.ISO_DATE.format(LocalDate.now(ZoneOffset.UTC))}</em>")
 
-    (api.editMessageReplyMarkup _).verify(EditMessageReplyMarkupReq(ChatIntId(0).some, 0.some)).repeat(3)
-    (api.answerCallbackQuery _).verify(AnswerCallbackQueryReq("0")).repeat(3)
+    (api.execute[Either[Boolean, Message]] _)
+      .verify(MethodReq[Either[Boolean, Message]](
+        "editMessageReplyMarkup",
+        EditMessageReplyMarkupReq(ChatIntId(0).some, 0.some).asJson)
+      )
+      .repeat(3)
+    (api.execute[Boolean] _).verify(MethodReq[Boolean]("answerCallbackQuery", AnswerCallbackQueryReq("0").asJson)).repeat(3)
   }
 
   private val userId = 1337
@@ -120,10 +129,15 @@ class SubscriptionsBotISpec
     )
 
   private def verifySendMessage(text: String, markup: Option[KeyboardMarkup] = None, parseMode: Option[ParseMode] = None) =
-    (api.sendMessage _).verify(SendMessageReq(ChatIntId(0), text, replyMarkup = markup, parseMode = parseMode))
+    (api.execute[Message] _)
+      .verify(MethodReq[Message]("sendMessage", SendMessageReq(ChatIntId(0), text, replyMarkup = markup, parseMode = parseMode).asJson))
 
   private def verifyEditMessageText(text: String) =
-    (api.editMessageText _).verify(EditMessageTextReq(ChatIntId(0).some, messageId = 0.some, text = text, parseMode = Html.some))
+    (api.execute[Either[Boolean, Message]] _)
+      .verify(MethodReq[Either[Boolean, Message]](
+        "editMessageText",
+        EditMessageTextReq(ChatIntId(0).some, messageId = 0.some, text = text, parseMode = Html.some).asJson
+      ))
 
 
   private val s10nRepo = new DoobieSubscriptionRepository
@@ -137,6 +151,12 @@ class SubscriptionsBotISpec
   )
 
   private lazy val s10nId = s10nRepo.getByUserId(UserId(userId.toLong)).transact(transactor).unsafeRunSync.head.id
+
+  import io.circe.Decoder
+  private implicit def decodeEither[A, B](
+    implicit decoderA: Decoder[A],
+    decoderB: Decoder[B]
+  ): Decoder[Either[A, B]] = decoderA.either(decoderB)
 
   private trait Wiring {
 
@@ -193,7 +213,6 @@ class SubscriptionsBotISpec
     private val startController = new StartController[IO](dialogEngine)
     private val cbDataService = new CbDataService[IO]
     protected val bot: SubscriptionsBot[IO, ConnectionIO] = SubscriptionsBot[IO, ConnectionIO](
-      api,
       userRepo,
       s10nListController,
       createS10nDialogController,
@@ -213,10 +232,9 @@ class SubscriptionsBotISpec
     private val mockMessage = Message(0, date = 0, chat = Chat(0, `type` = ""))
 
     protected def prepareStubs(): Unit = {
-      (api.sendMessage _).when(*).returns(IO(mockMessage))
-      (api.editMessageReplyMarkup _).when(*).returns(IO(Right(mockMessage)))
-      (api.answerCallbackQuery _).when(*).returns(IO(true))
-      (api.editMessageText _).when(*).returns(IO(Right(mockMessage)))
+      (api.execute[Message] _).when(*).returns(IO(mockMessage))
+      (api.execute[Either[Boolean, Message]] _).when(*).returns(IO(Right(mockMessage)))
+      (api.execute[Boolean] _).when(*).returns(IO(true))
     }
   }
 }

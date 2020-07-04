@@ -9,7 +9,7 @@ import ru.johnspade.s10ns.bot.{EditS10nAmount, EditS10nAmountDialog, EditS10nBil
 import ru.johnspade.s10ns.subscription.dialog.{EditS10nAmountDialogState, EditS10nBillingPeriodDialogState, EditS10nCurrencyDialogState, EditS10nNameDialogState, EditS10nOneTimeDialogState}
 import ru.johnspade.s10ns.subscription.service.{EditS10n1stPaymentDateDialogService, EditS10nAmountDialogService, EditS10nBillingPeriodDialogService, EditS10nCurrencyDialogService, EditS10nNameDialogService, EditS10nOneTimeDialogService}
 import ru.johnspade.s10ns.user.User
-import telegramium.bots.client.Api
+import telegramium.bots.high.Api
 import telegramium.bots.{CallbackQuery, Message}
 import tofu.logging.{Logging, Logs}
 

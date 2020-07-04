@@ -10,13 +10,11 @@ import ru.johnspade.s10ns.calendar.CalendarController
 import ru.johnspade.s10ns.settings.SettingsController
 import ru.johnspade.s10ns.subscription.controller.{CreateS10nDialogController, EditS10nDialogController, SubscriptionListController}
 import ru.johnspade.s10ns.user.{User, UserRepository}
-import telegramium.bots.client.Api
-import telegramium.bots.high.LongPollBot
+import telegramium.bots.high.{Api, LongPollBot}
 import telegramium.bots.{CallbackQuery, Message, User => TgUser}
 import tofu.logging.{Logging, Logs}
 
 class SubscriptionsBot[F[_]: Sync: Timer: Logging, D[_]: Monad](
-  private val bot: Api[F],
   private val userRepo: UserRepository[D],
   private val s10nListController: SubscriptionListController[F],
   private val createS10nDialogController: CreateS10nDialogController[F],
@@ -25,8 +23,7 @@ class SubscriptionsBot[F[_]: Sync: Timer: Logging, D[_]: Monad](
   private val settingsController: SettingsController[F],
   private val startController: StartController[F],
   private val cbDataService: CbDataService[F]
-)(private implicit val transact: D ~> F) extends LongPollBot[F](bot) {
-  private implicit val api: Api[F] = bot
+)(private implicit val api: Api[F], val transact: D ~> F) extends LongPollBot[F](api) {
 
   override def onMessage(msg: Message): F[Unit] =
     msg.from.map { user =>
@@ -239,7 +236,6 @@ class SubscriptionsBot[F[_]: Sync: Timer: Logging, D[_]: Monad](
 
 object SubscriptionsBot {
   def apply[F[_]: Sync: Timer, D[_]: Monad](
-    bot: Api[F],
     userRepo: UserRepository[D],
     s10nListController: SubscriptionListController[F],
     createS10nDialogController: CreateS10nDialogController[F],
@@ -248,10 +244,9 @@ object SubscriptionsBot {
     settingsController: SettingsController[F],
     startController: StartController[F],
     cbDataService: CbDataService[F]
-  )(implicit transact: D ~> F, logs: Logs[F, F]): F[SubscriptionsBot[F, D]] =
+  )(implicit api: Api[F], transact: D ~> F, logs: Logs[F, F]): F[SubscriptionsBot[F, D]] =
     logs.forService[SubscriptionsBot[F, D]].map { implicit l =>
       new SubscriptionsBot[F, D](
-        bot,
         userRepo,
         s10nListController,
         createS10nDialogController,

@@ -8,10 +8,12 @@ import ru.johnspade.s10ns.bot.{EditS10n, Notify, RemoveS10n, S10n, S10ns, S10nsP
 import ru.johnspade.s10ns.subscription.service.SubscriptionListService
 import ru.johnspade.s10ns.subscription.tags.PageNumber
 import ru.johnspade.s10ns.user.User
-import telegramium.bots.client.{Api, EditMessageReplyMarkupReq, EditMessageTextReq}
+import telegramium.bots.high.Methods._
+import telegramium.bots.high._
+import telegramium.bots.high.implicits._
 import telegramium.bots.{CallbackQuery, ChatIntId, InlineKeyboardMarkup}
 
-class SubscriptionListController[F[_] : Sync](
+class SubscriptionListController[F[_]: Sync](
   private val s10nListService: SubscriptionListService[F]
 ) {
   def subscriptionsCb(user: User, cb: CallbackQuery, data: S10ns)(implicit bot: Api[F]): F[Unit] =
@@ -51,14 +53,13 @@ class SubscriptionListController[F[_] : Sync](
       case Some(inlineKeyboard @ InlineKeyboardMarkup(_)) => inlineKeyboard.some
       case _ => Option.empty[InlineKeyboardMarkup]
     }
-    val editMessageTextReq = EditMessageTextReq(
+    editMessageText(
       cb.message.map(msg => ChatIntId(msg.chat.id)),
       cb.message.map(_.messageId),
       text = reply.text,
       replyMarkup = markup,
       parseMode = reply.parseMode
-    )
-    bot.editMessageText(editMessageTextReq).void
+    ).exec.void
   }
 
   private def ackAndEditMsg(cb: CallbackQuery, replyF: F[Either[String, ReplyMessage]])(implicit bot: Api[F]) =
@@ -67,12 +68,10 @@ class SubscriptionListController[F[_] : Sync](
       case Right(reply) => ackCb(cb) *> editMessage(cb, reply)
     }
 
-  private def editMarkup(cb: CallbackQuery, markup: InlineKeyboardMarkup)(implicit bot: Api[F]) = {
-    val req = EditMessageReplyMarkupReq(
+  private def editMarkup(cb: CallbackQuery, markup: InlineKeyboardMarkup)(implicit bot: Api[F]) =
+    editMessageReplyMarkup(
       cb.message.map(msg => ChatIntId(msg.chat.id)),
       cb.message.map(_.messageId),
       replyMarkup = markup.some
-    )
-    bot.editMessageReplyMarkup(req).void
-  }
+    ).exec.void
 }

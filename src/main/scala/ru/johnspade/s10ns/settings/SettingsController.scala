@@ -7,7 +7,7 @@ import ru.johnspade.s10ns.bot.engine.ReplyMessage
 import ru.johnspade.s10ns.bot.engine.TelegramOps.{ackCb, sendReplyMessages, toReplyMessage}
 import ru.johnspade.s10ns.bot.{Errors, SettingsDialog}
 import ru.johnspade.s10ns.user.User
-import telegramium.bots.client.Api
+import telegramium.bots.high.Api
 import telegramium.bots.{CallbackQuery, Message}
 import tofu.logging.{Logging, Logs}
 

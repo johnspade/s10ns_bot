@@ -7,7 +7,8 @@ import ru.johnspade.s10ns.bot.engine.TelegramOps.{clearMarkup, handleCallback, s
 import ru.johnspade.s10ns.bot.{CbData, CreateS10nDialog, DropFirstPayment, Errors, EveryMonth, FirstPayment, OneTime, PeriodUnit, SkipIsOneTime}
 import ru.johnspade.s10ns.subscription.service.CreateS10nDialogService
 import ru.johnspade.s10ns.user.User
-import telegramium.bots.client.{Api, EditMessageTextReq}
+import telegramium.bots.high.implicits._
+import telegramium.bots.high.{Api, Methods}
 import telegramium.bots.{CallbackQuery, ChatIntId, Html, Message}
 import tofu.logging.{Logging, Logs}
 
@@ -50,14 +51,13 @@ class CreateS10nDialogController[F[_]: Sync: Timer: Logging](
     implicit bot: Api[F]
   ): F[Unit] = clearMarkup(cb) *> f(createS10nDialogService).flatMap(handleCallback(cb, _))
 
-  private def showSelected(cb: CallbackQuery, data: CbData)(implicit bot: Api[F]): F[Unit] = {
-    bot.editMessageText(EditMessageTextReq(
+  private def showSelected(cb: CallbackQuery, data: CbData)(implicit bot: Api[F]): F[Unit] =
+    Methods.editMessageText(
       cb.message.map(msg => ChatIntId(msg.chat.id)),
       cb.message.map(_.messageId),
       text = cb.message.flatMap(_.text).map(t => s"$t <em>${data.print}</em>").orEmpty,
       parseMode = Html.some
-    )).void
-  }
+    ).exec.void
 }
 
 object CreateS10nDialogController {

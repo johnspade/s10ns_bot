@@ -8,8 +8,9 @@ import ru.johnspade.s10ns.bot.ValidatorNec.ValidationResult
 import ru.johnspade.s10ns.bot.{CbData, Dialog}
 import ru.johnspade.s10ns.user._
 import ru.johnspade.s10ns.user.tags._
-import telegramium.bots.client.{AnswerCallbackQueryReq, Api, EditMessageReplyMarkupReq, SendMessageReq}
+import telegramium.bots.high.Methods._
 import telegramium.bots.high._
+import telegramium.bots.high.implicits._
 import telegramium.bots.{CallbackQuery, ChatIntId, Message}
 import tofu.logging.Logging
 
@@ -26,18 +27,16 @@ object TelegramOps {
       )
   }
 
-  def sendReplyMessage[F[_] : Sync : Timer](msg: Message, reply: ReplyMessage)(implicit bot: Api[F]): F[Unit] = {
-    val request = SendMessageReq(
+  def sendReplyMessage[F[_]: Sync: Timer](msg: Message, reply: ReplyMessage)(implicit bot: Api[F]): F[Unit] =
+    sendMessage(
       ChatIntId(msg.chat.id),
       reply.text,
       replyMarkup = reply.markup,
       parseMode = reply.parseMode
-    )
-    bot.sendMessage(request).void
-  }
+    ).exec.void
 
-  def ackCb[F[_] : Sync](cb: CallbackQuery, text: Option[String] = None)(implicit bot: Api[F]): F[Unit] =
-    bot.answerCallbackQuery(AnswerCallbackQueryReq(cb.id, text)).void
+  def ackCb[F[_]: Sync](cb: CallbackQuery, text: Option[String] = None)(implicit bot: Api[F]): F[Unit] =
+    answerCallbackQuery(cb.id, text).exec.void
 
   def toReplyMessage(reply: ValidationResult[ReplyMessage]): ReplyMessage =
     reply match {
@@ -56,13 +55,14 @@ object TelegramOps {
   def inlineKeyboardButton(text: String, cbData: CbData): InlineKeyboardButton =
     InlineKeyboardButton.callbackData(text, callbackData = cbData.toCsv)
 
-  def clearMarkup[F[_] : Sync](cb: CallbackQuery)(implicit bot: Api[F]): F[Unit] =
-    bot.editMessageReplyMarkup(
-      EditMessageReplyMarkupReq(cb.message.map(msg => ChatIntId(msg.chat.id)), cb.message.map(_.messageId))
+  def clearMarkup[F[_]: Sync](cb: CallbackQuery)(implicit bot: Api[F]): F[Unit] =
+    editMessageReplyMarkup(
+      cb.message.map(msg => ChatIntId(msg.chat.id)), cb.message.map(_.messageId)
     )
+      .exec
       .void
 
-  def handleCallback[F[_] : Sync : Logging : Timer](query: CallbackQuery, replies: List[ReplyMessage])(
+  def handleCallback[F[_]: Sync: Logging: Timer](query: CallbackQuery, replies: List[ReplyMessage])(
     implicit bot: Api[F]
   ): F[Unit] = {
     def sendReplies() =
@@ -75,7 +75,7 @@ object TelegramOps {
     ackCb(query) *> sendReplies()
   }
 
-  def sendReplyMessages[F[_] : Sync : Logging : Timer](msg: Message, replies: List[ReplyMessage])(
+  def sendReplyMessages[F[_]: Sync: Logging: Timer](msg: Message, replies: List[ReplyMessage])(
     implicit bot: Api[F]
   ): F[Unit] =
     replies.map { reply =>

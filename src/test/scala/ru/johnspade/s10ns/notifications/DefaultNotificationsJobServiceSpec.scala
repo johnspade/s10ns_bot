@@ -11,6 +11,7 @@ import doobie.ConnectionIO
 import doobie.implicits._
 import doobie.util.transactor.Transactor
 import io.chrisdavenport.fuuid.FUUID
+import io.circe.syntax._
 import org.flywaydb.core.Flyway
 import org.joda.money.CurrencyUnit
 import org.scalamock.scalatest.MockFactory
@@ -25,8 +26,10 @@ import ru.johnspade.s10ns.subscription.tags.{BillingPeriodDuration, FirstPayment
 import ru.johnspade.s10ns.subscription.{BillingPeriodUnit, SubscriptionDraft}
 import ru.johnspade.s10ns.user.tags.{ChatId, FirstName, UserId}
 import ru.johnspade.s10ns.user.{DoobieUserRepository, User}
-import telegramium.bots.client.{Api, SendMessageReq}
-import telegramium.bots.high._
+import telegramium.bots.CirceImplicits._
+import telegramium.bots.client.CirceImplicits._
+import telegramium.bots.client.{MethodReq, SendMessageReq}
+import telegramium.bots.high.{Api, _}
 import telegramium.bots.{Chat, ChatIntId, Markdown, Message}
 
 class DefaultNotificationsJobServiceSpec
@@ -57,36 +60,39 @@ class DefaultNotificationsJobServiceSpec
   behavior of "executeTask"
 
   it should "send a notification if there is a task in the table" in {
-    (api.sendMessage _).when(*).returns(IO.pure(Message(0, date = 0, chat = Chat(0, `type` = ""))))
+    (api.execute[Message] _).when(*).returns(IO.pure(Message(0, date = 0, chat = Chat(0, `type` = ""))))
     notificationRepo.create(Notification(FUUID.randomFUUID[IO].unsafeRunSync, s10nId))
       .transact(xa).unsafeRunSync
 
     notificationsJobService.executeTask().unsafeRunSync
-    (api.sendMessage _).verify(SendMessageReq(
-      chatId = ChatIntId(0),
-      text =
-        s"""_A payment date is approaching:_
-           |*Netflix*
-           |
-           |11.36 €
-           |
-           |_Billing period:_ every 1 month
-           |_Next payment:_ $today
-           |_First payment:_ $today
-           |_Paid in total:_ 0.00 €""".stripMargin,
-      Markdown.some,
-      replyMarkup = InlineKeyboardMarkup.singleColumn(List(
-        inlineKeyboardButton("Edit", EditS10n(s10nId, PageNumber(0))),
-        inlineKeyboardButton("Disable notifications", Notify(s10nId, enable = false, PageNumber(0))),
-        inlineKeyboardButton("Remove", RemoveS10n(s10nId, PageNumber(0))),
-        inlineKeyboardButton("List", S10ns(PageNumber(0)))
-      )).some
+    (api.execute[Message] _).verify(MethodReq[Message](
+      "sendMessage",
+      SendMessageReq(
+        chatId = ChatIntId(0),
+        text =
+          s"""_A payment date is approaching:_
+             |*Netflix*
+             |
+             |11.36 €
+             |
+             |_Billing period:_ every 1 month
+             |_Next payment:_ $today
+             |_First payment:_ $today
+             |_Paid in total:_ 0.00 €""".stripMargin,
+        Markdown.some,
+        replyMarkup = InlineKeyboardMarkup.singleColumn(List(
+          inlineKeyboardButton("Edit", EditS10n(s10nId, PageNumber(0))),
+          inlineKeyboardButton("Disable notifications", Notify(s10nId, enable = false, PageNumber(0))),
+          inlineKeyboardButton("Remove", RemoveS10n(s10nId, PageNumber(0))),
+          inlineKeyboardButton("List", S10ns(PageNumber(0)))
+        )).some
+      ).asJson
     ))
   }
 
   it should "do nothing if there is no tasks" in {
     notificationsJobService.executeTask().unsafeRunSync
-    (api.sendMessage _).verify(*).never()
+    (api.execute[Message] _).verify(*).never()
   }
 
   it should "do nothing if the notification already sent" in {
@@ -108,7 +114,7 @@ class DefaultNotificationsJobServiceSpec
       .transact(xa).unsafeRunSync
 
     notificationsJobService.executeTask().unsafeRunSync
-    (api.sendMessage _).verify(*).never()
+    (api.execute[Message] _).verify(*).never()
   }
 
   private val userRepo = new DoobieUserRepository

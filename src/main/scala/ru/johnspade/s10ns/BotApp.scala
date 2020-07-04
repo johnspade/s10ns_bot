@@ -19,7 +19,6 @@ import ru.johnspade.s10ns.notifications.NotificationsModule
 import ru.johnspade.s10ns.settings.SettingsModule
 import ru.johnspade.s10ns.subscription.SubscriptionModule
 import ru.johnspade.s10ns.user.UserModule
-import telegramium.bots.client.Api
 import telegramium.bots.high._
 import tofu.logging._
 
@@ -61,11 +60,10 @@ object BotApp extends IOApp {
         _ <- notificationsModule.prepareNotificationsJobService.startPrepareNotificationsJob()
         _ <- BlazeClientBuilder[F](ExecutionContext.global).resource.use { httpClient =>
           implicit val api: Api[F] =
-            Http4sApi.create(httpClient, s"https://api.telegram.org/bot${conf.telegram.token}", blocker)
+            BotApi(httpClient, s"https://api.telegram.org/bot${conf.telegram.token}", blocker)
           for {
             _ <- notificationsModule.notificationsJobService.startNotificationsJob
             bot <- SubscriptionsBot[F, D](
-              api,
               userModule.userRepository,
               subscriptionModule.subscriptionListController,
               subscriptionModule.createS10nDialogController,

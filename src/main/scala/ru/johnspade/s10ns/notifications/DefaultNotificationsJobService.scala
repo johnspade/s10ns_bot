@@ -6,13 +6,15 @@ import cats.data.OptionT
 import cats.effect.{Clock, Concurrent, Timer}
 import cats.implicits._
 import cats.{Monad, ~>}
-import ru.johnspade.s10ns.{currentTimestamp, repeat}
 import ru.johnspade.s10ns.subscription.Subscription
 import ru.johnspade.s10ns.subscription.repository.SubscriptionRepository
 import ru.johnspade.s10ns.subscription.service.S10nsListMessageService
 import ru.johnspade.s10ns.user.User
+import ru.johnspade.s10ns.{currentTimestamp, repeat}
 import telegramium.bots.ChatIntId
-import telegramium.bots.client.{Api, SendMessageReq}
+import telegramium.bots.high.Api
+import telegramium.bots.high.Methods._
+import telegramium.bots.high.implicits._
 import tofu.logging._
 import tofu.syntax.logging._
 
@@ -30,13 +32,13 @@ class DefaultNotificationsJobService[F[_]: Concurrent: Clock: Timer: Logging, D[
       user.chatId.map { chatId =>
         s10nListMessageService.createSubscriptionMessage(user.defaultCurrency, s10n)
           .flatMap { message =>
-            bot.sendMessage(SendMessageReq(
+            sendMessage(
               chatId = ChatIntId(chatId),
               text = s"_A payment date is approaching:_\n${message.text}",
               parseMode = message.parseMode,
               replyMarkup = message.markup
-            ))
-              .void
+            )
+              .exec.void
           }
       }
         .sequence_

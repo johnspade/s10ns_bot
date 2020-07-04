@@ -58,8 +58,8 @@ libraryDependencies ++= Seq(
   "org.scalamock" %% "scalamock" % "4.4.0" % Test
 )
 
-lazy val telegramiumCore = ProjectRef(uri("https://github.com/apimorphism/telegramium.git#master"), "telegramium-core")
-lazy val telegramiumHigh = ProjectRef(uri("https://github.com/apimorphism/telegramium.git#master"), "telegramium-high")
+lazy val telegramiumCore = ProjectRef(uri("https://github.com/johnspade/telegramium.git#methods-fabric"), "telegramium-core")
+lazy val telegramiumHigh = ProjectRef(uri("https://github.com/johnspade/telegramium.git#methods-fabric"), "telegramium-high")
 lazy val root = project.in(file(".")).dependsOn(telegramiumCore, telegramiumHigh)
 
 addCompilerPlugin("com.olegpy" %% "better-monadic-for" % "0.3.1")
