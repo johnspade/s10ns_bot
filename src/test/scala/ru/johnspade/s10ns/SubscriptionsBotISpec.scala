@@ -13,6 +13,7 @@ import org.scalamock.scalatest.MockFactory
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.freespec.AnyFreeSpec
 import ru.johnspade.s10ns.PostgresContainer.container
+import ru.johnspade.s10ns.TelegramiumScalamockUtils.verifyMethodCall
 import ru.johnspade.s10ns.bot.engine.TelegramOps.inlineKeyboardButton
 import ru.johnspade.s10ns.bot.engine.{DefaultDialogEngine, DefaultMsgService}
 import ru.johnspade.s10ns.bot.{BotStart, CbDataService, EditS10n, Markup, Messages, MoneyService, Notify, RemoveS10n, S10ns, StartController}
@@ -27,14 +28,11 @@ import ru.johnspade.s10ns.subscription.service.{S10nInfoService, S10nsListMessag
 import ru.johnspade.s10ns.subscription.tags.PageNumber
 import ru.johnspade.s10ns.user.DoobieUserRepository
 import ru.johnspade.s10ns.user.tags.UserId
-import telegramium.bots.high.Api
-import telegramium.bots.client.{AnswerCallbackQueryReq, EditMessageReplyMarkupReq, EditMessageTextReq, MethodReq, SendMessageReq}
-import telegramium.bots.high._
+import telegramium.bots.client.Method
+import telegramium.bots.high.Methods._
+import telegramium.bots.high.{Api, _}
 import telegramium.bots.{CallbackQuery, Chat, ChatIntId, Html, KeyboardMarkup, Markdown, Message, ParseMode, User}
 import tofu.logging.Logs
-import telegramium.bots.client.CirceImplicits._
-import telegramium.bots.CirceImplicits._
-import io.circe.syntax._
 
 import scala.concurrent.ExecutionContext
 
@@ -98,13 +96,8 @@ class SubscriptionsBotISpec
     ).once
     verifyEditMessageText(s" <em>${DateTimeFormatter.ISO_DATE.format(LocalDate.now(ZoneOffset.UTC))}</em>")
 
-    (api.execute[Either[Boolean, Message]] _)
-      .verify(MethodReq[Either[Boolean, Message]](
-        "editMessageReplyMarkup",
-        EditMessageReplyMarkupReq(ChatIntId(0).some, 0.some).asJson)
-      )
-      .repeat(3)
-    (api.execute[Boolean] _).verify(MethodReq[Boolean]("answerCallbackQuery", AnswerCallbackQueryReq("0").asJson)).repeat(3)
+    verifyMethodCall(api, editMessageReplyMarkup(ChatIntId(0).some, 0.some)).repeat(3)
+    (api.execute[Boolean] _).verify(answerCallbackQuery("0")).repeat(3)
   }
 
   private val userId = 1337
@@ -129,16 +122,11 @@ class SubscriptionsBotISpec
     )
 
   private def verifySendMessage(text: String, markup: Option[KeyboardMarkup] = None, parseMode: Option[ParseMode] = None) =
-    (api.execute[Message] _)
-      .verify(MethodReq[Message]("sendMessage", SendMessageReq(ChatIntId(0), text, replyMarkup = markup, parseMode = parseMode).asJson))
+    (api.execute[Message] _).verify(sendMessage(ChatIntId(0), text, replyMarkup = markup, parseMode = parseMode))
 
-  private def verifyEditMessageText(text: String) =
-    (api.execute[Either[Boolean, Message]] _)
-      .verify(MethodReq[Either[Boolean, Message]](
-        "editMessageText",
-        EditMessageTextReq(ChatIntId(0).some, messageId = 0.some, text = text, parseMode = Html.some).asJson
-      ))
-
+  private def verifyEditMessageText(text: String): Unit = {
+    verifyMethodCall(api, editMessageText(ChatIntId(0).some, messageId = 0.some, text = text, parseMode = Html.some))
+  }
 
   private val s10nRepo = new DoobieSubscriptionRepository
   private implicit val cs: ContextShift[IO] = IO.contextShift(ExecutionContext.global)
@@ -151,12 +139,6 @@ class SubscriptionsBotISpec
   )
 
   private lazy val s10nId = s10nRepo.getByUserId(UserId(userId.toLong)).transact(transactor).unsafeRunSync.head.id
-
-  import io.circe.Decoder
-  private implicit def decodeEither[A, B](
-    implicit decoderA: Decoder[A],
-    decoderB: Decoder[B]
-  ): Decoder[Either[A, B]] = decoderA.either(decoderB)
 
   private trait Wiring {
 
@@ -232,9 +214,18 @@ class SubscriptionsBotISpec
     private val mockMessage = Message(0, date = 0, chat = Chat(0, `type` = ""))
 
     protected def prepareStubs(): Unit = {
-      (api.execute[Message] _).when(*).returns(IO(mockMessage))
-      (api.execute[Either[Boolean, Message]] _).when(*).returns(IO(Right(mockMessage)))
-      (api.execute[Boolean] _).when(*).returns(IO(true))
+      (api.execute[Message] _)
+        .when(where((_: Method[Message]).name == "sendMessage"))
+        .returns(IO.pure(mockMessage))
+      (api.execute[Either[Boolean, Message]] _)
+        .when(where((_: Method[Either[Boolean, Message]]).name == "editMessageReplyMarkup"))
+        .returns(IO.pure(Right(mockMessage)))
+      (api.execute[Boolean] _)
+        .when(where((_: Method[Boolean]).name == "answerCallbackQuery"))
+        .returns(IO.pure(true))
+      (api.execute[Either[Boolean, Message]] _)
+        .when(where((_: Method[Either[Boolean, Message]]).name == "editMessageText"))
+        .returns(IO.pure(Right(mockMessage)))
     }
   }
 }

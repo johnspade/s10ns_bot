@@ -11,7 +11,6 @@ import doobie.ConnectionIO
 import doobie.implicits._
 import doobie.util.transactor.Transactor
 import io.chrisdavenport.fuuid.FUUID
-import io.circe.syntax._
 import org.flywaydb.core.Flyway
 import org.joda.money.CurrencyUnit
 import org.scalamock.scalatest.MockFactory
@@ -26,9 +25,7 @@ import ru.johnspade.s10ns.subscription.tags.{BillingPeriodDuration, FirstPayment
 import ru.johnspade.s10ns.subscription.{BillingPeriodUnit, SubscriptionDraft}
 import ru.johnspade.s10ns.user.tags.{ChatId, FirstName, UserId}
 import ru.johnspade.s10ns.user.{DoobieUserRepository, User}
-import telegramium.bots.CirceImplicits._
-import telegramium.bots.client.CirceImplicits._
-import telegramium.bots.client.{MethodReq, SendMessageReq}
+import telegramium.bots.high.Methods.sendMessage
 import telegramium.bots.high.{Api, _}
 import telegramium.bots.{Chat, ChatIntId, Markdown, Message}
 
@@ -65,28 +62,25 @@ class DefaultNotificationsJobServiceSpec
       .transact(xa).unsafeRunSync
 
     notificationsJobService.executeTask().unsafeRunSync
-    (api.execute[Message] _).verify(MethodReq[Message](
-      "sendMessage",
-      SendMessageReq(
-        chatId = ChatIntId(0),
-        text =
-          s"""_A payment date is approaching:_
-             |*Netflix*
-             |
-             |11.36 €
-             |
-             |_Billing period:_ every 1 month
-             |_Next payment:_ $today
-             |_First payment:_ $today
-             |_Paid in total:_ 0.00 €""".stripMargin,
-        Markdown.some,
-        replyMarkup = InlineKeyboardMarkup.singleColumn(List(
-          inlineKeyboardButton("Edit", EditS10n(s10nId, PageNumber(0))),
-          inlineKeyboardButton("Disable notifications", Notify(s10nId, enable = false, PageNumber(0))),
-          inlineKeyboardButton("Remove", RemoveS10n(s10nId, PageNumber(0))),
-          inlineKeyboardButton("List", S10ns(PageNumber(0)))
-        )).some
-      ).asJson
+    (api.execute[Message] _).verify(sendMessage(
+      chatId = ChatIntId(0),
+      text =
+        s"""_A payment date is approaching:_
+           |*Netflix*
+           |
+           |11.36 €
+           |
+           |_Billing period:_ every 1 month
+           |_Next payment:_ $today
+           |_First payment:_ $today
+           |_Paid in total:_ 0.00 €""".stripMargin,
+      Markdown.some,
+      replyMarkup = InlineKeyboardMarkup.singleColumn(List(
+        inlineKeyboardButton("Edit", EditS10n(s10nId, PageNumber(0))),
+        inlineKeyboardButton("Disable notifications", Notify(s10nId, enable = false, PageNumber(0))),
+        inlineKeyboardButton("Remove", RemoveS10n(s10nId, PageNumber(0))),
+        inlineKeyboardButton("List", S10ns(PageNumber(0)))
+      )).some
     ))
   }
 
