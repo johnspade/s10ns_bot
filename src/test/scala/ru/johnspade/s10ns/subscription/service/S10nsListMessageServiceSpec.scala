@@ -56,8 +56,8 @@ class S10nsListMessageServiceSpec extends AnyFlatSpec with Matchers with OptionV
     page.text shouldBe
       """|Monthly: 17.27 €
          |
-         |1. Netflix – ≈11.97 € (≈143.67 € / y) <b>[26d]</b>
-         |2. Spotify – 5.30 € (63.60 € / y)""".stripMargin
+         |1. Netflix – ≈11.97 € <b>[26d]</b>
+         |2. Spotify – 5.30 €""".stripMargin
     page.markup.value should matchTo[KeyboardMarkup] {
       InlineKeyboardMarkup(List(
         List(inlineKeyboardButton("Yearly", S10nsPeriod(BillingPeriodUnit.Year, PageNumber(0)))),
