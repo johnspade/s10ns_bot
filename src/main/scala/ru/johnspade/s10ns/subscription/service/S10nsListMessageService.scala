@@ -1,7 +1,5 @@
 package ru.johnspade.s10ns.subscription.service
 
-import java.time.temporal.ChronoUnit
-
 import cats.effect.Sync
 import cats.implicits._
 import org.joda.money.{CurrencyUnit, Money}
@@ -34,22 +32,14 @@ class S10nsListMessageService[F[_] : Sync](
             s.billingPeriod.fold(s10nInfoService.printAmount(s.amount, defaultCurrency)) { billingPeriod =>
               val periodAmount = moneyService.calcAmount(billingPeriod, s.amount, period.chronoUnit)
               val periodAmountString = s10nInfoService.printAmount(periodAmount, defaultCurrency)
-              val additionalAmount = period match {
-                case BillingPeriodUnit.Month | BillingPeriodUnit.Week =>
-                  val yearAmount = moneyService.calcAmount(billingPeriod, s.amount, ChronoUnit.YEARS)
-                  val yearAmountString = s10nInfoService.printAmount(yearAmount, defaultCurrency)
-                  yearAmountString.map(s => s" ($s / y)")
-                case _ => Sync[F].pure("")
-              }
               val remainingTime = s.firstPaymentDate.flatTraverse {
                 s10nInfoService.getRemainingTime(_, billingPeriod)
               }
                   .map(_.map(rem => s" <b>$rem</b>").getOrElse(""))
               for {
                 periodAmountStr <- periodAmountString
-                addAmount <- additionalAmount
                 remaining <- remainingTime
-              } yield periodAmountStr + addAmount + remaining
+              } yield periodAmountStr + remaining
             }
               .map(amount => s"$i. ${s.name} – $amount")
         }

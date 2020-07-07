@@ -2,12 +2,13 @@ name := "s10ns_bot"
 
 version := "0.1"
 
-scalaVersion := "2.13.2"
+scalaVersion := "2.13.3"
 
 scalacOptions ++= Seq(
   "-language:higherKinds"
 )
 
+val TelegramiumVersion = "2.49.0"
 val DoobieVersion = "0.9.0"
 val FuuidVersion = "0.3.0"
 val CirceVersion = "0.13.0"
@@ -19,6 +20,8 @@ val EnumeratumVersion = "1.6.0"
 val TestcontainersScalaVersion = "0.37.0"
 
 libraryDependencies ++= Seq(
+  "io.github.apimorphism" %%"telegramium-core" % TelegramiumVersion,
+  "io.github.apimorphism" %% "telegramium-high" % TelegramiumVersion,
   "com.softwaremill.sttp" %% "core" % SttpVersion,
   "com.softwaremill.sttp" %% "async-http-client-backend-cats" % SttpVersion,
   "com.softwaremill.sttp" %% "circe" % SttpVersion,
@@ -57,10 +60,6 @@ libraryDependencies ++= Seq(
   "com.softwaremill.diffx" %% "diffx-scalatest" % "0.3.28" % Test,
   "org.scalamock" %% "scalamock" % "4.4.0" % Test
 )
-
-lazy val telegramiumCore = ProjectRef(uri("https://github.com/johnspade/telegramium.git#methods-fabric"), "telegramium-core")
-lazy val telegramiumHigh = ProjectRef(uri("https://github.com/johnspade/telegramium.git#methods-fabric"), "telegramium-high")
-lazy val root = project.in(file(".")).dependsOn(telegramiumCore, telegramiumHigh)
 
 addCompilerPlugin("com.olegpy" %% "better-monadic-for" % "0.3.1")
 
