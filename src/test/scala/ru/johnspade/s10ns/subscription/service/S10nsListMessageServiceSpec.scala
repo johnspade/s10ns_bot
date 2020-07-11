@@ -131,6 +131,10 @@ class S10nsListMessageServiceSpec extends AnyFlatSpec with Matchers with OptionV
       BillingPeriodUnit.Year
     )
       .unsafeRunSync
+    page.text shouldBe
+      """|Yearly: 143.67 €
+         |
+         |1. Netflix – ≈143.67 € <b>[26d]</b>""".stripMargin
     page.markup.value should matchTo[KeyboardMarkup] {
       InlineKeyboardMarkup(List(
         List(inlineKeyboardButton("Weekly", S10nsPeriod(BillingPeriodUnit.Week, PageNumber(0)))),
@@ -148,6 +152,10 @@ class S10nsListMessageServiceSpec extends AnyFlatSpec with Matchers with OptionV
       BillingPeriodUnit.Week
     )
       .unsafeRunSync
+    page.text shouldBe
+      """|Weekly: 2.75 €
+         |
+         |1. Netflix – ≈2.75 € <b>[26d]</b>""".stripMargin
     page.markup.value should matchTo[KeyboardMarkup] {
       InlineKeyboardMarkup(List(
         List(inlineKeyboardButton("Monthly", S10nsPeriod(BillingPeriodUnit.Month, PageNumber(0)))),

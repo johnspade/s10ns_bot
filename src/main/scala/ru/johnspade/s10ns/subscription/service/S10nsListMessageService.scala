@@ -30,11 +30,15 @@ class S10nsListMessageService[F[_]: Sync](
         .traverse(s10nInfoService.getNextPaymentDate(_, s10n.billingPeriod))
         .map((_, s10n))
 
-    def createItem(nextPaymentDate: Option[LocalDate], s10n: Subscription, index: Int) =
+    def createItem(nextPaymentDate: Option[LocalDate], s10n: Subscription, index: Int) = {
+      val periodAmount = s10n.billingPeriod.fold(s10n.amount) {
+        moneyService.calcAmount(_, s10n.amount, period.chronoUnit)
+      }
       for {
         remainingTime <- nextPaymentDate.flatTraverse(s10nInfoService.getRemainingTime)
-        amount <- getAmountInDefaultCurrency(s10n.amount, defaultCurrency)
+        amount <- getAmountInDefaultCurrency(periodAmount, defaultCurrency)
       } yield S10nItem(index + 1, s10n.id, s10n.name, amount, remainingTime)
+    }
 
     def createItems() = {
       val from = page * DefaultPageSize
