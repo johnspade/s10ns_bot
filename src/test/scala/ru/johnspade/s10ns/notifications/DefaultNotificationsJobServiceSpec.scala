@@ -20,7 +20,7 @@ import ru.johnspade.s10ns.bot.engine.TelegramOps.inlineKeyboardButton
 import ru.johnspade.s10ns.bot.{EditS10n, MoneyService, Notify, RemoveS10n, S10ns}
 import ru.johnspade.s10ns.exchangerates.InMemoryExchangeRatesStorage
 import ru.johnspade.s10ns.subscription.repository.DoobieSubscriptionRepository
-import ru.johnspade.s10ns.subscription.service.{S10nInfoService, S10nsListMessageService}
+import ru.johnspade.s10ns.subscription.service.{S10nInfoService, S10nsListMessageService, S10nsListReplyMessageService}
 import ru.johnspade.s10ns.subscription.tags.{BillingPeriodDuration, FirstPaymentDate, OneTimeSubscription, PageNumber, SubscriptionAmount, SubscriptionName}
 import ru.johnspade.s10ns.subscription.{BillingPeriodUnit, SubscriptionDraft}
 import ru.johnspade.s10ns.user.tags.{ChatId, FirstName, UserId}
@@ -38,8 +38,8 @@ class DefaultNotificationsJobServiceSpec
   private val notificationRepo = new DoobieNotificationRepository
   private val s10nRepo = new DoobieSubscriptionRepository
   private val moneyService = new MoneyService[IO](new InMemoryExchangeRatesStorage)
-  private val s10nInfoService = new S10nInfoService[IO](moneyService)
-  private val s10nsListMessageService = new S10nsListMessageService[IO](moneyService, s10nInfoService)
+  private val s10nInfoService = new S10nInfoService[IO]
+  private val s10nsListMessageService = new S10nsListMessageService[IO](moneyService, s10nInfoService, new S10nsListReplyMessageService)
   private val notificationService = new NotificationService[IO](48, s10nInfoService)
   protected val notificationsJobService: DefaultNotificationsJobService[IO, ConnectionIO] =
     DefaultNotificationsJobService[IO, ConnectionIO](

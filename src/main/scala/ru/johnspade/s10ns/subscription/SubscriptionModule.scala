@@ -11,7 +11,7 @@ import ru.johnspade.s10ns.subscription.controller.{CreateS10nDialogController, E
 import ru.johnspade.s10ns.subscription.dialog.{CreateS10nMsgService, EditS10n1stPaymentDateMsgService, EditS10nAmountDialogState, EditS10nBillingPeriodDialogState, EditS10nCurrencyDialogState, EditS10nNameDialogState, EditS10nOneTimeDialogState}
 import ru.johnspade.s10ns.subscription.repository.{DoobieSubscriptionRepository, SubscriptionRepository}
 import ru.johnspade.s10ns.subscription.service.impl.{DefaultCreateS10nDialogFsmService, DefaultCreateS10nDialogService, DefaultEditS10n1stPaymentDateDialogService, DefaultEditS10nAmountDialogService, DefaultEditS10nBillingPeriodDialogService, DefaultEditS10nCurrencyDialogService, DefaultEditS10nNameDialogService, DefaultEditS10nOneTimeDialogService, DefaultSubscriptionListService}
-import ru.johnspade.s10ns.subscription.service.{S10nInfoService, S10nsListMessageService}
+import ru.johnspade.s10ns.subscription.service.{S10nInfoService, S10nsListMessageService, S10nsListReplyMessageService}
 import ru.johnspade.s10ns.user.UserModule
 import tofu.logging.Logs
 
@@ -35,8 +35,9 @@ object SubscriptionModule {
     import userModule.userRepository
 
     val subscriptionRepo = new DoobieSubscriptionRepository
-    val s10nInfoSrv = new S10nInfoService[F](moneyService)
-    val s10nsListMessageSrv = new S10nsListMessageService(moneyService, s10nInfoSrv)
+    val s10nInfoSrv = new S10nInfoService[F]
+    val s10nsListReplyMessageService = new S10nsListReplyMessageService
+    val s10nsListMessageSrv = new S10nsListMessageService(moneyService, s10nInfoSrv, s10nsListReplyMessageService)
     val createS10nMsgSrv = new CreateS10nMsgService[F](calendarService)
     val createS10nDialogFsmSrv = new DefaultCreateS10nDialogFsmService[F, ConnectionIO](
       subscriptionRepo,

@@ -16,7 +16,7 @@ import ru.johnspade.s10ns.user.tags.UserId
 
 class NotificationServiceSpec extends SpecBase {
   private val moneyService = new MoneyService[IO](new InMemoryExchangeRatesStorage)
-  private val s10nInfoService = new S10nInfoService[IO](moneyService)
+  private val s10nInfoService = new S10nInfoService[IO]
   private val hoursBefore = 48
   private val notificationService = new NotificationService[IO](hoursBefore, s10nInfoService)
 

@@ -25,8 +25,8 @@ class S10nsListMessageServiceSpec extends AnyFlatSpec with Matchers with OptionV
   private implicit val clock: Clock[IO] = IO.timer(ExecutionContext.global).clock
 
   private val moneyService = new MoneyService[IO](new InMemoryExchangeRatesStorage)
-  private val s10nInfoService = new S10nInfoService[IO](moneyService)
-  private val s10nsListMessageService = new S10nsListMessageService[IO](moneyService, s10nInfoService)
+  private val s10nInfoService = new S10nInfoService[IO]
+  private val s10nsListMessageService = new S10nsListMessageService[IO](moneyService, s10nInfoService, new S10nsListReplyMessageService)
 
   private val firstPaymentDate = LocalDate.now(ZoneOffset.UTC).minusDays(35)
   private val s10n1 = Subscription(
@@ -56,14 +56,14 @@ class S10nsListMessageServiceSpec extends AnyFlatSpec with Matchers with OptionV
     page.text shouldBe
       """|Monthly: 17.27 €
          |
-         |1. Netflix – ≈11.97 € <b>[26d]</b>
-         |2. Spotify – 5.30 €""".stripMargin
+         |1. Spotify – 5.30 €
+         |2. Netflix – ≈11.97 € <b>[26d]</b>""".stripMargin
     page.markup.value should matchTo[KeyboardMarkup] {
       InlineKeyboardMarkup(List(
         List(inlineKeyboardButton("Yearly", S10nsPeriod(BillingPeriodUnit.Year, PageNumber(0)))),
         List(
-          inlineKeyboardButton("1", S10n(SubscriptionId(1L), PageNumber(0))),
-          inlineKeyboardButton("2", S10n(SubscriptionId(2L), PageNumber(0)))
+          inlineKeyboardButton("1", S10n(SubscriptionId(2L), PageNumber(0))),
+          inlineKeyboardButton("2", S10n(SubscriptionId(1L), PageNumber(0)))
         ),
         List()
       ))

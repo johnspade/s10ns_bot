@@ -24,7 +24,7 @@ import ru.johnspade.s10ns.subscription.controller.{CreateS10nDialogController, E
 import ru.johnspade.s10ns.subscription.dialog.{CreateS10nMsgService, EditS10n1stPaymentDateMsgService, EditS10nAmountDialogState, EditS10nBillingPeriodDialogState, EditS10nCurrencyDialogState, EditS10nNameDialogState, EditS10nOneTimeDialogState}
 import ru.johnspade.s10ns.subscription.repository.DoobieSubscriptionRepository
 import ru.johnspade.s10ns.subscription.service.impl.{DefaultCreateS10nDialogFsmService, DefaultCreateS10nDialogService, DefaultEditS10n1stPaymentDateDialogService, DefaultEditS10nAmountDialogService, DefaultEditS10nBillingPeriodDialogService, DefaultEditS10nCurrencyDialogService, DefaultEditS10nNameDialogService, DefaultEditS10nOneTimeDialogService, DefaultSubscriptionListService}
-import ru.johnspade.s10ns.subscription.service.{S10nInfoService, S10nsListMessageService}
+import ru.johnspade.s10ns.subscription.service.{S10nInfoService, S10nsListMessageService, S10nsListReplyMessageService}
 import ru.johnspade.s10ns.subscription.tags.PageNumber
 import ru.johnspade.s10ns.user.DoobieUserRepository
 import ru.johnspade.s10ns.user.tags.UserId
@@ -150,7 +150,11 @@ class SubscriptionsBotISpec
     protected val userRepo = new DoobieUserRepository
 
     private val moneyService = new MoneyService[IO](new InMemoryExchangeRatesStorage)
-    private val s10nsListMessageService = new S10nsListMessageService[IO](moneyService, new S10nInfoService[IO](moneyService))
+    private val s10nsListMessageService = new S10nsListMessageService[IO](
+      moneyService,
+      new S10nInfoService[IO],
+      new S10nsListReplyMessageService
+    )
     private val s10nsListService = new DefaultSubscriptionListService[IO, ConnectionIO](s10nRepo, s10nsListMessageService)
     private val s10nListController = new SubscriptionListController[IO](s10nsListService)
     protected val calendarService = new CalendarService

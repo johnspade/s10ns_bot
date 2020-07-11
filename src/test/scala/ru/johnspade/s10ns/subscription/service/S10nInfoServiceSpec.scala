@@ -1,6 +1,6 @@
 package ru.johnspade.s10ns.subscription.service
 
-import java.time.format.DateTimeFormatter
+import java.time.temporal.ChronoUnit
 import java.time.{LocalDate, ZoneOffset}
 
 import cats.effect.{Clock, IO}
@@ -8,119 +8,55 @@ import org.joda.money.{CurrencyUnit, Money}
 import org.scalatest.OptionValues
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import ru.johnspade.s10ns.bot.MoneyService
-import ru.johnspade.s10ns.exchangerates.InMemoryExchangeRatesStorage
-import ru.johnspade.s10ns.subscription.tags.{BillingPeriodDuration, FirstPaymentDate, SubscriptionName}
-import ru.johnspade.s10ns.subscription.{BillingPeriod, BillingPeriodUnit}
+import ru.johnspade.s10ns.subscription.tags.{BillingPeriodDuration, FirstPaymentDate}
+import ru.johnspade.s10ns.subscription.{BillingPeriod, BillingPeriodUnit, RemainingTime}
 
 import scala.concurrent.ExecutionContext
 
 class S10nInfoServiceSpec extends AnyFlatSpec with Matchers with OptionValues {
   private implicit val clock: Clock[IO] = IO.timer(ExecutionContext.global).clock
-  private val exchangeRatesStorage = new InMemoryExchangeRatesStorage
-  private val moneyService = new MoneyService[IO](exchangeRatesStorage)
-  private val s10nInfoService = new S10nInfoService[IO](moneyService)
+  private val s10nInfoService = new S10nInfoService[IO]
 
   private val amount = Money.of(CurrencyUnit.USD, 13.37)
   private val periodDuration = 2
   private val billingPeriod = BillingPeriod(BillingPeriodDuration(periodDuration), BillingPeriodUnit.Day)
   private val firstPaymentDate = FirstPaymentDate(LocalDate.now(ZoneOffset.UTC).minusDays(1))
 
-  "getName" should "get subscription's name" in {
-    s10nInfoService.getName(SubscriptionName("Netflix")) shouldBe "*Netflix*"
+  "getNextPaymentDate" should "calculate a next payment date" in {
+    val result = s10nInfoService.getNextPaymentDate(firstPaymentDate, Some(billingPeriod)).unsafeRunSync
+    result shouldBe firstPaymentDate.plusDays(periodDuration)
   }
 
-  "getAmount" should "print subscription's amount" in {
-    s10nInfoService.getAmount(amount) shouldBe "13.37 $"
-  }
-
-  "getAmountInDefaultCurrency" should "convert the amount to default currency" in {
-    s10nInfoService.getAmountInDefaultCurrency(amount, CurrencyUnit.EUR).unsafeRunSync.value shouldBe "≈11.97 €"
-  }
-
-  "getBillingPeriod" should "output a billing period with plural count of chrono units" in {
-    val billingPeriodDays = BillingPeriod(BillingPeriodDuration(18), BillingPeriodUnit.Day)
-    s10nInfoService.getBillingPeriod(billingPeriodDays) shouldBe "_Billing period:_ every 18 days"
-
-    val billingPeriodWeeks = BillingPeriod(BillingPeriodDuration(3), BillingPeriodUnit.Week)
-    s10nInfoService.getBillingPeriod(billingPeriodWeeks) shouldBe "_Billing period:_ every 3 weeks"
-
-    val billingPeriodMonths = BillingPeriod(BillingPeriodDuration(2), BillingPeriodUnit.Month)
-    s10nInfoService.getBillingPeriod(billingPeriodMonths) shouldBe "_Billing period:_ every 2 months"
-
-    val billingPeriodYears = BillingPeriod(BillingPeriodDuration(5), BillingPeriodUnit.Year)
-    s10nInfoService.getBillingPeriod(billingPeriodYears) shouldBe "_Billing period:_ every 5 years"
-  }
-
-  it should "output a billing period with a single chrono unit" in {
-    val billingPeriodDay = BillingPeriod(BillingPeriodDuration(1), BillingPeriodUnit.Day)
-    s10nInfoService.getBillingPeriod(billingPeriodDay) shouldBe "_Billing period:_ every 1 day"
-
-    val billingPeriodWeek = BillingPeriod(BillingPeriodDuration(1), BillingPeriodUnit.Week)
-    s10nInfoService.getBillingPeriod(billingPeriodWeek) shouldBe "_Billing period:_ every 1 week"
-
-    val billingPeriodMonth = BillingPeriod(BillingPeriodDuration(1), BillingPeriodUnit.Month)
-    s10nInfoService.getBillingPeriod(billingPeriodMonth) shouldBe "_Billing period:_ every 1 month"
-
-    val billingPeriodYear = BillingPeriod(BillingPeriodDuration(1), BillingPeriodUnit.Year)
-    s10nInfoService.getBillingPeriod(billingPeriodYear) shouldBe "_Billing period:_ every 1 year"
-  }
-
-  "printNextPaymentDate" should "calculate a next payment date" in {
-    val result = s10nInfoService.printNextPaymentDate(firstPaymentDate, billingPeriod).unsafeRunSync
-    result shouldBe s"_Next payment:_ ${DateTimeFormatter.ISO_DATE.format(firstPaymentDate.plusDays(periodDuration))}"
-  }
-
-  it should "calculate a next payment date in future" in {
-    val firstPaymentDate = FirstPaymentDate(LocalDate.now(ZoneOffset.UTC).plusMonths(2))
-    s10nInfoService.printNextPaymentDate(firstPaymentDate, BillingPeriod(BillingPeriodDuration(1), BillingPeriodUnit.Month))
-      .unsafeRunSync shouldBe s"_Next payment:_ ${DateTimeFormatter.ISO_DATE.format(firstPaymentDate)}"
-  }
-
-  it should "calculate that you have to pay today" in {
-    val firstPaymentDate = FirstPaymentDate(LocalDate.now(ZoneOffset.UTC))
-    s10nInfoService.printNextPaymentDate(firstPaymentDate, BillingPeriod(BillingPeriodDuration(1), BillingPeriodUnit.Month))
-      .unsafeRunSync shouldBe s"_Next payment:_ ${DateTimeFormatter.ISO_DATE.format(firstPaymentDate)}"
+  "getNextPaymentTimestamp" should "calculate a next payment timestamp" in {
+    val result = s10nInfoService.getNextPaymentTimestamp(firstPaymentDate, Some(billingPeriod)).unsafeRunSync
+    result shouldBe firstPaymentDate.plusDays(periodDuration).atStartOfDay(ZoneOffset.UTC).toInstant
   }
 
   "getPaidInTotal" should "calculate paid in total" in {
     val firstPaymentDate = FirstPaymentDate(LocalDate.now(ZoneOffset.UTC).minusDays(periodDuration + 1))
     s10nInfoService.getPaidInTotal(amount, firstPaymentDate, billingPeriod)
-      .unsafeRunSync shouldBe "_Paid in total:_ 26.74 $"
+      .unsafeRunSync shouldBe Money.of(CurrencyUnit.USD, 26.74)
   }
 
   it should "not calculate paid in total for future subscriptions" in {
     s10nInfoService.getPaidInTotal(amount, FirstPaymentDate(LocalDate.now(ZoneOffset.UTC).plusMonths(1)), billingPeriod)
-      .unsafeRunSync shouldBe "_Paid in total:_ 0.00 $"
-  }
-
-  "getFirstPaymentDate" should "print a first payment date" in {
-    s10nInfoService.getFirstPaymentDate(firstPaymentDate) shouldBe
-      s"_First payment:_ ${DateTimeFormatter.ISO_DATE.format(firstPaymentDate)}"
-  }
-
-  "printAmount" should "just return a passed amount with default currency" in {
-    s10nInfoService.printAmount(amount, CurrencyUnit.USD).unsafeRunSync shouldBe "13.37 $"
-  }
-
-  it should "convert the amount to default currency" in {
-    s10nInfoService.printAmount(amount, CurrencyUnit.EUR).unsafeRunSync shouldBe "≈11.97 €"
+      .unsafeRunSync shouldBe Money.of(CurrencyUnit.USD, 0)
   }
 
   "getRemainingTime" should "calculate time left" in {
-    val result = s10nInfoService.getRemainingTime(firstPaymentDate, billingPeriod).unsafeRunSync
-    result.value shouldBe "[1d]"
+    val result = s10nInfoService.getRemainingTime(firstPaymentDate.plusDays(periodDuration)).unsafeRunSync
+    result.value shouldBe RemainingTime(ChronoUnit.DAYS, 1)
   }
 
   it should "calculate time left in years" in {
     val firstPaymentDate = FirstPaymentDate(LocalDate.now(ZoneOffset.UTC).plusYears(1))
-    val result = s10nInfoService.getRemainingTime(firstPaymentDate, billingPeriod).unsafeRunSync
-    result.value shouldBe "[1y]"
+    val result = s10nInfoService.getRemainingTime(firstPaymentDate).unsafeRunSync
+    result.value shouldBe RemainingTime(ChronoUnit.YEARS, 1)
   }
 
   it should "calculate time left in months" in {
     val firstPaymentDate = FirstPaymentDate(LocalDate.now(ZoneOffset.UTC).plusDays(32))
-    val result = s10nInfoService.getRemainingTime(firstPaymentDate, billingPeriod).unsafeRunSync
-    result.value shouldBe "[1m]"
+    val result = s10nInfoService.getRemainingTime(firstPaymentDate).unsafeRunSync
+    result.value shouldBe RemainingTime(ChronoUnit.MONTHS, 1)
   }
 }

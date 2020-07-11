@@ -32,7 +32,11 @@ class DefaultCreateS10nDialogServiceSpec
   private val mockS10nRepo = mock[SubscriptionRepository[Id]]
   private val dialogEngine = new DefaultDialogEngine[IO, Id](userRepo)
   private val moneyService = new MoneyService[IO](new InMemoryExchangeRatesStorage)
-  private val s10nsListMessageService = new S10nsListMessageService[IO](moneyService, new S10nInfoService[IO](moneyService))
+  private val s10nsListMessageService = new S10nsListMessageService[IO](
+    moneyService,
+    new S10nInfoService[IO],
+    new S10nsListReplyMessageService
+  )
   private val calendarService = new CalendarService
   private val createS10nMsgService = new CreateS10nMsgService[IO](calendarService)
   private val createS10nDialogFsmService = new DefaultCreateS10nDialogFsmService[IO, Id](
