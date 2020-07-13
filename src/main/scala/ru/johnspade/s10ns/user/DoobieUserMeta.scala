@@ -23,7 +23,7 @@ object DoobieUserMeta {
         dialog => {
           val o = new PGobject
           o.setType("jsonb")
-          o.setValue(dialog.asJson.noSpaces)
+          o.setValue(dialog.asJson.deepDropNullValues.noSpaces)
           o
         }
       )

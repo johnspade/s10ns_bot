@@ -128,7 +128,7 @@ class SubscriptionsBot[F[_]: Sync: Timer: Logging, D[_]: Monad](
               withUser(s10nListController.removeSubscriptionCb(_, query, removeS10n))
 
             case editS10n: EditS10n =>
-              s10nListController.editS10nCb(query, editS10n).map(Either.right(_))
+              s10nListController.editS10nCb(query, editS10n).map(Right(_))
 
             case notify: Notify =>
               withUser(s10nListController.notifyCb(_, query, notify))
