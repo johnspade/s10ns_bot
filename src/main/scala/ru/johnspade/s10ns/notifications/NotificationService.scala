@@ -22,8 +22,8 @@ class NotificationService[F[_]: Monad](
       .map(_.getOrElse(false))
 
   def isNotified(s10n: Subscription, cutoff: Instant): Boolean =
-    s10n.lastNotification.exists(lessThanHoursBefore(_, cutoff))
+    s10n.lastNotification.exists(lessThanHoursBefore(_, cutoff, hoursBefore + 1))
 
-  private def lessThanHoursBefore(instant1: Instant, instant2: Instant): Boolean =
-    0 until hoursBefore contains ChronoUnit.HOURS.between(instant1, instant2)
+  private def lessThanHoursBefore(instant1: Instant, instant2: Instant, hours: Int = hoursBefore): Boolean =
+    0 until hours contains ChronoUnit.HOURS.between(instant1, instant2)
 }

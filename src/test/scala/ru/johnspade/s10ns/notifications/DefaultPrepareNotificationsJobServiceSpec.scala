@@ -13,8 +13,6 @@ import org.flywaydb.core.Flyway
 import org.joda.money.CurrencyUnit
 import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach}
 import ru.johnspade.s10ns.SpecBase
-import ru.johnspade.s10ns.bot.MoneyService
-import ru.johnspade.s10ns.exchangerates.InMemoryExchangeRatesStorage
 import ru.johnspade.s10ns.subscription.repository.DoobieSubscriptionRepository
 import ru.johnspade.s10ns.subscription.service.S10nInfoService
 import ru.johnspade.s10ns.subscription.tags.{BillingPeriodDuration, FirstPaymentDate, OneTimeSubscription, SubscriptionAmount, SubscriptionName}
@@ -68,7 +66,6 @@ class DefaultPrepareNotificationsJobServiceSpec
   private trait Wiring {
     protected val s10nRepo = new DoobieSubscriptionRepository
     protected val notificationRepo = new DoobieNotificationRepository
-    private val moneyService = new MoneyService[IO](new InMemoryExchangeRatesStorage)
     private val s10nInfoService = new S10nInfoService[IO]
     private val hoursBefore = 48
     private val notificationService = new NotificationService[IO](hoursBefore, s10nInfoService)

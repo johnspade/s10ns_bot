@@ -1,21 +1,18 @@
 package ru.johnspade.s10ns.notifications
 
 import java.time.temporal.ChronoUnit
-import java.time.{Instant, LocalDate}
+import java.time.{Instant, LocalDate, LocalDateTime}
 
 import cats.effect.IO
 import cats.syntax.option._
 import org.joda.money.{CurrencyUnit, Money}
 import ru.johnspade.s10ns.SpecBase
-import ru.johnspade.s10ns.bot.MoneyService
-import ru.johnspade.s10ns.exchangerates.InMemoryExchangeRatesStorage
 import ru.johnspade.s10ns.subscription.service.S10nInfoService
 import ru.johnspade.s10ns.subscription.tags.{BillingPeriodDuration, FirstPaymentDate, OneTimeSubscription, SubscriptionId, SubscriptionName}
 import ru.johnspade.s10ns.subscription.{BillingPeriod, BillingPeriodUnit, Subscription}
 import ru.johnspade.s10ns.user.tags.UserId
 
 class NotificationServiceSpec extends SpecBase {
-  private val moneyService = new MoneyService[IO](new InMemoryExchangeRatesStorage)
   private val s10nInfoService = new S10nInfoService[IO]
   private val hoursBefore = 48
   private val notificationService = new NotificationService[IO](hoursBefore, s10nInfoService)
@@ -58,6 +55,16 @@ class NotificationServiceSpec extends SpecBase {
       sampleS10n.copy(lastNotification = now.some),
       now
     ).unsafeRunSync shouldBe false
+  }
+
+  it should "return false if a notification was sent hoursBefore ago" in {
+    notificationService.needNotification(
+      sampleS10n.copy(
+        lastNotification = now.minus(48, ChronoUnit.HOURS).some,
+        firstPaymentDate = FirstPaymentDate(LocalDate.now).some
+      ),
+      now
+    )
   }
 
   behavior of "isNotified"
