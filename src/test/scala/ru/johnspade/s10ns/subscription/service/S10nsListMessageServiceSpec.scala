@@ -57,7 +57,7 @@ class S10nsListMessageServiceSpec extends AnyFlatSpec with Matchers with OptionV
       """|Monthly: 17.27 €
          |
          |1. Spotify – 5.30 €
-         |2. Netflix – ≈11.97 € <b>[26d]</b>""".stripMargin
+         |2. Netflix – ≈11.97 € <b>[27d]</b>""".stripMargin
     page.markup.value should matchTo[KeyboardMarkup] {
       InlineKeyboardMarkup(List(
         List(inlineKeyboardButton("Yearly", S10nsPeriod(BillingPeriodUnit.Year, PageNumber(0)))),
@@ -134,7 +134,7 @@ class S10nsListMessageServiceSpec extends AnyFlatSpec with Matchers with OptionV
     page.text shouldBe
       """|Yearly: 143.67 €
          |
-         |1. Netflix – ≈143.67 € <b>[26d]</b>""".stripMargin
+         |1. Netflix – ≈143.67 € <b>[27d]</b>""".stripMargin
     page.markup.value should matchTo[KeyboardMarkup] {
       InlineKeyboardMarkup(List(
         List(inlineKeyboardButton("Weekly", S10nsPeriod(BillingPeriodUnit.Week, PageNumber(0)))),
@@ -155,7 +155,7 @@ class S10nsListMessageServiceSpec extends AnyFlatSpec with Matchers with OptionV
     page.text shouldBe
       """|Weekly: 2.75 €
          |
-         |1. Netflix – ≈2.75 € <b>[26d]</b>""".stripMargin
+         |1. Netflix – ≈2.75 € <b>[27d]</b>""".stripMargin
     page.markup.value should matchTo[KeyboardMarkup] {
       InlineKeyboardMarkup(List(
         List(inlineKeyboardButton("Monthly", S10nsPeriod(BillingPeriodUnit.Month, PageNumber(0)))),

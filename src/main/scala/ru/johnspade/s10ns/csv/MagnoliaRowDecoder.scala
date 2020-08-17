@@ -8,7 +8,7 @@ import scala.language.experimental.macros
 object MagnoliaRowDecoder {
   type Typeclass[T] = RowDecoder[T]
 
-  def combine[T](ctx: CaseClass[RowDecoder, T]): RowDecoder[T] =
+  def combine[T](ctx: CaseClass[Typeclass, T]): Typeclass[T] =
     (e: Seq[String]) =>
       ctx.constructEither { p =>
         p.typeclass.decode(Seq(e(p.index)))
@@ -16,7 +16,7 @@ object MagnoliaRowDecoder {
         .left
         .map(_.head)
 
-  def dispatch[T](ctx: SealedTrait[RowDecoder, T]): RowDecoder[T] =
+  def dispatch[T](ctx: SealedTrait[Typeclass, T]): Typeclass[T] =
     (e: Seq[String]) =>
       if (e.isEmpty)
         Left(DecodeError.OutOfBounds(0))
@@ -27,5 +27,5 @@ object MagnoliaRowDecoder {
           .getOrElse(Left(DecodeError.TypeError(s"Invalid type tag: ${e.head}")))
       }
 
-  implicit def deriveRowDecoder[T]: RowDecoder[T] = macro Magnolia.gen[T]
+  implicit def deriveRowDecoder[T]: Typeclass[T] = macro Magnolia.gen[T]
 }
