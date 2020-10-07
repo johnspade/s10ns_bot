@@ -20,7 +20,7 @@ val EnumeratumVersion = "1.6.0"
 val TestcontainersScalaVersion = "0.37.0"
 
 libraryDependencies ++= Seq(
-  "io.github.apimorphism" %%"telegramium-core" % TelegramiumVersion,
+  "io.github.apimorphism" %% "telegramium-core" % TelegramiumVersion,
   "io.github.apimorphism" %% "telegramium-high" % TelegramiumVersion,
   "com.softwaremill.sttp" %% "core" % SttpVersion,
   "com.softwaremill.sttp" %% "async-http-client-backend-cats" % SttpVersion,

@@ -10,7 +10,6 @@ import ru.johnspade.s10ns.subscription.dialog.{EditS10nCurrencyDialogEvent, Edit
 import ru.johnspade.s10ns.subscription.repository.SubscriptionRepository
 import ru.johnspade.s10ns.subscription.service.{EditS10nCurrencyDialogService, RepliesValidated, S10nsListMessageService}
 import ru.johnspade.s10ns.user.{User, UserRepository}
-import telegramium.bots.CallbackQuery
 
 class DefaultEditS10nCurrencyDialogService[F[_] : Monad, D[_] : Monad](
   s10nsListMessageService: S10nsListMessageService[F],
@@ -22,10 +21,9 @@ class DefaultEditS10nCurrencyDialogService[F[_] : Monad, D[_] : Monad](
   extends EditS10nDialogService[F, D, EditS10nCurrencyDialogState](
     s10nsListMessageService, stateMessageService, userRepo, s10nRepo, dialogEngine
   ) with EditS10nCurrencyDialogService[F] {
-  override def onEditS10nCurrencyCb(user: User, cb: CallbackQuery, data: EditS10nCurrency): F[List[ReplyMessage]] =
+  override def onEditS10nCurrencyCb(user: User, data: EditS10nCurrency): F[List[ReplyMessage]] =
     onEditS10nDialogCb(
       user = user,
-      cb = cb,
       s10nId = data.subscriptionId,
       state = EditS10nCurrencyDialogState.Currency,
       createDialog =

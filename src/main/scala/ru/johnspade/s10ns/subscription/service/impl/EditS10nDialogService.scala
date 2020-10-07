@@ -12,7 +12,7 @@ import ru.johnspade.s10ns.subscription.tags._
 import ru.johnspade.s10ns.user.{User, UserRepository}
 import telegramium.bots.CallbackQuery
 
-abstract class EditS10nDialogService[F[_] : Monad, D[_] : Monad, S <: DialogState](
+abstract class EditS10nDialogService[F[_]: Monad, D[_]: Monad, S <: DialogState](
   private val s10nsListMessageService: S10nsListMessageService[F],
   private val stateMessageService: StateMessageService[F, S],
   private val userRepo: UserRepository[D],
@@ -50,7 +50,6 @@ abstract class EditS10nDialogService[F[_] : Monad, D[_] : Monad, S <: DialogStat
 
   protected def onEditS10nDialogCb(
     user: User,
-    cb: CallbackQuery,
     s10nId: SubscriptionId,
     state: S,
     createDialog: Subscription => EditS10nDialog

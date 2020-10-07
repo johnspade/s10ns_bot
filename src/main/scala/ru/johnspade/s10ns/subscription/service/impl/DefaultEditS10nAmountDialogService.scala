@@ -10,7 +10,6 @@ import ru.johnspade.s10ns.subscription.dialog.{EditS10nAmountDialogEvent, EditS1
 import ru.johnspade.s10ns.subscription.repository.SubscriptionRepository
 import ru.johnspade.s10ns.subscription.service.{EditS10nAmountDialogService, RepliesValidated, S10nsListMessageService}
 import ru.johnspade.s10ns.user.{User, UserRepository}
-import telegramium.bots.CallbackQuery
 
 class DefaultEditS10nAmountDialogService[F[_] : Monad, D[_] : Monad](
   s10nsListMessageService: S10nsListMessageService[F],
@@ -28,11 +27,10 @@ class DefaultEditS10nAmountDialogService[F[_] : Monad, D[_] : Monad](
       .andThen(amount => validateAmount(amount))
       .traverse(saveAmount(user, dialog, _))
 
-  override def onEditS10nAmountCb(user: User, cb: CallbackQuery, data: EditS10nAmount): F[List[ReplyMessage]] = {
+  override def onEditS10nAmountCb(user: User, data: EditS10nAmount): F[List[ReplyMessage]] = {
     val start = EditS10nAmountDialogState.Amount
     onEditS10nDialogCb(
       user = user,
-      cb = cb,
       s10nId = data.subscriptionId,
       state = start,
       createDialog = EditS10nAmountDialog(start, _)

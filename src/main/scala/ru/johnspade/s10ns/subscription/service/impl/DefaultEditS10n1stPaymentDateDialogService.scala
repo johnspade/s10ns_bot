@@ -9,7 +9,6 @@ import ru.johnspade.s10ns.subscription.dialog.{EditS10nFirstPaymentDateDialogEve
 import ru.johnspade.s10ns.subscription.repository.SubscriptionRepository
 import ru.johnspade.s10ns.subscription.service.{EditS10n1stPaymentDateDialogService, S10nsListMessageService}
 import ru.johnspade.s10ns.user.{User, UserRepository}
-import telegramium.bots.CallbackQuery
 
 class DefaultEditS10n1stPaymentDateDialogService[F[_] : Monad, D[_] : Monad](
   s10nsListMessageService: S10nsListMessageService[F],
@@ -21,23 +20,17 @@ class DefaultEditS10n1stPaymentDateDialogService[F[_] : Monad, D[_] : Monad](
   extends EditS10nDialogService[F, D, EditS10nFirstPaymentDateDialogState](
     s10nsListMessageService, stateMessageService, userRepo, s10nRepo, dialogEngine
   ) with EditS10n1stPaymentDateDialogService[F] {
-  override def onEditS10nFirstPaymentDateCb(user: User, cb: CallbackQuery, data: EditS10nFirstPaymentDate): F[List[ReplyMessage]] = {
+  override def onEditS10nFirstPaymentDateCb(user: User, data: EditS10nFirstPaymentDate): F[List[ReplyMessage]] = {
     val start = EditS10nFirstPaymentDateDialogState.FirstPaymentDate
     onEditS10nDialogCb(
       user = user,
-      cb = cb,
       s10nId = data.subscriptionId,
       state = start,
       createDialog = s10n => EditS10nFirstPaymentDateDialog(start, s10n)
     )
   }
 
-  override def saveFirstPaymentDate(
-    cb: CallbackQuery,
-    data: FirstPayment,
-    user: User,
-    dialog: EditS10nFirstPaymentDateDialog
-  ): F[List[ReplyMessage]] = {
+  override def saveFirstPaymentDate(data: FirstPayment, user: User, dialog: EditS10nFirstPaymentDateDialog): F[List[ReplyMessage]] = {
     val updatedDialog = dialog.modify(_.draft.firstPaymentDate).setTo(data.date.some)
     transition(user, updatedDialog)(EditS10nFirstPaymentDateDialogEvent.ChosenFirstPaymentDate)
   }

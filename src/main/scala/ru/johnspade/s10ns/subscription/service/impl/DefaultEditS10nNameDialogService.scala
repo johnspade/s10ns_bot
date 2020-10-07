@@ -10,9 +10,8 @@ import ru.johnspade.s10ns.subscription.repository.SubscriptionRepository
 import ru.johnspade.s10ns.subscription.service.{EditS10nNameDialogService, RepliesValidated, S10nsListMessageService}
 import ru.johnspade.s10ns.subscription.tags.SubscriptionName
 import ru.johnspade.s10ns.user.{User, UserRepository}
-import telegramium.bots.CallbackQuery
 
-class DefaultEditS10nNameDialogService[F[_] : Monad, D[_] : Monad](
+class DefaultEditS10nNameDialogService[F[_]: Monad, D[_]: Monad](
   s10nsListMessageService: S10nsListMessageService[F],
   stateMessageService: StateMessageService[F, EditS10nNameDialogState],
   userRepo: UserRepository[D],
@@ -22,10 +21,9 @@ class DefaultEditS10nNameDialogService[F[_] : Monad, D[_] : Monad](
   extends EditS10nDialogService[F, D, EditS10nNameDialogState](
     s10nsListMessageService, stateMessageService, userRepo, s10nRepo, dialogEngine
   ) with EditS10nNameDialogService[F] {
-  def onEditS10nNameCb(user: User, cb: CallbackQuery, data: EditS10nName): F[List[ReplyMessage]] =
+  def onEditS10nNameCb(user: User, data: EditS10nName): F[List[ReplyMessage]] =
     onEditS10nDialogCb(
       user = user,
-      cb = cb,
       s10nId = data.subscriptionId,
       state = EditS10nNameDialogState.Name,
       createDialog =

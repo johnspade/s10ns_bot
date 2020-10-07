@@ -12,7 +12,6 @@ import ru.johnspade.s10ns.subscription.service.{EditS10nBillingPeriodDialogServi
 import ru.johnspade.s10ns.subscription.tags.{BillingPeriodDuration, OneTimeSubscription}
 import ru.johnspade.s10ns.subscription.{BillingPeriod, BillingPeriodUnit}
 import ru.johnspade.s10ns.user.{User, UserRepository}
-import telegramium.bots.CallbackQuery
 
 class DefaultEditS10nBillingPeriodDialogService[F[_] : Monad, D[_] : Monad](
   s10nsListMessageService: S10nsListMessageService[F],
@@ -24,10 +23,9 @@ class DefaultEditS10nBillingPeriodDialogService[F[_] : Monad, D[_] : Monad](
   extends EditS10nDialogService[F, D, EditS10nBillingPeriodDialogState](
     s10nsListMessageService, stateMessageService, userRepo, s10nRepo, dialogEngine
   ) with EditS10nBillingPeriodDialogService[F] {
-  override def onEditS10nBillingPeriodCb(user: User, cb: CallbackQuery, data: EditS10nBillingPeriod): F[List[ReplyMessage]] =
+  override def onEditS10nBillingPeriodCb(user: User, data: EditS10nBillingPeriod): F[List[ReplyMessage]] =
     onEditS10nDialogCb(
       user = user,
-      cb = cb,
       s10nId = data.subscriptionId,
       state = EditS10nBillingPeriodDialogState.BillingPeriodUnit,
       createDialog =
@@ -37,12 +35,8 @@ class DefaultEditS10nBillingPeriodDialogService[F[_] : Monad, D[_] : Monad](
         )
     )
 
-  override def saveBillingPeriodUnit(
-    cb: CallbackQuery,
-    data: PeriodUnit,
-    user: User,
-    dialog: EditS10nBillingPeriodDialog
-  ): F[List[ReplyMessage]] = saveBillingPeriodUnit(user, dialog, data.unit)
+  override def saveBillingPeriodUnit(data: PeriodUnit, user: User, dialog: EditS10nBillingPeriodDialog): F[List[ReplyMessage]] =
+    saveBillingPeriodUnit(user, dialog, data.unit)
 
   override def saveBillingPeriodDuration(user: User, dialog: EditS10nBillingPeriodDialog, text: Option[String]): F[RepliesValidated] =
     validateText(text)

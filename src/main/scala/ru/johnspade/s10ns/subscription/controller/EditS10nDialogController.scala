@@ -22,7 +22,7 @@ class EditS10nDialogController[F[_]: Sync: Logging: Timer](
   private val editS10nOneTimeDialogService: EditS10nOneTimeDialogService[F]
 ) {
   def editS10nNameCb(user: User, cb: CallbackQuery, data: EditS10nName)(implicit bot: Api[F]): F[Unit] =
-    editS10nNameDialogService.onEditS10nNameCb(user, cb, data).flatMap(reply(cb, _))
+    editS10nNameDialogService.onEditS10nNameCb(user, data).flatMap(reply(cb, _))
 
   def s10nNameMessage(user: User, dialog: EditS10nNameDialog, message: Message): F[List[ReplyMessage]] =
     dialog.state match {
@@ -32,10 +32,10 @@ class EditS10nDialogController[F[_]: Sync: Logging: Timer](
     }
 
   def editS10nAmountCb(user: User, cb: CallbackQuery, data: EditS10nAmount)(implicit bot: Api[F]): F[Unit] =
-    editS10nAmountDialogService.onEditS10nAmountCb(user, cb, data).flatMap(reply(cb, _))
+    editS10nAmountDialogService.onEditS10nAmountCb(user, data).flatMap(reply(cb, _))
 
   def editS10nCurrencyCb(user: User, cb: CallbackQuery, data: EditS10nCurrency)(implicit bot: Api[F]): F[Unit] =
-    editS10nCurrencyDialogService.onEditS10nCurrencyCb(user, cb, data).flatMap(reply(cb, _))
+    editS10nCurrencyDialogService.onEditS10nCurrencyCb(user, data).flatMap(reply(cb, _))
 
   def s10nEditAmountMessage(user: User, dialog: EditS10nAmountDialog, message: Message): F[List[ReplyMessage]] =
     dialog.state match {
@@ -54,21 +54,21 @@ class EditS10nDialogController[F[_]: Sync: Logging: Timer](
     }
 
   def editS10nOneTimeCb(user: User, cb: CallbackQuery, data: EditS10nOneTime)(implicit bot: Api[F]): F[Unit] =
-    editS10nOneTimeDialogService.onEditS10nOneTimeCb(user, cb, data).flatMap(reply(cb, _))
+    editS10nOneTimeDialogService.onEditS10nOneTimeCb(user, data).flatMap(reply(cb, _))
 
   def everyMonthCb(cb: CallbackQuery, user: User, dialog: EditS10nOneTimeDialog)(implicit bot: Api[F]): F[Unit] =
-    clearMarkup(cb) *> editS10nOneTimeDialogService.saveEveryMonth(cb, user, dialog).flatMap(handleCallback(cb, _))
+    clearMarkup(cb) *> editS10nOneTimeDialogService.saveEveryMonth(user, dialog).flatMap(handleCallback(cb, _))
 
   def removeS10nIsOneTimeCb(cb: CallbackQuery, user: User, dialog: EditS10nOneTimeDialog)(implicit bot: Api[F]): F[Unit] =
-    clearMarkup(cb) *> editS10nOneTimeDialogService.removeIsOneTime(cb, user, dialog).flatMap(handleCallback(cb, _))
+    clearMarkup(cb) *> editS10nOneTimeDialogService.removeIsOneTime(user, dialog).flatMap(handleCallback(cb, _))
 
   def s10nOneTimeCb(cb: CallbackQuery, data: OneTime, user: User, dialog: EditS10nOneTimeDialog)(implicit bot: Api[F]): F[Unit] =
-    clearMarkup(cb) *> editS10nOneTimeDialogService.saveIsOneTime(cb, data, user, dialog).flatMap(handleCallback(cb, _))
+    clearMarkup(cb) *> editS10nOneTimeDialogService.saveIsOneTime(data, user, dialog).flatMap(handleCallback(cb, _))
 
   def s10nBillingPeriodCb(cb: CallbackQuery, data: PeriodUnit, user: User, dialog: EditS10nOneTimeDialog)(
     implicit bot: Api[F]
   ): F[Unit] =
-    clearMarkup(cb) *> editS10nOneTimeDialogService.saveBillingPeriodUnit(cb, data, user, dialog).flatMap(handleCallback(cb, _))
+    clearMarkup(cb) *> editS10nOneTimeDialogService.saveBillingPeriodUnit(data, user, dialog).flatMap(handleCallback(cb, _))
 
   def s10nBillingPeriodDurationMessage(user: User, dialog: EditS10nOneTimeDialog, message: Message): F[List[ReplyMessage]] =
     dialog.state match {
@@ -78,11 +78,11 @@ class EditS10nDialogController[F[_]: Sync: Logging: Timer](
     }
 
   def editS10nBillingPeriodCb(user: User, cb: CallbackQuery, data: EditS10nBillingPeriod)(implicit bot: Api[F]): F[Unit] =
-    editS10nBillingPeriodDialogService.onEditS10nBillingPeriodCb(user, cb, data).flatMap(reply(cb, _))
+    editS10nBillingPeriodDialogService.onEditS10nBillingPeriodCb(user, data).flatMap(reply(cb, _))
 
   def s10nBillingPeriodCb(cb: CallbackQuery, data: PeriodUnit, user: User, dialog: EditS10nBillingPeriodDialog)
     (implicit bot: Api[F]): F[Unit] =
-    clearMarkup(cb) *> editS10nBillingPeriodDialogService.saveBillingPeriodUnit(cb, data, user, dialog).flatMap(handleCallback(cb, _))
+    clearMarkup(cb) *> editS10nBillingPeriodDialogService.saveBillingPeriodUnit(data, user, dialog).flatMap(handleCallback(cb, _))
 
   def s10nBillingPeriodDurationMessage(user: User, dialog: EditS10nBillingPeriodDialog, message: Message): F[List[ReplyMessage]] =
     dialog.state match {
@@ -92,7 +92,7 @@ class EditS10nDialogController[F[_]: Sync: Logging: Timer](
     }
 
   def editS10nFirstPaymentDateCb(user: User, cb: CallbackQuery, data: EditS10nFirstPaymentDate)(implicit bot: Api[F]): F[Unit] =
-    editS10n1stPaymentDateDialogService.onEditS10nFirstPaymentDateCb(user, cb, data).flatMap(reply(cb, _))
+    editS10n1stPaymentDateDialogService.onEditS10nFirstPaymentDateCb(user, data).flatMap(reply(cb, _))
 
   def removeFirstPaymentDateCb(cb: CallbackQuery, user: User, dialog: EditS10nFirstPaymentDateDialog)
     (implicit bot: Api[F]): F[Unit] =
@@ -100,7 +100,7 @@ class EditS10nDialogController[F[_]: Sync: Logging: Timer](
 
   def s10nFirstPaymentDateCb(cb: CallbackQuery, data: FirstPayment, user: User, dialog: EditS10nFirstPaymentDateDialog)
     (implicit bot: Api[F]): F[Unit] =
-    clearMarkup(cb) *> editS10n1stPaymentDateDialogService.saveFirstPaymentDate(cb, data, user, dialog)
+    clearMarkup(cb) *> editS10n1stPaymentDateDialogService.saveFirstPaymentDate(data, user, dialog)
       .flatMap(handleCallback(cb, _))
 
   private def reply(cb: CallbackQuery, messages: List[ReplyMessage])(implicit bot: Api[F]): F[Unit] = {
