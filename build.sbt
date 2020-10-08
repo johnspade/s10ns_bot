@@ -1,3 +1,5 @@
+import TestSettings._
+
 name := "s10ns_bot"
 
 version := "0.1"
@@ -67,3 +69,5 @@ assemblyMergeStrategy in assembly := {
   case PathList("META-INF", _) => MergeStrategy.discard
   case _ => MergeStrategy.first
 }
+
+lazy val root: Project = (project in file(".")).withSerialTests

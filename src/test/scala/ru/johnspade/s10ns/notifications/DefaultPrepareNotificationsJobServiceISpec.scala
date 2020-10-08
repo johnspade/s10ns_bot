@@ -4,14 +4,11 @@ import java.time.{Instant, LocalDate}
 
 import cats.effect.IO
 import cats.syntax.option._
-import cats.~>
-import com.dimafeng.testcontainers.{ForAllTestContainer, PostgreSQLContainer}
 import doobie.free.connection.ConnectionIO
 import doobie.implicits._
-import doobie.util.transactor.Transactor
-import org.flywaydb.core.Flyway
 import org.joda.money.CurrencyUnit
-import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach}
+import org.scalatest.BeforeAndAfterEach
+import ru.johnspade.s10ns.PostgresContainer.{transact, xa}
 import ru.johnspade.s10ns.SpecBase
 import ru.johnspade.s10ns.subscription.repository.DoobieSubscriptionRepository
 import ru.johnspade.s10ns.subscription.service.S10nInfoService
@@ -20,11 +17,7 @@ import ru.johnspade.s10ns.subscription.{BillingPeriodUnit, Subscription, Subscri
 import ru.johnspade.s10ns.user.tags.{FirstName, UserId}
 import ru.johnspade.s10ns.user.{DoobieUserRepository, User}
 
-class DefaultPrepareNotificationsJobServiceSpec
-  extends SpecBase
-    with BeforeAndAfterAll
-    with BeforeAndAfterEach
-    with ForAllTestContainer {
+class DefaultPrepareNotificationsJobServiceISpec extends SpecBase with BeforeAndAfterEach {
 
   behavior of "prepareNotifications"
 
@@ -94,32 +87,15 @@ class DefaultPrepareNotificationsJobServiceSpec
     }
   }
 
-  lazy val container: PostgreSQLContainer = PostgreSQLContainer()
-  import container.{container => pgContainer}
-
-  private implicit lazy val xa: Transactor[IO] = Transactor.fromDriverManager[IO](
-    "org.postgresql.Driver",
-    container.jdbcUrl,
-    container.username,
-    container.password
-  )
-  private implicit lazy val transact: ~>[ConnectionIO, IO] = new ~>[ConnectionIO, IO] {
-    override def apply[A](fa: ConnectionIO[A]): IO[A] = fa.transact(xa)
-  }
-
   private val userRepo = new DoobieUserRepository
 
-  override protected def beforeAll(): Unit = {
-    Flyway
-      .configure()
-      .dataSource(pgContainer.getJdbcUrl, pgContainer.getUsername, pgContainer.getPassword)
-      .load()
-      .migrate
+  override protected def beforeEach(): Unit = {
     userRepo.createOrUpdate(User(id = UserId(0L), FirstName("John"), None)).transact(xa).unsafeRunSync
   }
 
   override protected def afterEach(): Unit = {
     sql"delete from notifications where true".update.run.transact(xa).unsafeRunSync
     sql"delete from subscriptions where true".update.run.transact(xa).unsafeRunSync
+    sql"delete from users where true".update.run.transact(xa).unsafeRunSync
   }
 }

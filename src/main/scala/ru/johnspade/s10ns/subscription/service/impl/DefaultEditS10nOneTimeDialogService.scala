@@ -44,7 +44,8 @@ class DefaultEditS10nOneTimeDialogService[F[_] : Monad, D[_] : Monad](
         )
     )
 
-  override def saveBillingPeriodUnit(data: PeriodUnit, user: User, dialog: EditS10nOneTimeDialog): F[List[ReplyMessage]] = saveBillingPeriodUnitTransition(user, dialog, data.unit)
+  override def saveBillingPeriodUnit(data: PeriodUnit, user: User, dialog: EditS10nOneTimeDialog): F[List[ReplyMessage]] =
+    saveBillingPeriodUnitTransition(user, dialog, data.unit)
 
   override def saveBillingPeriodDuration(user: User, dialog: EditS10nOneTimeDialog, text: Option[String]): F[RepliesValidated] =
     validateText(text)

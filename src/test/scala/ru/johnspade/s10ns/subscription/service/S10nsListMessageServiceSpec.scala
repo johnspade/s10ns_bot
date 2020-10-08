@@ -1,7 +1,7 @@
 package ru.johnspade.s10ns.subscription.service
 
 import java.time.format.DateTimeFormatter
-import java.time.{LocalDate, ZoneOffset}
+import java.time.{LocalDate, Period, ZoneOffset}
 
 import cats.effect.{Clock, IO}
 import cats.syntax.option._
@@ -28,7 +28,9 @@ class S10nsListMessageServiceSpec extends AnyFlatSpec with Matchers with OptionV
   private val s10nInfoService = new S10nInfoService[IO]
   private val s10nsListMessageService = new S10nsListMessageService[IO](moneyService, s10nInfoService, new S10nsListReplyMessageService)
 
-  private val firstPaymentDate = LocalDate.now(ZoneOffset.UTC).minusDays(35)
+  private val today = LocalDate.now(ZoneOffset.UTC)
+  private val firstPaymentDate = today.minusDays(35)
+  private val daysUntilNextPayment = Period.between(today, firstPaymentDate.plusMonths(2)).getDays
   private val s10n1 = Subscription(
     SubscriptionId(1L),
     UserId(0L),
@@ -54,10 +56,10 @@ class S10nsListMessageServiceSpec extends AnyFlatSpec with Matchers with OptionV
     val page = s10nsListMessageService.createSubscriptionsPage(List(s10n1, s10n2), PageNumber(0), CurrencyUnit.EUR)
       .unsafeRunSync
     page.text shouldBe
-      """|Monthly: 17.27 €
+      s"""|Monthly: 17.27 €
          |
          |1. Spotify – 5.30 €
-         |2. Netflix – ≈11.97 € <b>[27d]</b>""".stripMargin
+         |2. Netflix – ≈11.97 € <b>[${daysUntilNextPayment}d]</b>""".stripMargin
     page.markup.value should matchTo[KeyboardMarkup] {
       InlineKeyboardMarkup(List(
         List(inlineKeyboardButton("Yearly", S10nsPeriod(BillingPeriodUnit.Year, PageNumber(0)))),
@@ -132,9 +134,9 @@ class S10nsListMessageServiceSpec extends AnyFlatSpec with Matchers with OptionV
     )
       .unsafeRunSync
     page.text shouldBe
-      """|Yearly: 143.67 €
+      s"""|Yearly: 143.67 €
          |
-         |1. Netflix – ≈143.67 € <b>[27d]</b>""".stripMargin
+         |1. Netflix – ≈143.67 € <b>[${daysUntilNextPayment}d]</b>""".stripMargin
     page.markup.value should matchTo[KeyboardMarkup] {
       InlineKeyboardMarkup(List(
         List(inlineKeyboardButton("Weekly", S10nsPeriod(BillingPeriodUnit.Week, PageNumber(0)))),
@@ -153,9 +155,9 @@ class S10nsListMessageServiceSpec extends AnyFlatSpec with Matchers with OptionV
     )
       .unsafeRunSync
     page.text shouldBe
-      """|Weekly: 2.75 €
+      s"""|Weekly: 2.75 €
          |
-         |1. Netflix – ≈2.75 € <b>[27d]</b>""".stripMargin
+         |1. Netflix – ≈2.75 € <b>[${daysUntilNextPayment}d]</b>""".stripMargin
     page.markup.value should matchTo[KeyboardMarkup] {
       InlineKeyboardMarkup(List(
         List(inlineKeyboardButton("Monthly", S10nsPeriod(BillingPeriodUnit.Month, PageNumber(0)))),

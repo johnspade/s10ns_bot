@@ -12,7 +12,7 @@ import scala.concurrent.ExecutionContext
 
 object PostgresContainer {
   lazy val container: PostgreSQLContainer = {
-    val instance = PostgreSQLContainer()
+    val instance = PostgreSQLContainer(dockerImageNameOverride = "postgres:11.9")
     instance.container.start()
 
     import instance.{container => pgContainer}

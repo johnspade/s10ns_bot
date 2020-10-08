@@ -5,16 +5,13 @@ import java.time.{Instant, LocalDate, ZoneOffset}
 
 import cats.effect.IO
 import cats.syntax.option._
-import cats.~>
-import com.dimafeng.testcontainers.{ForAllTestContainer, PostgreSQLContainer}
 import doobie.ConnectionIO
 import doobie.implicits._
-import doobie.util.transactor.Transactor
 import io.chrisdavenport.fuuid.FUUID
-import org.flywaydb.core.Flyway
 import org.joda.money.CurrencyUnit
 import org.scalamock.scalatest.MockFactory
-import org.scalatest.BeforeAndAfterAll
+import org.scalatest.BeforeAndAfterEach
+import ru.johnspade.s10ns.PostgresContainer.{transact, xa}
 import ru.johnspade.s10ns.SpecBase
 import ru.johnspade.s10ns.bot.engine.TelegramOps.inlineKeyboardButton
 import ru.johnspade.s10ns.bot.{EditS10n, MoneyService, Notify, RemoveS10n, S10ns}
@@ -29,11 +26,7 @@ import telegramium.bots.high.Methods.sendMessage
 import telegramium.bots.high.{Api, _}
 import telegramium.bots.{Chat, ChatIntId, Markdown, Message}
 
-class DefaultNotificationsJobServiceSpec
-  extends SpecBase
-    with MockFactory
-    with BeforeAndAfterAll
-    with ForAllTestContainer {
+class DefaultNotificationsJobServiceISpec extends SpecBase with MockFactory with BeforeAndAfterEach {
 
   private val notificationRepo = new DoobieNotificationRepository
   private val s10nRepo = new DoobieSubscriptionRepository
@@ -115,25 +108,7 @@ class DefaultNotificationsJobServiceSpec
 
   private lazy val s10nId = s10nRepo.getByUserId(userId).transact(xa).unsafeRunSync.head.id
 
-  lazy val container: PostgreSQLContainer = PostgreSQLContainer()
-  import container.{container => pgContainer}
-
-  private implicit lazy val xa: Transactor[IO] = Transactor.fromDriverManager[IO](
-    "org.postgresql.Driver",
-    container.jdbcUrl,
-    container.username,
-    container.password
-  )
-  private implicit lazy val transact: ~>[ConnectionIO, IO] = new ~>[ConnectionIO, IO] {
-    override def apply[A](fa: ConnectionIO[A]): IO[A] = fa.transact(xa)
-  }
-
-  override protected def beforeAll(): Unit = {
-    Flyway
-      .configure()
-      .dataSource(pgContainer.getJdbcUrl, pgContainer.getUsername, pgContainer.getPassword)
-      .load()
-      .migrate
+  override protected def beforeEach(): Unit = {
     userRepo.createOrUpdate(User(UserId(911L), FirstName("John"), ChatId(0L).some)).transact(xa).unsafeRunSync
     s10nRepo.create(SubscriptionDraft(
       userId = userId,
@@ -150,4 +125,9 @@ class DefaultNotificationsJobServiceSpec
       .unsafeRunSync
   }
 
+  override protected def afterEach(): Unit = {
+    sql"delete from notifications where true".update.run.transact(xa).unsafeRunSync
+    sql"delete from subscriptions where true".update.run.transact(xa).unsafeRunSync
+    sql"delete from users where true".update.run.transact(xa).unsafeRunSync
+  }
 }
