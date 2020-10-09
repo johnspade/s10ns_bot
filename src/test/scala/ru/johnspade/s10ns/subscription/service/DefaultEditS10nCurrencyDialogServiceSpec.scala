@@ -31,7 +31,7 @@ class DefaultEditS10nCurrencyDialogServiceSpec extends AnyFlatSpec with EditS10n
 
     val result = editS10nCurrencyDialogService.onEditS10nCurrencyCb(user, EditS10nCurrency(s10nId)).unsafeRunSync
     result should matchTo {
-      List(ReplyMessage("Currency:", Markup.CurrencyReplyMarkup.some))
+      List(ReplyMessage("Enter or select the currency code:", Markup.CurrencyReplyMarkup.some))
     }
   }
 

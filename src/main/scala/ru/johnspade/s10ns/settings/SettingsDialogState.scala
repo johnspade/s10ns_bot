@@ -2,7 +2,7 @@ package ru.johnspade.s10ns.settings
 
 import cats.syntax.option._
 import enumeratum._
-import ru.johnspade.s10ns.bot.Markup
+import ru.johnspade.s10ns.bot.{Markup, Messages}
 import ru.johnspade.s10ns.bot.engine.{DialogState, StateEvent}
 import telegramium.bots.KeyboardMarkup
 
@@ -14,7 +14,7 @@ sealed abstract class SettingsDialogState(override val message: String, override
 object SettingsDialogState
   extends Enum[SettingsDialogState]
     with CirceEnum[SettingsDialogState] {
-  case object DefaultCurrency extends SettingsDialogState("Default currency:", Markup.CurrencyReplyMarkup.some)
+  case object DefaultCurrency extends SettingsDialogState(Messages.Currency, Markup.CurrencyReplyMarkup.some)
   case object Finished extends SettingsDialogState("Default currency set.", None)
 
   override val values: IndexedSeq[SettingsDialogState] = findValues

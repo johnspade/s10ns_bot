@@ -53,7 +53,7 @@ class DefaultCreateS10nDialogServiceSpec
     val result = createS10nDialogService.onCreateCommand(user).unsafeRunSync
     result should matchTo {
       List(ReplyMessage(
-        "Currency:",
+        "Enter or select the currency code:",
         markup = ReplyKeyboardMarkup(
           keyboard = List(
             CurrencyUnit.EUR,

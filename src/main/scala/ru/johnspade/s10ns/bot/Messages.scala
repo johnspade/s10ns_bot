@@ -2,7 +2,7 @@ package ru.johnspade.s10ns.bot
 
 object Messages {
   final val Name = "Name:"
-  final val Currency = "Currency:"
+  final val Currency = "Enter or select the currency code:"
   final val Amount = "Amount:"
   final val BillingPeriodUnit = "Billing period unit:"
   final val BillingPeriodDuration = "Billing period duration (1, 2...):"
