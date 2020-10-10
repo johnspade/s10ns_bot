@@ -23,7 +23,7 @@ import ru.johnspade.s10ns.subscription.tags.{BillingPeriodDuration, FirstPayment
 import ru.johnspade.s10ns.subscription.{BillingPeriodUnit, Subscription, SubscriptionDraft}
 import ru.johnspade.s10ns.user.tags.{FirstName, UserId}
 import ru.johnspade.s10ns.user.{InMemoryUserRepository, User}
-import telegramium.bots.Markdown
+import telegramium.bots.{Markdown, ReplyKeyboardRemove}
 import telegramium.bots.high._
 import tofu.logging.Logs
 
@@ -79,7 +79,7 @@ class DefaultCreateS10nDialogFsmServiceSpec extends AnyFlatSpec with Matchers wi
   "saveCurrency" should "ask for a name" in {
     val dialog = CreateS10nDialog(CreateS10nDialogState.Currency, draft)
     createS10nDialogFsmService.saveCurrency(user, dialog, CurrencyUnit.EUR).unsafeRunSync should matchTo {
-      List(ReplyMessage("Name:"))
+      List(ReplyMessage("Name:", ReplyKeyboardRemove(removeKeyboard = true).some))
     }
   }
 

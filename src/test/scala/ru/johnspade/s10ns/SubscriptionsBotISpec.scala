@@ -31,7 +31,7 @@ import ru.johnspade.s10ns.user.tags.UserId
 import telegramium.bots.client.Method
 import telegramium.bots.high.Methods._
 import telegramium.bots.high.{Api, _}
-import telegramium.bots.{CallbackQuery, Chat, ChatIntId, Html, KeyboardMarkup, Markdown, Message, ParseMode, User}
+import telegramium.bots.{CallbackQuery, Chat, ChatIntId, Html, KeyboardMarkup, Markdown, Message, ParseMode, ReplyKeyboardRemove, User}
 import tofu.logging.Logs
 
 import scala.concurrent.ExecutionContext
@@ -53,7 +53,7 @@ class SubscriptionsBotISpec
     verifySendMessage(Messages.Currency, Markup.CurrencyReplyMarkup.some).once
 
     sendMessage("EUR")
-    verifySendMessage(Messages.Name).once
+    verifySendMessage(Messages.Name, ReplyKeyboardRemove(removeKeyboard = true).some).once
 
     sendMessage("Netflix")
     verifySendMessage(Messages.Amount).once

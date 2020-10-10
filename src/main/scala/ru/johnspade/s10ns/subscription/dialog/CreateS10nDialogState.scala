@@ -4,7 +4,7 @@ import cats.syntax.option._
 import enumeratum._
 import ru.johnspade.s10ns.bot.engine.{DialogState, StateEvent}
 import ru.johnspade.s10ns.bot.{Markup, Messages}
-import telegramium.bots.KeyboardMarkup
+import telegramium.bots.{KeyboardMarkup, ReplyKeyboardRemove}
 
 import scala.collection.immutable.IndexedSeq
 
@@ -14,7 +14,7 @@ sealed abstract class CreateS10nDialogState(override val message: String, overri
 object CreateS10nDialogState
   extends Enum[CreateS10nDialogState]
     with CirceEnum[CreateS10nDialogState] {
-  case object Name extends CreateS10nDialogState(Messages.Name, None)
+  case object Name extends CreateS10nDialogState(Messages.Name, ReplyKeyboardRemove(removeKeyboard = true).some)
   case object Currency extends CreateS10nDialogState(Messages.Currency, Markup.CurrencyReplyMarkup.some)
   case object Amount extends CreateS10nDialogState(Messages.Amount, None)
   case object IsOneTime extends CreateS10nDialogState(Messages.IsOneTime, Markup.isOneTimeReplyMarkup("Skip").some)
