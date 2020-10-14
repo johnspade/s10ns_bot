@@ -22,8 +22,6 @@ val EnumeratumVersion = "1.6.0"
 val TestcontainersScalaVersion = "0.37.0"
 
 libraryDependencies ++= Seq(
-  "io.github.apimorphism" %% "telegramium-core" % TelegramiumVersion,
-  "io.github.apimorphism" %% "telegramium-high" % TelegramiumVersion,
   "com.softwaremill.sttp" %% "core" % SttpVersion,
   "com.softwaremill.sttp" %% "async-http-client-backend-cats" % SttpVersion,
   "com.softwaremill.sttp" %% "circe" % SttpVersion,
@@ -70,4 +68,9 @@ assemblyMergeStrategy in assembly := {
   case _ => MergeStrategy.first
 }
 
-lazy val root: Project = (project in file(".")).withSerialTests
+lazy val telegramiumCore = ProjectRef(uri("https://github.com/apimorphism/telegramium.git#master"), "telegramium-core")
+lazy val telegramiumHigh = ProjectRef(uri("https://github.com/apimorphism/telegramium.git#master"), "telegramium-high")
+
+lazy val root: Project = (project in file("."))
+  .withSerialTests
+  .dependsOn(telegramiumCore, telegramiumHigh)
