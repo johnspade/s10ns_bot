@@ -24,7 +24,7 @@ class DefaultDialogEngine[F[_] : Sync, D[_] : Applicative](
           markup = replyKeyboardRemove,
         ),
         ReplyMessage(
-          text = "\uD83D\uDD18☑️",
+          text = "\uD83D\uDD18/☑️",
           markup = inlineKeyboard.some
         )
       )

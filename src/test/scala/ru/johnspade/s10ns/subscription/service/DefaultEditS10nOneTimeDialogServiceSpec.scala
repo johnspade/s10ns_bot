@@ -34,7 +34,7 @@ class DefaultEditS10nOneTimeDialogServiceSpec extends AnyFlatSpec with EditS10nD
     result should matchTo {
       List(
         ReplyMessage("Recurring/one time:", ReplyKeyboardRemove(removeKeyboard = true).some),
-        ReplyMessage("\uD83D\uDD18☑️", Markup.isOneTimeReplyMarkup("Do not fill (remove)").some)
+        ReplyMessage("\uD83D\uDD18/☑️", Markup.isOneTimeReplyMarkup("Do not fill (remove)").some)
       )
     }
   }
