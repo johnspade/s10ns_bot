@@ -21,5 +21,5 @@ trait CreateS10nDialogService[F[_]] {
 
   def onSkipFirstPaymentDateCb(user: User, dialog: CreateS10nDialog): F[List[ReplyMessage]]
 
-  def onFirstPaymentDateCallback(data: FirstPayment, user: User, dialog: CreateS10nDialog): F[List[ReplyMessage]]
+  def onFirstPaymentDateCb(data: FirstPayment, user: User, dialog: CreateS10nDialog): F[List[ReplyMessage]]
 }

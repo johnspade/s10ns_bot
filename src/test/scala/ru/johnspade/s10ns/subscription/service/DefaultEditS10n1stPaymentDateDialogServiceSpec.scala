@@ -36,7 +36,7 @@ class DefaultEditS10n1stPaymentDateDialogServiceSpec extends AnyFlatSpec with Ed
     result should matchTo {
       List(
         ReplyMessage("First payment date:", ReplyKeyboardRemove(removeKeyboard = true).some),
-        ReplyMessage("\uD83D\uDD18/☑️", calendarService.generateKeyboard(LocalDate.now(ZoneOffset.UTC)).some)
+        ReplyMessage("\uD83D\uDD18/☑️", calendarService.generateDaysKeyboard(LocalDate.now(ZoneOffset.UTC)).some)
       )
     }
   }

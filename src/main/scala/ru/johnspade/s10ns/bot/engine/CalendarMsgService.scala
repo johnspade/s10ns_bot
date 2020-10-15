@@ -17,7 +17,7 @@ class CalendarMsgService[F[_] : Monad : Clock, S <: DialogState](
     def generateCalendar: F[InlineKeyboardMarkup] =
       currentTimestamp.map { now =>
         val today = LocalDate.ofInstant(now, ZoneOffset.UTC)
-        calendarService.generateKeyboard(today)
+        calendarService.generateDaysKeyboard(today)
       }
 
     generateCalendar.map { markup =>

@@ -1,9 +1,10 @@
 package ru.johnspade.s10ns.bot
 
-import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+import java.time.{LocalDate, YearMonth}
 
 import kantan.csv._
+import kantan.csv.enumeratum._
 import kantan.csv.java8._
 import kantan.csv.ops._
 import ru.johnspade.s10ns.bot.CbData._
@@ -11,7 +12,6 @@ import ru.johnspade.s10ns.csv.MagnoliaRowEncoder._
 import ru.johnspade.s10ns.subscription.BillingPeriodUnit
 import ru.johnspade.s10ns.subscription.tags._
 import supertagged.{@@, lifterF}
-import kantan.csv.enumeratum._
 
 sealed abstract class CbData extends Product with Serializable {
   def toCsv: String = this.writeCsvRow(csvConfig)
@@ -46,6 +46,10 @@ case object EveryMonth extends CbData {
 }
 
 final case class Calendar(date: LocalDate) extends CbData
+
+final case class Years(yearMonth: YearMonth) extends CbData
+
+final case class Months(year: Int) extends CbData
 
 final case class FirstPayment(date: FirstPaymentDate) extends CbData {
   override def print: String = DateTimeFormatter.ISO_DATE.format(date)
@@ -85,6 +89,8 @@ object CbData {
   implicit def liftedCellDecoder[T, U](implicit cellDecoder: CellDecoder[T]): CellDecoder[T @@ U] =
     lifterF[CellDecoder].lift
 
+  implicit val yearMonthCellCodec: CellCodec[YearMonth] = CellCodec.from(s => DecodeResult(YearMonth.parse(s)))(ym => ym.toString)
+
   private def caseObjectRowCodec[T <: CbData](data: T): RowCodec[T] = RowCodec.from(_ => Right(data))(_ => Seq.empty)
 
   implicit val s10nsRowCodec: RowCodec[S10ns] =
@@ -97,6 +103,10 @@ object CbData {
     RowCodec.caseOrdered(OneTime.apply _)(OneTime.unapply)
   implicit val calendarRowCodec: RowCodec[Calendar] =
     RowCodec.caseOrdered(Calendar.apply _)(Calendar.unapply)
+  implicit val yearsRowCodec: RowCodec[Years] =
+    RowCodec.caseOrdered(Years.apply _)(Years.unapply)
+  implicit val monthsRowCodec: RowCodec[Months] =
+    RowCodec.caseOrdered(Months.apply _)(Months.unapply)
   implicit val firstPaymentDateRowCodec: RowCodec[FirstPayment] =
     RowCodec.caseOrdered(FirstPayment.apply _)(FirstPayment.unapply)
   implicit val removeSubscriptionRowCodec: RowCodec[RemoveS10n] =

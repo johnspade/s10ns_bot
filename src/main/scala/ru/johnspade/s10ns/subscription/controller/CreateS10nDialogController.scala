@@ -45,7 +45,7 @@ class CreateS10nDialogController[F[_]: Sync: Timer: Logging](
 
   def firstPaymentDateCb(cb: CallbackQuery, data: FirstPayment, user: User, dialog: CreateS10nDialog)(
     implicit bot: Api[F]
-  ): F[Unit] = clearMarkupAndSave(cb)(_.onFirstPaymentDateCallback(data, user, dialog)) *> showSelected(cb, data)
+  ): F[Unit] = clearMarkupAndSave(cb)(_.onFirstPaymentDateCb(data, user, dialog)) *> showSelected(cb, data)
 
   private def clearMarkupAndSave(cb: CallbackQuery)(f: CreateS10nDialogService[F] => F[List[ReplyMessage]])(
     implicit bot: Api[F]

@@ -71,7 +71,7 @@ class SubscriptionsBotISpec
     sendMessage("1")
     verifySendMessage(
       Messages.FirstPaymentDate,
-      calendarService.generateKeyboard(LocalDate.now(ZoneOffset.UTC)).some
+      calendarService.generateDaysKeyboard(LocalDate.now(ZoneOffset.UTC)).some
     ).once
     verifyEditMessageText(" <em>Months</em>")
 

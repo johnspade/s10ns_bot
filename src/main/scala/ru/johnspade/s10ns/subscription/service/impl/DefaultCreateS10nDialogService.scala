@@ -72,6 +72,6 @@ class DefaultCreateS10nDialogService[F[_] : Sync, D[_] : Monad](
   override def onSkipFirstPaymentDateCb(user: User, dialog: CreateS10nDialog): F[List[ReplyMessage]] =
     createS10nDialogFsmService.skipFirstPaymentDate(user, dialog)
 
-  override def onFirstPaymentDateCallback(data: FirstPayment, user: User, dialog: CreateS10nDialog): F[List[ReplyMessage]] =
+  override def onFirstPaymentDateCb(data: FirstPayment, user: User, dialog: CreateS10nDialog): F[List[ReplyMessage]] =
     createS10nDialogFsmService.saveFirstPaymentDate(user, dialog, data.date)
 }

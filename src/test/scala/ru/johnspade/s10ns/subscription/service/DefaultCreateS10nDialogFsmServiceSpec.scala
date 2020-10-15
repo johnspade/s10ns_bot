@@ -108,7 +108,7 @@ class DefaultCreateS10nDialogFsmServiceSpec extends AnyFlatSpec with Matchers wi
       matchTo {
         List(ReplyMessage(
           "First payment date:",
-          calendarService.generateKeyboard(LocalDate.now(ZoneOffset.UTC)).some
+          calendarService.generateDaysKeyboard(LocalDate.now(ZoneOffset.UTC)).some
         ))
       }
   }
@@ -150,7 +150,7 @@ class DefaultCreateS10nDialogFsmServiceSpec extends AnyFlatSpec with Matchers wi
     createS10nDialogFsmService.saveIsOneTime(user, dialog, OneTimeSubscription(true)).unsafeRunSync should matchTo {
       List(ReplyMessage(
         "First payment date:",
-        markup = calendarService.generateKeyboard(LocalDate.now(ZoneOffset.UTC)).some
+        markup = calendarService.generateDaysKeyboard(LocalDate.now(ZoneOffset.UTC)).some
       ))
     }
   }

@@ -5,7 +5,7 @@ import cats.implicits._
 import cats.{Monad, ~>}
 import ru.johnspade.s10ns.bot.engine.ReplyMessage
 import ru.johnspade.s10ns.bot.engine.TelegramOps.{TelegramUserOps, ackCb, sendReplyMessages, singleTextMessage}
-import ru.johnspade.s10ns.bot.{Calendar, CbDataService, CreateS10nDialog, DefCurrency, Dialog, DropFirstPayment, EditS10n, EditS10nAmount, EditS10nAmountDialog, EditS10nBillingPeriod, EditS10nBillingPeriodDialog, EditS10nCurrency, EditS10nCurrencyDialog, EditS10nFirstPaymentDate, EditS10nFirstPaymentDateDialog, EditS10nName, EditS10nNameDialog, EditS10nOneTime, EditS10nOneTimeDialog, Errors, EveryMonth, FirstPayment, Ignore, Notify, OneTime, PeriodUnit, RemoveS10n, S10n, S10ns, S10nsPeriod, SettingsDialog, SkipIsOneTime, StartController, StartsDialog}
+import ru.johnspade.s10ns.bot.{Calendar, CbDataService, CreateS10nDialog, DefCurrency, Dialog, DropFirstPayment, EditS10n, EditS10nAmount, EditS10nAmountDialog, EditS10nBillingPeriod, EditS10nBillingPeriodDialog, EditS10nCurrency, EditS10nCurrencyDialog, EditS10nFirstPaymentDate, EditS10nFirstPaymentDateDialog, EditS10nName, EditS10nNameDialog, EditS10nOneTime, EditS10nOneTimeDialog, Errors, EveryMonth, FirstPayment, Ignore, Months, Notify, OneTime, PeriodUnit, RemoveS10n, S10n, S10ns, S10nsPeriod, SettingsDialog, SkipIsOneTime, StartController, StartsDialog, Years}
 import ru.johnspade.s10ns.calendar.CalendarController
 import ru.johnspade.s10ns.settings.SettingsController
 import ru.johnspade.s10ns.subscription.controller.{CreateS10nDialogController, EditS10nDialogController, SubscriptionListController}
@@ -55,14 +55,11 @@ class SubscriptionsBot[F[_]: Sync: Timer: Logging, D[_]: Monad](
           cbData match {
             case Ignore => ackCb[F](query).map(Right(_))
 
-            case s10ns: S10ns =>
-              withUser(s10nListController.subscriptionsCb(_, query, s10ns))
+            case s10ns: S10ns => withUser(s10nListController.subscriptionsCb(_, query, s10ns))
 
-            case s10nsPeriod: S10nsPeriod =>
-              withUser(s10nListController.s10nsPeriodCb(_, query, s10nsPeriod))
+            case s10nsPeriod: S10nsPeriod => withUser(s10nListController.s10nsPeriodCb(_, query, s10nsPeriod))
 
-            case s10n: S10n =>
-              withUser(s10nListController.subscriptionCb(_, query, s10n))
+            case s10n: S10n => withUser(s10nListController.subscriptionCb(_, query, s10n))
 
             case billingPeriod: PeriodUnit =>
               withUser { user =>
@@ -101,8 +98,11 @@ class SubscriptionsBot[F[_]: Sync: Timer: Logging, D[_]: Monad](
                   .getOrElse(ackError)
               }
 
-            case calendar: Calendar =>
-              calendarController.calendarCb(query, calendar).map(Right(_))
+            case calendar: Calendar => calendarController.calendarCb(query, calendar).map(Right(_))
+
+            case years: Years => calendarController.yearsCb(query, years).map(Right(_))
+
+            case months: Months => calendarController.monthsCb(query, months).map(Right(_))
 
             case DropFirstPayment =>
               withUser { user =>
@@ -124,17 +124,13 @@ class SubscriptionsBot[F[_]: Sync: Timer: Logging, D[_]: Monad](
                   .getOrElse(ackError)
               }
 
-            case removeS10n: RemoveS10n =>
-              withUser(s10nListController.removeSubscriptionCb(_, query, removeS10n))
+            case removeS10n: RemoveS10n => withUser(s10nListController.removeSubscriptionCb(_, query, removeS10n))
 
-            case editS10n: EditS10n =>
-              s10nListController.editS10nCb(query, editS10n).map(Right(_))
+            case editS10n: EditS10n => s10nListController.editS10nCb(query, editS10n).map(Right(_))
 
-            case notify: Notify =>
-              withUser(s10nListController.notifyCb(_, query, notify))
+            case notify: Notify => withUser(s10nListController.notifyCb(_, query, notify))
 
-            case editS10nName: EditS10nName =>
-              withUser(editS10nDialogController.editS10nNameCb(_, query, editS10nName))
+            case editS10nName: EditS10nName => withUser(editS10nDialogController.editS10nNameCb(_, query, editS10nName))
 
             case editS10nAmount: EditS10nAmount =>
               withUser(editS10nDialogController.editS10nAmountCb(_, query, editS10nAmount))
@@ -151,8 +147,7 @@ class SubscriptionsBot[F[_]: Sync: Timer: Logging, D[_]: Monad](
             case editS10nFirstPaymentDate: EditS10nFirstPaymentDate =>
               withUser(editS10nDialogController.editS10nFirstPaymentDateCb(_, query, editS10nFirstPaymentDate))
 
-            case DefCurrency =>
-              withUser(settingsController.defaultCurrencyCb(_, query))
+            case DefCurrency => withUser(settingsController.defaultCurrencyCb(_, query))
           }
         }
 
