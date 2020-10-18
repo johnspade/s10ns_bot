@@ -2,9 +2,11 @@ package ru.johnspade.s10ns.subscription.controller
 
 import cats.effect.Sync
 import cats.implicits._
+import ru.johnspade.s10ns.CbDataUserRoutes
 import ru.johnspade.s10ns.bot.engine.ReplyMessage
 import ru.johnspade.s10ns.bot.engine.TelegramOps.ackCb
-import ru.johnspade.s10ns.bot.{EditS10n, Notify, RemoveS10n, S10n, S10ns, S10nsPeriod}
+import ru.johnspade.s10ns.bot.engine.callbackqueries.CallbackQueryContextRoutes
+import ru.johnspade.s10ns.bot.{CallbackQueryUserController, CbData, EditS10n, Notify, RemoveS10n, S10n, S10ns, S10nsPeriod}
 import ru.johnspade.s10ns.subscription.service.SubscriptionListService
 import ru.johnspade.s10ns.subscription.tags.PageNumber
 import ru.johnspade.s10ns.user.User
@@ -15,38 +17,39 @@ import telegramium.bots.{CallbackQuery, ChatIntId, InlineKeyboardMarkup}
 
 class SubscriptionListController[F[_]: Sync](
   private val s10nListService: SubscriptionListService[F]
-) {
-  def subscriptionsCb(user: User, cb: CallbackQuery, data: S10ns)(implicit bot: Api[F]): F[Unit] =
-    s10nListService.onSubscriptionsCb(user, cb, data)
-      .flatMap(ackCb(cb) *> editMessage(cb, _))
-
-  def s10nsPeriodCb(user: User, cb: CallbackQuery, data: S10nsPeriod)(implicit bot: Api[F]): F[Unit] =
-    s10nListService.onS10nsPeriodCb(user, cb, data)
-      .flatMap(ackCb(cb) *> editMessage(cb, _))
-
-  def removeSubscriptionCb(user: User, cb: CallbackQuery, data: RemoveS10n)(implicit bot: Api[F]): F[Unit] =
-    s10nListService.onRemoveSubscriptionCb(user, cb, data)
-      .flatMap(ackCb(cb) *> editMessage(cb, _))
-
-  def subscriptionCb(user: User, cb: CallbackQuery, data: S10n)(implicit bot: Api[F]): F[Unit] =
-    ackAndEditMsg(cb, s10nListService.onSubcriptionCb(user, cb, data))
-
+)(implicit bot: Api[F]) extends CallbackQueryUserController[F] {
   def listCommand(from: User): F[ReplyMessage] = s10nListService.onListCommand(from, PageNumber(0))
 
-  def editS10nCb(cb: CallbackQuery, data: EditS10n)(implicit bot: Api[F]): F[Unit] = {
-    s10nListService.onEditS10nCb(cb, data)
-      .flatMap {
-        case Left(error) => ackCb(cb, error.some)
-        case Right(markup) => ackCb(cb) *> editMarkup(cb, markup)
-      }
-  }
+  override val routes: CbDataUserRoutes[F] = CallbackQueryContextRoutes.of[CbData, User, F] {
+    case (data: S10ns) in cb as user =>
+      s10nListService.onSubscriptionsCb(user, cb, data)
+        .flatMap(ackCb(cb) *> editMessage(cb, _))
 
-  def notifyCb(user: User, cb: CallbackQuery, data: Notify)(implicit bot: Api[F]): F[Unit] =
-    s10nListService.onNotifyCb(user, cb, data)
-      .flatMap {
-        case Left(error) => ackCb(cb, error.some)
-        case Right(markup) => ackCb(cb) *> editMarkup(cb, markup)
-      }
+    case (data: S10nsPeriod) in cb as user =>
+      s10nListService.onS10nsPeriodCb(user, cb, data)
+        .flatMap(ackCb(cb) *> editMessage(cb, _))
+
+    case (data: RemoveS10n) in cb as user =>
+      s10nListService.onRemoveSubscriptionCb(user, cb, data)
+        .flatMap(ackCb(cb) *> editMessage(cb, _))
+
+    case (data: S10n) in cb as user =>
+      ackAndEditMsg(cb, s10nListService.onSubcriptionCb(user, cb, data))
+
+    case (data: EditS10n) in cb as _ =>
+      s10nListService.onEditS10nCb(cb, data)
+        .flatMap {
+          case Left(error) => ackCb(cb, error.some)
+          case Right(markup) => ackCb(cb) *> editMarkup(cb, markup)
+        }
+
+    case (data: Notify) in cb as user =>
+      s10nListService.onNotifyCb(user, cb, data)
+        .flatMap {
+          case Left(error) => ackCb(cb, error.some)
+          case Right(markup) => ackCb(cb) *> editMarkup(cb, markup)
+        }
+  }
 
   private def editMessage(cb: CallbackQuery, reply: ReplyMessage)(implicit bot: Api[F]) = {
     val markup = reply.markup match {

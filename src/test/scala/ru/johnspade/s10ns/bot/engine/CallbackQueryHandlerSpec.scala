@@ -1,0 +1,48 @@
+package ru.johnspade.s10ns.bot.engine
+
+import cats.effect.IO
+import org.scalamock.scalatest.MockFactory
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
+import ru.johnspade.s10ns.TelegramiumScalamockUtils.verifyMethodCall
+import ru.johnspade.s10ns.bot.engine.callbackqueries.CallbackQueryDsl._
+import ru.johnspade.s10ns.bot.engine.callbackqueries.{CallbackDataDecoder, CallbackQueryHandler, CallbackQueryRoutes, DecodeResult}
+import telegramium.bots.client.Method
+import telegramium.bots.high.{Api, Methods}
+import telegramium.bots.{CallbackQuery, ChatIntId, User}
+
+class CallbackQueryHandlerSpec extends AnyFlatSpec with Matchers with MockFactory {
+  private implicit val api: Api[IO] = stub[Api[IO]]
+  private val routes = CallbackQueryRoutes.of[String, IO] {
+    case "test1" in cb => api.execute(Methods.answerCallbackQuery(cb.id)).void
+    case "test2" in _ => api.execute(Methods.getMe()).void
+  }
+  private val testCallbackDataDecoder: CallbackDataDecoder[IO, String] = DecodeResult.success[IO, String](_)
+
+  private val testUser = User(0, isBot = false, "")
+
+  "handle" should "use correct routes" in {
+    (api.execute[Boolean] _)
+      .when(where((_: Method[Boolean]).name == "answerCallbackQuery"))
+      .returns(IO.pure(true))
+    (api.execute[User] _)
+      .when(where((_: Method[User]).name == "getMe"))
+      .returns(IO.pure(testUser))
+    (api.execute[Boolean] _)
+      .when(where((_: Method[Boolean]).name == "leaveChat"))
+      .returns(IO.pure(true))
+
+    CallbackQueryHandler.handle[IO, String](createCb("1", "test1"), routes, testCallbackDataDecoder, ifNotFound).unsafeRunSync
+    verifyMethodCall(api, Methods.answerCallbackQuery("1"))
+
+    CallbackQueryHandler.handle[IO, String](createCb("2", "test2"), routes, testCallbackDataDecoder, ifNotFound).unsafeRunSync
+    verifyMethodCall(api, Methods.getMe())
+
+    CallbackQueryHandler.handle[IO, String](createCb("3", "test3"), routes, testCallbackDataDecoder, ifNotFound).unsafeRunSync
+    verifyMethodCall(api, Methods.leaveChat(ChatIntId(911)))
+  }
+
+  private def createCb(id: String, data: String) = CallbackQuery(id, testUser, chatInstance = "", data = Some(data))
+
+  private def ifNotFound = (_: CallbackQuery) => api.execute(Methods.leaveChat(ChatIntId(911))).void
+}

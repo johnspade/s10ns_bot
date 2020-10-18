@@ -2,9 +2,9 @@ package ru.johnspade.s10ns.bot.engine
 
 import java.time.{LocalDate, ZoneOffset}
 
-import cats.Applicative.ops._
 import cats.Monad
 import cats.effect.Clock
+import cats.syntax.functor._
 import cats.syntax.option._
 import ru.johnspade.s10ns.calendar.CalendarService
 import ru.johnspade.s10ns.currentTimestamp

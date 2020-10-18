@@ -6,19 +6,22 @@ import doobie.free.connection.ConnectionIO
 import ru.johnspade.s10ns.bot.engine.{DefaultDialogEngine, TransactionalDialogEngine}
 import ru.johnspade.s10ns.exchangerates.ExchangeRatesModule
 import ru.johnspade.s10ns.user.UserModule
+import telegramium.bots.high.Api
 
 final class BotModule[F[_], D[_]] private(
   val moneyService: MoneyService[F],
   val dialogEngine: TransactionalDialogEngine[F, D],
   val startController: StartController[F],
-  val cbDataService: CbDataService[F]
+  val ignoreController: IgnoreController[F],
+  val cbDataService: CbDataService[F],
+  val userMiddleware: UserMiddleware[F, D]
 )
 
 object BotModule {
   def make[F[_]: Sync](
     userModule: UserModule[ConnectionIO],
     exchangeRatesModule: ExchangeRatesModule[F, ConnectionIO]
-  )(implicit transact: ConnectionIO ~> F): F[BotModule[F, ConnectionIO]] =
+  )(implicit bot: Api[F], transact: ConnectionIO ~> F): F[BotModule[F, ConnectionIO]] =
     Sync[F].delay {
       val moneySrv = new MoneyService[F](exchangeRatesModule.exchangeRatesService)
       val dialogEngine = new DefaultDialogEngine[F, ConnectionIO](userModule.userRepository)
@@ -26,7 +29,9 @@ object BotModule {
         moneyService = moneySrv,
         dialogEngine = dialogEngine,
         startController = new StartController[F](dialogEngine),
-        cbDataService = new CbDataService[F]
+        ignoreController = new IgnoreController[F],
+        cbDataService = new CbDataService[F],
+        userMiddleware = new UserMiddleware[F, ConnectionIO](userModule.userRepository)
       )
     }
 }

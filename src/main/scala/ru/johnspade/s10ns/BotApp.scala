@@ -47,36 +47,35 @@ object BotApp extends IOApp {
       implicit val logs: Logs[F, F] = Logs.sync[F, F]
       implicit val xa: D ~> F = transact
 
-      for {
-        calendarModule <- CalendarModule.make[F]()
-        userModule <- UserModule.make[F]()
-        exchangeRatesModule <- ExchangeRatesModule.make[F](conf.fixer.token)
-        botModule <- BotModule.make[F](userModule, exchangeRatesModule)
-        settingsModule <- SettingsModule.make[F](botModule)
-        subscriptionModule <- SubscriptionModule.make[F](userModule, botModule, calendarModule)
-        logger <- logs.forService[BotApp.type]
-        notificationsModule <- NotificationsModule.make[F](subscriptionModule)
-        _ <- exchangeRatesModule.exchangeRatesJobService.startExchangeRatesJob()
-        _ <- notificationsModule.prepareNotificationsJobService.startPrepareNotificationsJob()
-        _ <- BlazeClientBuilder[F](ExecutionContext.global).resource.use { httpClient =>
-          implicit val api: Api[F] =
-            BotApi(httpClient, s"https://api.telegram.org/bot${conf.telegram.token}", blocker)
-          for {
-            _ <- notificationsModule.notificationsJobService.startNotificationsJob
-            bot <- SubscriptionsBot[F, D](
-              userModule.userRepository,
-              subscriptionModule.subscriptionListController,
-              subscriptionModule.createS10nDialogController,
-              subscriptionModule.editS10nDialogController,
-              calendarModule.calendarController,
-              settingsModule.settingsController,
-              botModule.startController,
-              botModule.cbDataService
-            )
-            _ <- bot.start().handleErrorWith(e => logger.errorCause(e.getMessage, e))
-          } yield ()
-        }
-      } yield ()
+      BlazeClientBuilder[F](ExecutionContext.global).resource.use { httpClient =>
+        implicit val api: Api[F] =
+          BotApi(httpClient, s"https://api.telegram.org/bot${conf.telegram.token}", blocker)
+        for {
+          calendarModule <- CalendarModule.make[F]
+          userModule <- UserModule.make[F]()
+          exchangeRatesModule <- ExchangeRatesModule.make[F](conf.fixer.token)
+          botModule <- BotModule.make[F](userModule, exchangeRatesModule)
+          settingsModule <- SettingsModule.make[F](botModule)
+          subscriptionModule <- SubscriptionModule.make[F](userModule, botModule, calendarModule)
+          logger <- logs.forService[BotApp.type]
+          notificationsModule <- NotificationsModule.make[F](subscriptionModule)
+          _ <- exchangeRatesModule.exchangeRatesJobService.startExchangeRatesJob()
+          _ <- notificationsModule.prepareNotificationsJobService.startPrepareNotificationsJob()
+          _ <- notificationsModule.notificationsJobService.startNotificationsJob
+          bot <- SubscriptionsBot[F, D](
+            userModule.userRepository,
+            subscriptionModule.subscriptionListController,
+            subscriptionModule.editS10nDialogController,
+            calendarModule.calendarController,
+            settingsModule.settingsController,
+            botModule.startController,
+            botModule.ignoreController,
+            botModule.cbDataService,
+            botModule.userMiddleware
+          )
+          _ <- bot.start().handleErrorWith(e => logger.errorCause(e.getMessage, e))
+        } yield ()
+      }
     }
 
     Blocker[IO].use { blocker =>

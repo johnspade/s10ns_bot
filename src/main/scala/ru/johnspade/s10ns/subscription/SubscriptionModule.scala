@@ -7,18 +7,18 @@ import doobie.free.connection.ConnectionIO
 import ru.johnspade.s10ns.bot.BotModule
 import ru.johnspade.s10ns.bot.engine.DefaultMsgService
 import ru.johnspade.s10ns.calendar.CalendarModule
-import ru.johnspade.s10ns.subscription.controller.{CreateS10nDialogController, EditS10nDialogController, SubscriptionListController}
+import ru.johnspade.s10ns.subscription.controller.{S10nController, SubscriptionListController}
 import ru.johnspade.s10ns.subscription.dialog.{CreateS10nMsgService, EditS10n1stPaymentDateMsgService, EditS10nAmountDialogState, EditS10nBillingPeriodDialogState, EditS10nCurrencyDialogState, EditS10nNameDialogState, EditS10nOneTimeDialogState}
 import ru.johnspade.s10ns.subscription.repository.{DoobieSubscriptionRepository, SubscriptionRepository}
 import ru.johnspade.s10ns.subscription.service.impl.{DefaultCreateS10nDialogFsmService, DefaultCreateS10nDialogService, DefaultEditS10n1stPaymentDateDialogService, DefaultEditS10nAmountDialogService, DefaultEditS10nBillingPeriodDialogService, DefaultEditS10nCurrencyDialogService, DefaultEditS10nNameDialogService, DefaultEditS10nOneTimeDialogService, DefaultSubscriptionListService}
 import ru.johnspade.s10ns.subscription.service.{S10nInfoService, S10nsListMessageService, S10nsListReplyMessageService}
 import ru.johnspade.s10ns.user.UserModule
+import telegramium.bots.high.Api
 import tofu.logging.Logs
 
 final class SubscriptionModule[F[_], D[_]](
   val subscriptionRepository: SubscriptionRepository[D],
-  val createS10nDialogController: CreateS10nDialogController[F],
-  val editS10nDialogController: EditS10nDialogController[F],
+  val editS10nDialogController: S10nController[F],
   val subscriptionListController: SubscriptionListController[F],
   val s10nInfoService: S10nInfoService[F],
   val s10nsListMessageService: S10nsListMessageService[F]
@@ -29,7 +29,7 @@ object SubscriptionModule {
     userModule: UserModule[ConnectionIO],
     botModule: BotModule[F, ConnectionIO],
     calendarModule: CalendarModule[F]
-  )(implicit transact: ConnectionIO ~> F, logs: Logs[F, F]): F[SubscriptionModule[F, ConnectionIO]] = {
+  )(implicit bot: Api[F], transact: ConnectionIO ~> F, logs: Logs[F, F]): F[SubscriptionModule[F, ConnectionIO]] = {
     import botModule.{dialogEngine, moneyService}
     import calendarModule.calendarService
     import userModule.userRepository
@@ -72,8 +72,8 @@ object SubscriptionModule {
     val s10nsListSrv = new DefaultSubscriptionListService[F, ConnectionIO](subscriptionRepo, s10nsListMessageSrv)
     val subscriptionListController = new SubscriptionListController[F](s10nsListSrv)
     for {
-      createS10nDialogController <- CreateS10nDialogController[F](createS10nDialogSrv)
-      editS10nDialogController <- EditS10nDialogController(
+      s10nController <- S10nController(
+        createS10nDialogSrv,
         editS10n1stPaymentDateDialogService,
         editS10nNameDialogService,
         editS10nAmountDialogService,
@@ -83,8 +83,7 @@ object SubscriptionModule {
       )
     } yield new SubscriptionModule[F, ConnectionIO] (
       subscriptionRepository = subscriptionRepo,
-      createS10nDialogController = createS10nDialogController,
-      editS10nDialogController = editS10nDialogController,
+      editS10nDialogController = s10nController,
       subscriptionListController = subscriptionListController,
       s10nInfoService = s10nInfoSrv,
       s10nsListMessageService = s10nsListMessageSrv

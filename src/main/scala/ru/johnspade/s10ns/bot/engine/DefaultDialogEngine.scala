@@ -2,8 +2,8 @@ package ru.johnspade.s10ns.bot.engine
 
 import cats.effect.Sync
 import cats.implicits._
-import cats.{Applicative, ~>}
-import ru.johnspade.s10ns.bot.{BotStart, Dialog}
+import cats.{Applicative, Monad, ~>}
+import ru.johnspade.s10ns.bot.{BotStart, Dialog, Errors}
 import ru.johnspade.s10ns.user.{User, UserRepository}
 import telegramium.bots.{InlineKeyboardMarkup, ReplyKeyboardMarkup, ReplyKeyboardRemove}
 
@@ -11,30 +11,28 @@ class DefaultDialogEngine[F[_] : Sync, D[_] : Applicative](
   private val userRepo: UserRepository[D]
 )(private implicit val transact: D ~> F) extends TransactionalDialogEngine[F, D] {
   override def startDialog(user: User, dialog: Dialog, message: ReplyMessage): F[List[ReplyMessage]] = {
-    val userWithDialog = user.copy(dialog = dialog.some)
-    val replyKeyboardRemove = ReplyKeyboardRemove(removeKeyboard = true).some
-    val reply = message.markup match {
-      case Some(replyKeyboard @ ReplyKeyboardMarkup(_, _, _, _)) => List(
-        message.copy(
-          markup = replyKeyboard.some
+    if (user.dialog.isEmpty) {
+      val userWithDialog = user.copy(dialog = dialog.some)
+      val replyKeyboardRemove = ReplyKeyboardRemove(removeKeyboard = true).some
+      val reply = message.markup match {
+        case Some(replyKeyboard: ReplyKeyboardMarkup) => List(
+          message.copy(markup = replyKeyboard.some)
         )
-      )
-      case Some(inlineKeyboard @ InlineKeyboardMarkup(_)) => List(
-        message.copy(
-          markup = replyKeyboardRemove,
-        ),
-        ReplyMessage(
-          text = "\uD83D\uDD18/☑️",
-          markup = inlineKeyboard.some
+        case Some(inlineKeyboard: InlineKeyboardMarkup) => List(
+          message.copy(markup = replyKeyboardRemove),
+          ReplyMessage(
+            text = "\uD83D\uDD18/☑️",
+            markup = inlineKeyboard.some
+          )
         )
-      )
-      case _ => List(
-        message.copy(
-          markup = replyKeyboardRemove
+        case _ => List(
+          message.copy(markup = replyKeyboardRemove)
         )
-      )
+      }
+      transact(userRepo.createOrUpdate(userWithDialog)).map(_ => reply)
     }
-    transact(userRepo.createOrUpdate(userWithDialog)).map(_ => reply)
+    else
+      Monad[F].pure(List(ReplyMessage(Errors.ActiveDialogNotFinished)))
   }
 
   override def reset(user: User, message: String): D[ReplyMessage] =

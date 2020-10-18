@@ -5,6 +5,7 @@ import cats.implicits._
 import doobie.free.connection.ConnectionIO
 import ru.johnspade.s10ns.bot.BotModule
 import ru.johnspade.s10ns.bot.engine.DefaultMsgService
+import telegramium.bots.high.Api
 import tofu.logging.Logs
 
 final class SettingsModule[F[_]] private(
@@ -13,7 +14,7 @@ final class SettingsModule[F[_]] private(
 
 object SettingsModule {
   def make[F[_]: Sync: Timer](botModule: BotModule[F, ConnectionIO])(
-    implicit logs: Logs[F, F]
+    implicit bot: Api[F], logs: Logs[F, F]
   ): F[SettingsModule[F]] = {
     val settingsMsgService = new DefaultMsgService[F, SettingsDialogState]
     val settingsService = new DefaultSettingsService[F](botModule.dialogEngine, settingsMsgService)

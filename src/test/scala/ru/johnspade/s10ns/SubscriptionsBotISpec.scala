@@ -16,11 +16,11 @@ import ru.johnspade.s10ns.PostgresContainer.container
 import ru.johnspade.s10ns.TelegramiumScalamockUtils.verifyMethodCall
 import ru.johnspade.s10ns.bot.engine.TelegramOps.inlineKeyboardButton
 import ru.johnspade.s10ns.bot.engine.{DefaultDialogEngine, DefaultMsgService}
-import ru.johnspade.s10ns.bot.{BotStart, CbDataService, EditS10n, Markup, Messages, MoneyService, Notify, RemoveS10n, S10ns, StartController}
+import ru.johnspade.s10ns.bot.{BotStart, CbDataService, EditS10n, IgnoreController, Markup, Messages, MoneyService, Notify, RemoveS10n, S10ns, StartController, UserMiddleware}
 import ru.johnspade.s10ns.calendar.{CalendarController, CalendarService}
 import ru.johnspade.s10ns.exchangerates.InMemoryExchangeRatesStorage
 import ru.johnspade.s10ns.settings.{DefaultSettingsService, SettingsController, SettingsDialogState}
-import ru.johnspade.s10ns.subscription.controller.{CreateS10nDialogController, EditS10nDialogController, SubscriptionListController}
+import ru.johnspade.s10ns.subscription.controller.{S10nController, SubscriptionListController}
 import ru.johnspade.s10ns.subscription.dialog.{CreateS10nMsgService, EditS10n1stPaymentDateMsgService, EditS10nAmountDialogState, EditS10nBillingPeriodDialogState, EditS10nCurrencyDialogState, EditS10nNameDialogState, EditS10nOneTimeDialogState}
 import ru.johnspade.s10ns.subscription.repository.DoobieSubscriptionRepository
 import ru.johnspade.s10ns.subscription.service.impl.{DefaultCreateS10nDialogFsmService, DefaultCreateS10nDialogService, DefaultEditS10n1stPaymentDateDialogService, DefaultEditS10nAmountDialogService, DefaultEditS10nBillingPeriodDialogService, DefaultEditS10nCurrencyDialogService, DefaultEditS10nNameDialogService, DefaultEditS10nOneTimeDialogService, DefaultSubscriptionListService}
@@ -166,7 +166,6 @@ class SubscriptionsBotISpec
     private val createS10nDialogService = new DefaultCreateS10nDialogService[IO, ConnectionIO](
       createS10nDialogFsmService, createS10nMsgService, dialogEngine
     )
-    private val createS10nDialogController = CreateS10nDialogController[IO](createS10nDialogService).unsafeRunSync
     val editS10n1stPaymentDateDialogService = new DefaultEditS10n1stPaymentDateDialogService[IO, ConnectionIO](
       s10nsListMessageService, new EditS10n1stPaymentDateMsgService[IO](calendarService), userRepo, s10nRepo, dialogEngine
     )
@@ -185,7 +184,8 @@ class SubscriptionsBotISpec
     val editS10nOneTimeDialogService = new DefaultEditS10nOneTimeDialogService[IO, ConnectionIO](
       s10nsListMessageService, new DefaultMsgService[IO, EditS10nOneTimeDialogState], userRepo, s10nRepo, dialogEngine
     )
-    private val editS10nDialogController = EditS10nDialogController[IO](
+    private val s10nController = S10nController[IO](
+      createS10nDialogService,
       editS10n1stPaymentDateDialogService,
       editS10nNameDialogService,
       editS10nAmountDialogService,
@@ -201,12 +201,13 @@ class SubscriptionsBotISpec
     protected val bot: SubscriptionsBot[IO, ConnectionIO] = SubscriptionsBot[IO, ConnectionIO](
       userRepo,
       s10nListController,
-      createS10nDialogController,
-      editS10nDialogController,
+      s10nController,
       calendarController,
       settingsController,
       startController,
-      cbDataService
+      new IgnoreController[IO],
+      cbDataService,
+      new UserMiddleware[IO, ConnectionIO](userRepo)
     ).unsafeRunSync
 
     protected def sendMessage(text: String): Unit = bot.onMessage(createMessage(text)).unsafeRunSync
