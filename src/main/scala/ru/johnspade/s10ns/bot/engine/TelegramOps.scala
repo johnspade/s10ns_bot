@@ -1,5 +1,7 @@
 package ru.johnspade.s10ns.bot.engine
 
+import java.util.concurrent.TimeUnit
+
 import cats.Monad
 import cats.data.Validated.{Invalid, Valid}
 import cats.effect.{Sync, Timer}
@@ -82,7 +84,7 @@ object TelegramOps {
       sendReplyMessage(msg, reply)
         .void
         .handleErrorWith(e => Logging[F].errorCause(e.getMessage, e)) *>
-        Timer[F].sleep(FiniteDuration(1, "second"))
+        Timer[F].sleep(FiniteDuration(400, TimeUnit.MILLISECONDS))
     }
       .sequence_
 }
