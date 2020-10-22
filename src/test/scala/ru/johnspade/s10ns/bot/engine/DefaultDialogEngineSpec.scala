@@ -40,8 +40,11 @@ class DefaultDialogEngineSpec extends AnyFlatSpec with Matchers {
   "sayHi" should "clear dialogs and welcome an user" in {
     dialogEngine.sayHi(userWithDialog).unsafeRunSync shouldBe
       ReplyMessage(
-        "Manage your subscriptions and get detailed insights of your recurring expenses.",
-        markup = BotStart.markup.some
+        """Manage your subscriptions and get detailed insights of your recurring expenses.
+          |
+          |Support a creator: https://buymeacoff.ee/johnspade ☕""".stripMargin,
+        markup = BotStart.markup.some,
+        disableWebPagePreview = true.some
       )
     userRepo.users.get(user.id) shouldBe user.some
   }

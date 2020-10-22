@@ -47,7 +47,7 @@ class SubscriptionsBotISpec
     prepareStubs()
 
     sendMessage("/start")
-    verifySendMessage(BotStart.message.text, BotStart.markup.some).once
+    verifySendMessage(BotStart.message.text, BotStart.markup.some, disableWebPagePreview = true.some).once
 
     sendMessage("/create")
     verifySendMessage(Messages.Currency, Markup.CurrencyReplyMarkup.some).once
@@ -121,8 +121,19 @@ class SubscriptionsBotISpec
       message = createMessage("").some
     )
 
-  private def verifySendMessage(text: String, markup: Option[KeyboardMarkup] = None, parseMode: Option[ParseMode] = None) =
-    (api.execute[Message] _).verify(sendMessage(ChatIntId(0), text, replyMarkup = markup, parseMode = parseMode))
+  private def verifySendMessage(
+    text: String,
+    markup: Option[KeyboardMarkup] = None,
+    parseMode: Option[ParseMode] = None,
+    disableWebPagePreview: Option[Boolean] = None
+  ) =
+    (api.execute[Message] _).verify(sendMessage(
+      ChatIntId(0),
+      text,
+      replyMarkup = markup,
+      parseMode = parseMode,
+      disableWebPagePreview = disableWebPagePreview
+    ))
 
   private def verifyEditMessageText(text: String): Unit = {
     verifyMethodCall(api, editMessageText(ChatIntId(0).some, messageId = 0.some, text = text, parseMode = Html.some))
