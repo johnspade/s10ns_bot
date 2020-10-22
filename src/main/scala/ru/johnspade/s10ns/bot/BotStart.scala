@@ -15,7 +15,11 @@ object BotStart {
     resizeKeyboard = Some(true)
   )
 
-  private final val Help = "Manage your subscriptions and get detailed insights of your recurring expenses."
+  private final val Help =
+    """|Manage your subscriptions and get detailed insights of your recurring expenses.
+       |
+       |Support a creator: https://buymeacoff.ee/johnspade ☕
+       |""".stripMargin
 
-  val message: ReplyMessage = ReplyMessage(Help, markup = markup.some)
+  val message: ReplyMessage = ReplyMessage(Help, markup = markup.some, disableWebPagePreview = true.some)
 }

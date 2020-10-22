@@ -6,4 +6,5 @@ case class ReplyMessage(
   text: String,
   markup: Option[KeyboardMarkup] = None,
   parseMode: Option[ParseMode] = None,
+  disableWebPagePreview: Option[Boolean] = Option.empty
 )

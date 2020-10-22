@@ -1,7 +1,5 @@
 package ru.johnspade.s10ns.bot.engine
 
-import java.util.concurrent.TimeUnit
-
 import cats.Monad
 import cats.data.Validated.{Invalid, Valid}
 import cats.effect.{Sync, Timer}
@@ -16,7 +14,7 @@ import telegramium.bots.high.implicits._
 import telegramium.bots.{CallbackQuery, ChatIntId, Message}
 import tofu.logging.Logging
 
-import scala.concurrent.duration.FiniteDuration
+import scala.concurrent.duration.{FiniteDuration, MILLISECONDS}
 
 object TelegramOps {
   implicit class TelegramUserOps(val value: telegramium.bots.User) extends AnyVal {
@@ -34,7 +32,8 @@ object TelegramOps {
       ChatIntId(msg.chat.id),
       reply.text,
       replyMarkup = reply.markup,
-      parseMode = reply.parseMode
+      parseMode = reply.parseMode,
+      disableWebPagePreview = reply.disableWebPagePreview
     ).exec.void
 
   def ackCb[F[_]: Sync](cb: CallbackQuery, text: Option[String] = None)(implicit bot: Api[F]): F[Unit] =
@@ -84,7 +83,7 @@ object TelegramOps {
       sendReplyMessage(msg, reply)
         .void
         .handleErrorWith(e => Logging[F].errorCause(e.getMessage, e)) *>
-        Timer[F].sleep(FiniteDuration(400, TimeUnit.MILLISECONDS))
+        Timer[F].sleep(FiniteDuration(400, MILLISECONDS))
     }
       .sequence_
 }
