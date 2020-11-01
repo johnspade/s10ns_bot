@@ -18,6 +18,8 @@ object BotStart {
   private final val Help =
     """Manage your subscriptions and get detailed insights of your recurring expenses.
       |
+      |Select your default currency: /settings. Enter a currency code manually if it's not on the list.
+      |
       |Support a creator: https://buymeacoff.ee/johnspade ☕""".stripMargin
 
   val message: ReplyMessage = ReplyMessage(Help, markup = markup.some, disableWebPagePreview = true.some)
