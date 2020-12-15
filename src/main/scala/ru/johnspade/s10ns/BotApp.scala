@@ -2,7 +2,7 @@ package ru.johnspade.s10ns
 
 import cats.effect.{Async, Blocker, ConcurrentEffect, ContextShift, ExitCode, IO, IOApp, Timer}
 import cats.implicits._
-import cats.~>
+import cats.{Parallel, ~>}
 import doobie.free.connection.ConnectionIO
 import doobie.hikari.HikariTransactor
 import doobie.implicits._
@@ -43,7 +43,7 @@ object BotApp extends IOApp {
         )
       } yield xa
 
-    def init[F[_]: ConcurrentEffect: ContextShift: Timer](conf: Config, transact: D ~> F, blocker: Blocker) = {
+    def init[F[_]: ConcurrentEffect: ContextShift: Timer: Parallel](conf: Config, transact: D ~> F, blocker: Blocker) = {
       implicit val logs: Logs[F, F] = Logs.sync[F, F]
       implicit val xa: D ~> F = transact
 

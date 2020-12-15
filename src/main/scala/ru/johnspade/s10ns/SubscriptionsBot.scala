@@ -2,7 +2,7 @@ package ru.johnspade.s10ns
 
 import cats.effect.{Sync, Timer}
 import cats.implicits._
-import cats.{Monad, ~>}
+import cats.{Monad, Parallel, ~>}
 import ru.johnspade.s10ns.bot.engine.ReplyMessage
 import ru.johnspade.s10ns.bot.engine.TelegramOps.{TelegramUserOps, sendReplyMessages, singleTextMessage}
 import ru.johnspade.s10ns.bot.engine.callbackqueries.{CallbackDataDecoder, CallbackQueryHandler, DecodeError, ParseError}
@@ -15,7 +15,7 @@ import telegramium.bots.high.{Api, LongPollBot}
 import telegramium.bots.{CallbackQuery, Message, User => TgUser}
 import tofu.logging.{Logging, Logs}
 
-class SubscriptionsBot[F[_]: Sync: Timer: Logging, D[_]: Monad](
+class SubscriptionsBot[F[_]: Sync: Timer: Parallel: Logging, D[_]: Monad](
   private val userRepo: UserRepository[D],
   private val s10nListController: SubscriptionListController[F],
   private val s10nController: S10nController[F],
@@ -123,7 +123,7 @@ class SubscriptionsBot[F[_]: Sync: Timer: Logging, D[_]: Monad](
 }
 
 object SubscriptionsBot {
-  def apply[F[_]: Sync: Timer, D[_]: Monad](
+  def apply[F[_]: Sync: Timer: Parallel, D[_]: Monad](
     userRepo: UserRepository[D],
     s10nListController: SubscriptionListController[F],
     s10nController: S10nController[F],
