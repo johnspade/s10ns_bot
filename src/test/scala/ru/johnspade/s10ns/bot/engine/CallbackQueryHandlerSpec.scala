@@ -23,13 +23,13 @@ class CallbackQueryHandlerSpec extends AnyFlatSpec with Matchers with MockFactor
 
   "handle" should "use correct routes" in {
     (api.execute[Boolean] _)
-      .when(where((_: Method[Boolean]).name == "answerCallbackQuery"))
+      .when(where((_: Method[Boolean]).payload.name == "answerCallbackQuery"))
       .returns(IO.pure(true))
     (api.execute[User] _)
-      .when(where((_: Method[User]).name == "getMe"))
+      .when(where((_: Method[User]).payload.name == "getMe"))
       .returns(IO.pure(testUser))
     (api.execute[Boolean] _)
-      .when(where((_: Method[Boolean]).name == "leaveChat"))
+      .when(where((_: Method[Boolean]).payload.name == "leaveChat"))
       .returns(IO.pure(true))
 
     CallbackQueryHandler.handle[IO, String](createCb("1", "test1"), routes, testCallbackDataDecoder, ifNotFound).unsafeRunSync

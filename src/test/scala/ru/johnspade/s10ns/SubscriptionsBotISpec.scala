@@ -231,16 +231,16 @@ class SubscriptionsBotISpec
 
     protected def prepareStubs(): Unit = {
       (api.execute[Message] _)
-        .when(where((_: Method[Message]).name == "sendMessage"))
+        .when(where((_: Method[Message]).payload.name == "sendMessage"))
         .returns(IO.pure(mockMessage))
       (api.execute[Either[Boolean, Message]] _)
-        .when(where((_: Method[Either[Boolean, Message]]).name == "editMessageReplyMarkup"))
+        .when(where((_: Method[Either[Boolean, Message]]).payload.name == "editMessageReplyMarkup"))
         .returns(IO.pure(Right(mockMessage)))
       (api.execute[Boolean] _)
-        .when(where((_: Method[Boolean]).name == "answerCallbackQuery"))
+        .when(where((_: Method[Boolean]).payload.name == "answerCallbackQuery"))
         .returns(IO.pure(true))
       (api.execute[Either[Boolean, Message]] _)
-        .when(where((_: Method[Either[Boolean, Message]]).name == "editMessageText"))
+        .when(where((_: Method[Either[Boolean, Message]]).payload.name == "editMessageText"))
         .returns(IO.pure(Right(mockMessage)))
     }
   }
