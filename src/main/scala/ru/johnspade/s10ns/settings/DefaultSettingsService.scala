@@ -7,7 +7,7 @@ import ru.johnspade.s10ns.bot.engine.TelegramOps.inlineKeyboardButton
 import ru.johnspade.s10ns.bot.engine.{DialogEngine, ReplyMessage, StateMessageService}
 import ru.johnspade.s10ns.bot.{DefCurrency, SettingsDialog}
 import ru.johnspade.s10ns.user.User
-import telegramium.bots.high._
+import telegramium.bots.high.keyboards.InlineKeyboardMarkups
 
 class DefaultSettingsService[F[_] : Sync](
   private val dialogEngine: DialogEngine[F],
@@ -31,7 +31,7 @@ class DefaultSettingsService[F[_] : Sync](
     Sync[F].pure {
       ReplyMessage(
         "Settings",
-        InlineKeyboardMarkup.singleButton(inlineKeyboardButton("Default currency", DefCurrency)).some
+        InlineKeyboardMarkups.singleButton(inlineKeyboardButton("Default currency", DefCurrency)).some
       )
     }
 }

@@ -14,7 +14,8 @@ import ru.johnspade.s10ns.subscription.tags.{PageNumber, SubscriptionId, Subscri
 import ru.johnspade.s10ns.subscription.{Subscription, SubscriptionDraft}
 import ru.johnspade.s10ns.user.tags.{FirstName, UserId}
 import ru.johnspade.s10ns.user.{User, UserRepository}
-import telegramium.bots.high.InlineKeyboardMarkup
+import telegramium.bots.high.keyboards.InlineKeyboardMarkups
+import telegramium.bots.InlineKeyboardMarkup
 
 import scala.concurrent.ExecutionContext
 
@@ -39,7 +40,7 @@ trait EditS10nDialogServiceSpec extends MockFactory {
 
   protected val defaultSavedMessage: ReplyMessage = ReplyMessage(Messages.S10nSaved, BotStart.markup.some)
 
-  protected val defaultS10nMarkup: InlineKeyboardMarkup = InlineKeyboardMarkup.singleColumn(List(
+  protected val defaultS10nMarkup: InlineKeyboardMarkup = InlineKeyboardMarkups.singleColumn(List(
     inlineKeyboardButton("Edit", EditS10n(s10nId, page0)),
     inlineKeyboardButton("Enable notifications", Notify(s10nId, enable = true, page0)),
     inlineKeyboardButton("Remove", RemoveS10n(s10nId, page0)),

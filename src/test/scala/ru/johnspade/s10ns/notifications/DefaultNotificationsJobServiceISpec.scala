@@ -2,7 +2,6 @@ package ru.johnspade.s10ns.notifications
 
 import java.time.format.DateTimeFormatter
 import java.time.{Instant, LocalDate, ZoneOffset}
-
 import cats.effect.IO
 import cats.syntax.option._
 import doobie.ConnectionIO
@@ -23,6 +22,7 @@ import ru.johnspade.s10ns.subscription.{BillingPeriodUnit, SubscriptionDraft}
 import ru.johnspade.s10ns.user.tags.{ChatId, FirstName, UserId}
 import ru.johnspade.s10ns.user.{DoobieUserRepository, User}
 import telegramium.bots.high.Methods.sendMessage
+import telegramium.bots.high.keyboards.InlineKeyboardMarkups
 import telegramium.bots.high.{Api, _}
 import telegramium.bots.{Chat, ChatIntId, Markdown, Message}
 
@@ -68,7 +68,7 @@ class DefaultNotificationsJobServiceISpec extends SpecBase with MockFactory with
            |_First payment:_ $today
            |_Paid in total:_ 0.00 €""".stripMargin,
       Markdown.some,
-      replyMarkup = InlineKeyboardMarkup.singleColumn(List(
+      replyMarkup = InlineKeyboardMarkups.singleColumn(List(
         inlineKeyboardButton("Edit", EditS10n(s10nId, PageNumber(0))),
         inlineKeyboardButton("Disable notifications", Notify(s10nId, enable = false, PageNumber(0))),
         inlineKeyboardButton("Remove", RemoveS10n(s10nId, PageNumber(0))),

@@ -2,15 +2,16 @@ package ru.johnspade.s10ns.bot
 
 import cats.syntax.option._
 import ru.johnspade.s10ns.bot.engine.ReplyMessage
-import telegramium.bots.high._
+import telegramium.bots.ReplyKeyboardMarkup
+import telegramium.bots.high.keyboards.{KeyboardButtons, ReplyKeyboardMarkups}
 
 object BotStart {
-  val markup: ReplyKeyboardMarkup = ReplyKeyboardMarkup.singleColumn(
+  val markup: ReplyKeyboardMarkup = ReplyKeyboardMarkups.singleColumn(
     List(
-      KeyboardButton.text("\uD83D\uDCCB List"),
-      KeyboardButton.text("➕ New subscription (default currency)"),
-      KeyboardButton.text("\uD83D\uDCB2 New subscription"),
-      KeyboardButton.text("⚙️ Settings")
+      KeyboardButtons.text("\uD83D\uDCCB List"),
+      KeyboardButtons.text("➕ New subscription (default currency)"),
+      KeyboardButtons.text("\uD83D\uDCB2 New subscription"),
+      KeyboardButtons.text("⚙️ Settings")
     ),
     resizeKeyboard = Some(true)
   )

@@ -2,7 +2,6 @@ package ru.johnspade.s10ns.subscription.service
 
 import java.time.format.DateTimeFormatter
 import java.time.{LocalDate, Period, ZoneOffset}
-
 import cats.effect.{Clock, IO}
 import cats.syntax.option._
 import com.softwaremill.diffx.scalatest.DiffMatcher
@@ -16,8 +15,8 @@ import ru.johnspade.s10ns.exchangerates.InMemoryExchangeRatesStorage
 import ru.johnspade.s10ns.subscription.tags.{BillingPeriodDuration, FirstPaymentDate, OneTimeSubscription, PageNumber, SubscriptionId, SubscriptionName}
 import ru.johnspade.s10ns.subscription.{BillingPeriod, BillingPeriodUnit, Subscription}
 import ru.johnspade.s10ns.user.tags.UserId
-import telegramium.bots.KeyboardMarkup
-import telegramium.bots.high._
+import telegramium.bots.{KeyboardMarkup, InlineKeyboardMarkup}
+import telegramium.bots.high.keyboards.InlineKeyboardMarkups
 
 import scala.concurrent.ExecutionContext
 
@@ -100,7 +99,7 @@ class S10nsListMessageServiceSpec extends AnyFlatSpec with Matchers with OptionV
           |
           |1. s10n10 – 1.00 €""".stripMargin
     page.markup.value should matchTo[KeyboardMarkup] {
-      InlineKeyboardMarkup.singleColumn(List(
+      InlineKeyboardMarkups.singleColumn(List(
         inlineKeyboardButton("Yearly", S10nsPeriod(BillingPeriodUnit.Year, PageNumber(1))),
         inlineKeyboardButton("1", S10n(SubscriptionId(10L), PageNumber(1))),
         inlineKeyboardButton("⬅", S10ns(PageNumber(0)))
@@ -236,7 +235,7 @@ class S10nsListMessageServiceSpec extends AnyFlatSpec with Matchers with OptionV
 
     val markup = s10nsListMessageService.createEditS10nMarkup(s10n1, PageNumber(0))
     markup should matchTo {
-      InlineKeyboardMarkup.singleColumn(List(
+      InlineKeyboardMarkups.singleColumn(List(
         inlineKeyboardButton("Name", EditS10nName(id)),
         inlineKeyboardButton("Amount", EditS10nAmount(id)),
         inlineKeyboardButton("Currency/amount", EditS10nCurrency(id)),
@@ -291,7 +290,7 @@ class S10nsListMessageServiceSpec extends AnyFlatSpec with Matchers with OptionV
 
   private def checkS10nMessageMarkup(markup: Option[KeyboardMarkup], s10nId: SubscriptionId, page: PageNumber): Unit =
     markup.value should matchTo[KeyboardMarkup] {
-      InlineKeyboardMarkup.singleColumn(List(
+      InlineKeyboardMarkups.singleColumn(List(
         inlineKeyboardButton("Edit", EditS10n(s10nId, page)),
         inlineKeyboardButton("Enable notifications", Notify(s10nId, enable = true, page)),
         inlineKeyboardButton("Remove", RemoveS10n(s10nId, page)),

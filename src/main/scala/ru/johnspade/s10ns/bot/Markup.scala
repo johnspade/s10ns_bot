@@ -4,7 +4,8 @@ import org.joda.money.CurrencyUnit
 import ru.johnspade.s10ns.bot.engine.TelegramOps.inlineKeyboardButton
 import ru.johnspade.s10ns.subscription.BillingPeriodUnit
 import ru.johnspade.s10ns.subscription.tags.OneTimeSubscription
-import telegramium.bots.high._
+import telegramium.bots.high.keyboards.InlineKeyboardMarkups
+import telegramium.bots.{InlineKeyboardMarkup, KeyboardButton, ReplyKeyboardMarkup}
 
 object Markup {
   val CurrencyReplyMarkup: ReplyKeyboardMarkup = ReplyKeyboardMarkup(
@@ -38,7 +39,7 @@ object Markup {
       )
     )
 
-  val BillingPeriodUnitReplyMarkup: InlineKeyboardMarkup = InlineKeyboardMarkup.singleRow(
+  val BillingPeriodUnitReplyMarkup: InlineKeyboardMarkup = InlineKeyboardMarkups.singleRow(
     List(BillingPeriodUnit.Day, BillingPeriodUnit.Week, BillingPeriodUnit.Month, BillingPeriodUnit.Year).map { unit =>
       inlineKeyboardButton(unit.chronoUnit.toString, PeriodUnit(unit))
     }

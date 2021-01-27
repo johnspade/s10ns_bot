@@ -1,7 +1,6 @@
 package ru.johnspade.s10ns.subscription.service
 
 import java.time.LocalDate
-
 import cats.Monad
 import cats.effect.Sync
 import cats.implicits._
@@ -9,8 +8,8 @@ import org.joda.money.{CurrencyUnit, Money}
 import ru.johnspade.s10ns.bot.MoneyService
 import ru.johnspade.s10ns.bot.engine.ReplyMessage
 import ru.johnspade.s10ns.subscription.tags.{FirstPaymentDate, PageNumber}
-import ru.johnspade.s10ns.subscription.{BillingPeriod, BillingPeriodUnit, ExactAmount, S10nAmount, NonExactAmount, S10nInfo, S10nItem, S10nList, Subscription}
-import telegramium.bots.high._
+import ru.johnspade.s10ns.subscription.{BillingPeriod, BillingPeriodUnit, ExactAmount, NonExactAmount, S10nAmount, S10nInfo, S10nItem, S10nList, Subscription}
+import telegramium.bots.InlineKeyboardMarkup
 
 class S10nsListMessageService[F[_]: Sync](
   private val moneyService: MoneyService[F],

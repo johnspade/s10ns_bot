@@ -2,7 +2,6 @@ package ru.johnspade.s10ns
 
 import java.time.format.DateTimeFormatter
 import java.time.{LocalDate, ZoneOffset}
-
 import cats.effect.{ContextShift, IO, Timer}
 import cats.syntax.option._
 import cats.~>
@@ -30,6 +29,7 @@ import ru.johnspade.s10ns.user.DoobieUserRepository
 import ru.johnspade.s10ns.user.tags.UserId
 import telegramium.bots.client.Method
 import telegramium.bots.high.Methods._
+import telegramium.bots.high.keyboards.InlineKeyboardMarkups
 import telegramium.bots.high.{Api, _}
 import telegramium.bots.{CallbackQuery, Chat, ChatIntId, Html, KeyboardMarkup, Markdown, Message, ParseMode, ReplyKeyboardRemove, User}
 import tofu.logging.Logs
@@ -86,7 +86,7 @@ class SubscriptionsBotISpec
          |_Next payment:_ $today
          |_First payment:_ $today
          |_Paid in total:_ 0.00 €""".stripMargin,
-      InlineKeyboardMarkup.singleColumn(List(
+      InlineKeyboardMarkups.singleColumn(List(
         inlineKeyboardButton("Edit", EditS10n(s10nId, PageNumber(0))),
         inlineKeyboardButton("Enable notifications", Notify(s10nId, enable = true, PageNumber(0))),
         inlineKeyboardButton("Remove", RemoveS10n(s10nId, PageNumber(0))),

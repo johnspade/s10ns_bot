@@ -8,10 +8,11 @@ import ru.johnspade.s10ns.bot.ValidatorNec.ValidationResult
 import ru.johnspade.s10ns.bot.{CbData, Dialog}
 import ru.johnspade.s10ns.user._
 import ru.johnspade.s10ns.user.tags._
+import telegramium.bots.high.Api
 import telegramium.bots.high.Methods._
-import telegramium.bots.high._
 import telegramium.bots.high.implicits._
-import telegramium.bots.{CallbackQuery, ChatIntId, Message}
+import telegramium.bots.high.keyboards.InlineKeyboardButtons
+import telegramium.bots.{CallbackQuery, ChatIntId, InlineKeyboardButton, Message}
 import tofu.logging.Logging
 
 import scala.concurrent.duration.{FiniteDuration, MILLISECONDS}
@@ -54,7 +55,7 @@ object TelegramOps {
   def singleTextMessage(text: String): List[ReplyMessage] = List(ReplyMessage(text))
 
   def inlineKeyboardButton(text: String, cbData: CbData): InlineKeyboardButton =
-    InlineKeyboardButton.callbackData(text, callbackData = cbData.toCsv)
+    InlineKeyboardButtons.callbackData(text, callbackData = cbData.toCsv)
 
   def clearMarkup[F[_]: Sync](cb: CallbackQuery)(implicit bot: Api[F]): F[Unit] =
     editMessageReplyMarkup(

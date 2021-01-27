@@ -1,7 +1,6 @@
 package ru.johnspade.s10ns.subscription.service
 
 import java.time.format.DateTimeFormatter
-
 import cats.syntax.option._
 import com.ibm.icu.text.MeasureFormat
 import com.ibm.icu.text.MeasureFormat.FormatWidth
@@ -12,8 +11,8 @@ import ru.johnspade.s10ns.bot.engine.TelegramOps.inlineKeyboardButton
 import ru.johnspade.s10ns.bot.{EditS10n, EditS10nAmount, EditS10nBillingPeriod, EditS10nCurrency, EditS10nFirstPaymentDate, EditS10nName, EditS10nOneTime, Notify, RemoveS10n, S10n, S10ns, S10nsPeriod}
 import ru.johnspade.s10ns.subscription.tags.{OneTimeSubscription, PageNumber, SubscriptionId}
 import ru.johnspade.s10ns.subscription.{ExactAmount, NonExactAmount, S10nInfo, S10nList}
-import telegramium.bots.high.InlineKeyboardMarkup
-import telegramium.bots.{Html, InlineKeyboardButton, Markdown}
+import telegramium.bots.high.keyboards.InlineKeyboardMarkups
+import telegramium.bots.{Html, InlineKeyboardButton, InlineKeyboardMarkup, Markdown}
 
 // todo write unit tests
 class S10nsListReplyMessageService {
@@ -116,7 +115,7 @@ class S10nsListReplyMessageService {
     )
     val removeButton = inlineKeyboardButton("Remove", RemoveS10n(id, page))
     val backButton = inlineKeyboardButton("List", S10ns(page))
-    InlineKeyboardMarkup.singleColumn(List(editButton, notifyButton, removeButton, backButton))
+    InlineKeyboardMarkups.singleColumn(List(editButton, notifyButton, removeButton, backButton))
   }
 
   def createEditS10nMarkup(id: SubscriptionId, oneTime: Option[OneTimeSubscription], page: PageNumber): InlineKeyboardMarkup = {

@@ -1,7 +1,6 @@
 package ru.johnspade.s10ns.subscription.service
 
 import java.time.{LocalDate, ZoneOffset}
-
 import cats.Id
 import cats.effect.{Clock, IO}
 import cats.syntax.option._
@@ -23,8 +22,8 @@ import ru.johnspade.s10ns.subscription.tags.{BillingPeriodDuration, FirstPayment
 import ru.johnspade.s10ns.subscription.{BillingPeriodUnit, Subscription, SubscriptionDraft}
 import ru.johnspade.s10ns.user.tags.{FirstName, UserId}
 import ru.johnspade.s10ns.user.{InMemoryUserRepository, User}
-import telegramium.bots.{Markdown, ReplyKeyboardRemove}
-import telegramium.bots.high._
+import telegramium.bots.{Markdown, ReplyKeyboardRemove, InlineKeyboardMarkup}
+import telegramium.bots.high.keyboards.{InlineKeyboardButtons, InlineKeyboardMarkups}
 import tofu.logging.Logs
 
 import scala.concurrent.ExecutionContext
@@ -58,7 +57,7 @@ class DefaultCreateS10nDialogFsmServiceSpec extends AnyFlatSpec with Matchers wi
     ReplyMessage("Saved.", BotStart.markup.some),
     ReplyMessage(
       "**\n\n0.00 €\n",
-      InlineKeyboardMarkup.singleColumn(List(
+      InlineKeyboardMarkups.singleColumn(List(
         inlineKeyboardButton("Edit", EditS10n(s10nId, page)),
         inlineKeyboardButton("Enable notifications", Notify(s10nId, enable = true, page)),
         inlineKeyboardButton("Remove", RemoveS10n(s10nId, page)),
@@ -91,11 +90,11 @@ class DefaultCreateS10nDialogFsmServiceSpec extends AnyFlatSpec with Matchers wi
         markup = InlineKeyboardMarkup(
           List(
             List(
-              InlineKeyboardButton.callbackData("Recurring", "OneTime\u001Dfalse"),
-              InlineKeyboardButton.callbackData("One time", "OneTime\u001Dtrue"),
-              InlineKeyboardButton.callbackData("Every month", "EveryMonth")
+              InlineKeyboardButtons.callbackData("Recurring", "OneTime\u001Dfalse"),
+              InlineKeyboardButtons.callbackData("One time", "OneTime\u001Dtrue"),
+              InlineKeyboardButtons.callbackData("Every month", "EveryMonth")
             ),
-            List(InlineKeyboardButton.callbackData("Skip", "SkipIsOneTime"))
+            List(InlineKeyboardButtons.callbackData("Skip", "SkipIsOneTime"))
           )
         ).some
       ))
@@ -133,12 +132,12 @@ class DefaultCreateS10nDialogFsmServiceSpec extends AnyFlatSpec with Matchers wi
     createS10nDialogFsmService.saveIsOneTime(user, dialog, OneTimeSubscription(false)).unsafeRunSync should matchTo {
       List(ReplyMessage(
         "Billing period unit:",
-        InlineKeyboardMarkup.singleRow(
+        InlineKeyboardMarkups.singleRow(
           List(
-            InlineKeyboardButton.callbackData("Days", "PeriodUnit\u001DDay"),
-            InlineKeyboardButton.callbackData("Weeks", "PeriodUnit\u001DWeek"),
-            InlineKeyboardButton.callbackData("Months", "PeriodUnit\u001DMonth"),
-            InlineKeyboardButton.callbackData("Years", "PeriodUnit\u001DYear")
+            InlineKeyboardButtons.callbackData("Days", "PeriodUnit\u001DDay"),
+            InlineKeyboardButtons.callbackData("Weeks", "PeriodUnit\u001DWeek"),
+            InlineKeyboardButtons.callbackData("Months", "PeriodUnit\u001DMonth"),
+            InlineKeyboardButtons.callbackData("Years", "PeriodUnit\u001DYear")
           )
         ).some
       ))
