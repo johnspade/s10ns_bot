@@ -7,7 +7,7 @@ import cats.syntax.functor._
 import cats.syntax.option._
 import ru.johnspade.s10ns.bot.engine.ReplyMessage
 import ru.johnspade.s10ns.bot.engine.TelegramOps.{ackCb, clearMarkup, handleCallback, sendReplyMessages, singleTextMessage, toReplyMessages}
-import ru.johnspade.s10ns.bot.engine.callbackqueries.CallbackQueryContextRoutes
+import ru.johnspade.tgbot.callbackqueries.CallbackQueryContextRoutes
 import ru.johnspade.s10ns.bot.{CallbackQueryUserController, CbData, CreateS10nDialog, DropFirstPayment, EditS10nAmount, EditS10nAmountDialog, EditS10nBillingPeriod, EditS10nBillingPeriodDialog, EditS10nCurrency, EditS10nCurrencyDialog, EditS10nFirstPaymentDate, EditS10nFirstPaymentDateDialog, EditS10nName, EditS10nNameDialog, EditS10nOneTime, EditS10nOneTimeDialog, Errors, EveryMonth, FirstPayment, OneTime, PeriodUnit, SkipIsOneTime}
 import ru.johnspade.s10ns.subscription.dialog.{EditS10nAmountDialogState, EditS10nBillingPeriodDialogState, EditS10nCurrencyDialogState, EditS10nNameDialogState, EditS10nOneTimeDialogState}
 import ru.johnspade.s10ns.subscription.service.{CreateS10nDialogService, EditS10n1stPaymentDateDialogService, EditS10nAmountDialogService, EditS10nBillingPeriodDialogService, EditS10nCurrencyDialogService, EditS10nNameDialogService, EditS10nOneTimeDialogService}
@@ -28,7 +28,7 @@ class S10nController[F[_]: Sync: Logging: Timer](
   private val editS10nOneTimeDialogService: EditS10nOneTimeDialogService[F]
 )(implicit bot: Api[F]) extends CallbackQueryUserController[F] {
 
-  override val routes: CbDataUserRoutes[F] = CallbackQueryContextRoutes.of[CbData, User, F] {
+  override val routes: CbDataUserRoutes[F] = CallbackQueryContextRoutes.of {
     case (data: PeriodUnit) in cb as user =>
       user.dialog.collect {
         case d: CreateS10nDialog =>

@@ -6,7 +6,7 @@ import cats.implicits._
 import ru.johnspade.s10ns.CbDataUserRoutes
 import ru.johnspade.s10ns.bot.engine.ReplyMessage
 import ru.johnspade.s10ns.bot.engine.TelegramOps.{ackCb, sendReplyMessages, toReplyMessage}
-import ru.johnspade.s10ns.bot.engine.callbackqueries.CallbackQueryContextRoutes
+import ru.johnspade.tgbot.callbackqueries.CallbackQueryContextRoutes
 import ru.johnspade.s10ns.bot.{CallbackQueryUserController, CbData, DefCurrency, Errors, SettingsDialog}
 import ru.johnspade.s10ns.user.User
 import telegramium.bots.Message
@@ -24,7 +24,7 @@ class SettingsController[F[_]: Sync: Logging: Timer](
     }).getOrElse(Sync[F].pure(ReplyMessage(Errors.Default)))
       .map(List(_))
 
-  override val routes: CbDataUserRoutes[F] = CallbackQueryContextRoutes.of[CbData, User, F] {
+  override val routes: CbDataUserRoutes[F] = CallbackQueryContextRoutes.of {
     case DefCurrency in cb as user =>
       ackCb(cb) *> cb.message.map { msg =>
         settingsService.startDefaultCurrencyDialog(user)

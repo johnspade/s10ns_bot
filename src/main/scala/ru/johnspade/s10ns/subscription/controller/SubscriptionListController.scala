@@ -5,7 +5,7 @@ import cats.implicits._
 import ru.johnspade.s10ns.CbDataUserRoutes
 import ru.johnspade.s10ns.bot.engine.ReplyMessage
 import ru.johnspade.s10ns.bot.engine.TelegramOps.ackCb
-import ru.johnspade.s10ns.bot.engine.callbackqueries.CallbackQueryContextRoutes
+import ru.johnspade.tgbot.callbackqueries.CallbackQueryContextRoutes
 import ru.johnspade.s10ns.bot.{CallbackQueryUserController, CbData, EditS10n, Notify, RemoveS10n, S10n, S10ns, S10nsPeriod}
 import ru.johnspade.s10ns.subscription.service.SubscriptionListService
 import ru.johnspade.s10ns.subscription.tags.PageNumber
@@ -20,7 +20,7 @@ class SubscriptionListController[F[_]: Sync](
 )(implicit bot: Api[F]) extends CallbackQueryUserController[F] {
   def listCommand(from: User): F[ReplyMessage] = s10nListService.onListCommand(from, PageNumber(0))
 
-  override val routes: CbDataUserRoutes[F] = CallbackQueryContextRoutes.of[CbData, User, F] {
+  override val routes: CbDataUserRoutes[F] = CallbackQueryContextRoutes.of {
     case (data: S10ns) in cb as user =>
       s10nListService.onSubscriptionsCb(user, cb, data)
         .flatMap(ackCb(cb) *> editMessage(cb, _))

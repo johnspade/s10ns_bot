@@ -5,7 +5,7 @@ import cats.implicits._
 import cats.{Monad, Parallel, ~>}
 import ru.johnspade.s10ns.bot.engine.ReplyMessage
 import ru.johnspade.s10ns.bot.engine.TelegramOps.{TelegramUserOps, sendReplyMessages, singleTextMessage}
-import ru.johnspade.s10ns.bot.engine.callbackqueries.{CallbackDataDecoder, CallbackQueryHandler, DecodeError, ParseError}
+import ru.johnspade.tgbot.callbackqueries.{CallbackDataDecoder, CallbackQueryHandler, DecodeError, ParseError}
 import ru.johnspade.s10ns.bot.{CbData, CbDataService, CreateS10nDialog, Dialog, EditS10nAmountDialog, EditS10nBillingPeriodDialog, EditS10nCurrencyDialog, EditS10nNameDialog, EditS10nOneTimeDialog, Errors, IgnoreController, SettingsDialog, StartController, UserMiddleware}
 import ru.johnspade.s10ns.calendar.CalendarController
 import ru.johnspade.s10ns.settings.SettingsController
@@ -46,7 +46,7 @@ class SubscriptionsBot[F[_]: Sync: Timer: Parallel: Logging, D[_]: Monad](
       .toEitherT[F]
 
   override def onCallbackQuery(query: CallbackQuery): F[Unit] =
-    CallbackQueryHandler.handle[F, CbData](
+    CallbackQueryHandler.handle(
       query,
       allRoutes,
       cbDataDecoder,

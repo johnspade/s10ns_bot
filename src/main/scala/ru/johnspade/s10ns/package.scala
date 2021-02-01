@@ -7,7 +7,7 @@ import cats.implicits._
 import cats.{Functor, Monad, MonadError}
 import ru.johnspade.s10ns.bot.engine.TelegramOps.ackCb
 import ru.johnspade.s10ns.bot.{CbData, Errors}
-import ru.johnspade.s10ns.bot.engine.callbackqueries.{CallbackQueryContextRoutes, CallbackQueryRoutes}
+import ru.johnspade.tgbot.callbackqueries.{CallbackQueryContextRoutes, CallbackQueryRoutes}
 import ru.johnspade.s10ns.user.User
 import telegramium.bots.CallbackQuery
 import telegramium.bots.high.Api
@@ -26,9 +26,9 @@ package object s10ns {
 
   def currentTimestamp[F[_]: Clock: Functor]: F[Instant] = Clock[F].realTime(MILLISECONDS).map(Instant.ofEpochMilli)
 
-  type CbDataRoutes[F[_]] = CallbackQueryRoutes[CbData, F]
+  type CbDataRoutes[F[_]] = CallbackQueryRoutes[CbData, Unit, F]
 
-  type CbDataUserRoutes[F[_]] = CallbackQueryContextRoutes[CbData, User, F]
+  type CbDataUserRoutes[F[_]] = CallbackQueryContextRoutes[CbData, User, Unit, F]
 
   def ackDefaultError[F[_]: Sync](cb: CallbackQuery)(implicit bot: Api[F]): F[Unit] = ackCb[F](cb, Errors.Default.some)
 }
