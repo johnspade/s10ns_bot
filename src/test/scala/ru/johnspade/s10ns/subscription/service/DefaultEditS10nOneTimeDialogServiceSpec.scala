@@ -30,7 +30,7 @@ class DefaultEditS10nOneTimeDialogServiceSpec extends AnyFlatSpec with EditS10nD
     val updatedUser = user.copy(dialog = dialog.some)
     (mockUserRepo.createOrUpdate _).expects(updatedUser).returns(updatedUser)
 
-    val result = editS10nOneTimeDialogService.onEditS10nOneTimeCb(user, EditS10nOneTime(s10nId)).unsafeRunSync
+    val result = editS10nOneTimeDialogService.onEditS10nOneTimeCb(user, EditS10nOneTime(s10nId)).unsafeRunSync()
     result should matchTo {
       List(
         ReplyMessage("Recurring/one time:", ReplyKeyboardRemove(removeKeyboard = true).some),
@@ -52,7 +52,7 @@ class DefaultEditS10nOneTimeDialogServiceSpec extends AnyFlatSpec with EditS10nD
     )
     (mockS10nRepo.update _).expects(updatedS10n).returns(updatedS10n.some)
 
-    editS10nOneTimeDialogService.saveIsOneTime(OneTime(OneTimeSubscription(true)), user, dialog).unsafeRunSync shouldBe
+    editS10nOneTimeDialogService.saveIsOneTime(OneTime(OneTimeSubscription(true)), user, dialog).unsafeRunSync() shouldBe
       List(
         defaultSavedMessage,
         ReplyMessage(
@@ -77,7 +77,7 @@ class DefaultEditS10nOneTimeDialogServiceSpec extends AnyFlatSpec with EditS10nD
     )
     (mockS10nRepo.update _).expects(updatedS10n).returns(updatedS10n.some)
 
-    editS10nOneTimeDialogService.saveIsOneTime(OneTime(OneTimeSubscription(false)), user, dialog).unsafeRunSync shouldBe
+    editS10nOneTimeDialogService.saveIsOneTime(OneTime(OneTimeSubscription(false)), user, dialog).unsafeRunSync() shouldBe
       List(
         defaultSavedMessage,
         ReplyMessage(
@@ -101,7 +101,7 @@ class DefaultEditS10nOneTimeDialogServiceSpec extends AnyFlatSpec with EditS10nD
     (mockUserRepo.createOrUpdate _).expects(updatedUser).returns(updatedUser)
 
     val dialog = EditS10nOneTimeDialog(EditS10nOneTimeDialogState.IsOneTime, s10n)
-    editS10nOneTimeDialogService.saveIsOneTime(OneTime(OneTimeSubscription(false)), user, dialog).unsafeRunSync shouldBe
+    editS10nOneTimeDialogService.saveIsOneTime(OneTime(OneTimeSubscription(false)), user, dialog).unsafeRunSync() shouldBe
       List(ReplyMessage("Billing period unit:", Markup.BillingPeriodUnitReplyMarkup.some))
   }
 
@@ -112,7 +112,7 @@ class DefaultEditS10nOneTimeDialogServiceSpec extends AnyFlatSpec with EditS10nD
       EditS10nOneTimeDialogState.IsOneTime,
       s10n.copy(oneTime = OneTimeSubscription(true).some)
     )
-    editS10nOneTimeDialogService.removeIsOneTime(user, dialog).unsafeRunSync shouldBe
+    editS10nOneTimeDialogService.removeIsOneTime(user, dialog).unsafeRunSync() shouldBe
       List(
         defaultSavedMessage,
         ReplyMessage(
@@ -134,7 +134,7 @@ class DefaultEditS10nOneTimeDialogServiceSpec extends AnyFlatSpec with EditS10nD
     (mockS10nRepo.update _).expects(updatedS10n).returns(updatedS10n.some)
 
     val dialog = EditS10nOneTimeDialog(EditS10nOneTimeDialogState.IsOneTime, s10n)
-    editS10nOneTimeDialogService.saveEveryMonth(user, dialog).unsafeRunSync shouldBe
+    editS10nOneTimeDialogService.saveEveryMonth(user, dialog).unsafeRunSync() shouldBe
       List(
         defaultSavedMessage,
         ReplyMessage(
@@ -163,7 +163,7 @@ class DefaultEditS10nOneTimeDialogServiceSpec extends AnyFlatSpec with EditS10nD
       EditS10nOneTimeDialogState.BillingPeriodUnit,
       s10n.copy(oneTime = OneTimeSubscription(false).some)
     )
-    editS10nOneTimeDialogService.saveBillingPeriodUnit(PeriodUnit(BillingPeriodUnit.Day), user, dialog).unsafeRunSync shouldBe
+    editS10nOneTimeDialogService.saveBillingPeriodUnit(PeriodUnit(BillingPeriodUnit.Day), user, dialog).unsafeRunSync() shouldBe
       List(ReplyMessage("Billing period duration (1, 2...):"))
   }
 
@@ -183,7 +183,7 @@ class DefaultEditS10nOneTimeDialogServiceSpec extends AnyFlatSpec with EditS10nD
         billingPeriod = BillingPeriod(BillingPeriodDuration(1), BillingPeriodUnit.Day).some
       )
     )
-    editS10nOneTimeDialogService.saveBillingPeriodDuration(user, dialog, "3".some).unsafeRunSync shouldBe
+    editS10nOneTimeDialogService.saveBillingPeriodDuration(user, dialog, "3".some).unsafeRunSync() shouldBe
       List(
         defaultSavedMessage,
         ReplyMessage(
@@ -206,7 +206,7 @@ class DefaultEditS10nOneTimeDialogServiceSpec extends AnyFlatSpec with EditS10nD
         billingPeriod = BillingPeriod(BillingPeriodDuration(1), BillingPeriodUnit.Day).some
       )
     )
-    editS10nOneTimeDialogService.saveBillingPeriodDuration(user, dialog, None).unsafeRunSync shouldBe
+    editS10nOneTimeDialogService.saveBillingPeriodDuration(user, dialog, None).unsafeRunSync() shouldBe
       TextCannotBeEmpty.invalidNec[String]
   }
 
@@ -218,7 +218,7 @@ class DefaultEditS10nOneTimeDialogServiceSpec extends AnyFlatSpec with EditS10nD
         billingPeriod = BillingPeriod(BillingPeriodDuration(1), BillingPeriodUnit.Day).some
       )
     )
-    editS10nOneTimeDialogService.saveBillingPeriodDuration(user, dialog, "NaN".some).unsafeRunSync shouldBe
+    editS10nOneTimeDialogService.saveBillingPeriodDuration(user, dialog, "NaN".some).unsafeRunSync() shouldBe
       NotANumber.invalidNec[String]
   }
 
@@ -230,7 +230,7 @@ class DefaultEditS10nOneTimeDialogServiceSpec extends AnyFlatSpec with EditS10nD
         billingPeriod = BillingPeriod(BillingPeriodDuration(1), BillingPeriodUnit.Day).some
       )
     )
-    editS10nOneTimeDialogService.saveBillingPeriodDuration(user, dialog, "-3".some).unsafeRunSync shouldBe
+    editS10nOneTimeDialogService.saveBillingPeriodDuration(user, dialog, "-3".some).unsafeRunSync() shouldBe
       NumberMustBePositive.invalidNec[BillingPeriodDuration]
   }
 }

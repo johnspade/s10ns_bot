@@ -24,17 +24,17 @@ class MoneyServiceSpec extends AnyFlatSpec with Matchers {
 
   it should "convert between currencies correctly" in {
     val amountRub = Money.of(rub, 1598)
-    moneyService.convert(amountRub, CurrencyUnit.USD).unsafeRunSync shouldBe
+    moneyService.convert(amountRub, CurrencyUnit.USD).unsafeRunSync() shouldBe
       Money.of(CurrencyUnit.USD, 25.68).some
 
     val amountUsd = Money.of(CurrencyUnit.USD, 15)
-    moneyService.convert(amountUsd, CurrencyUnit.EUR).unsafeRunSync shouldBe
+    moneyService.convert(amountUsd, CurrencyUnit.EUR).unsafeRunSync() shouldBe
       Money.of(CurrencyUnit.EUR, 13.43).some
   }
 
   it should "not change amount in the same currency" in {
     val amountUsd = Money.of(CurrencyUnit.USD, 25.68)
-    moneyService.convert(amountUsd, CurrencyUnit.USD).unsafeRunSync shouldBe amountUsd.some
+    moneyService.convert(amountUsd, CurrencyUnit.USD).unsafeRunSync() shouldBe amountUsd.some
   }
 
   behavior of "sum"
@@ -44,7 +44,7 @@ class MoneyServiceSpec extends AnyFlatSpec with Matchers {
       createS10n(Money.of(rub, 256), oneMonth.some),
       createS10n(Money.of(rub, 300), oneMonth.some)
     )
-    moneyService.sum(s10ns, rub).unsafeRunSync shouldBe Money.of(rub, 556)
+    moneyService.sum(s10ns, rub).unsafeRunSync() shouldBe Money.of(rub, 556)
   }
 
   it should "sum subscriptions with different currencies" in {
@@ -52,7 +52,7 @@ class MoneyServiceSpec extends AnyFlatSpec with Matchers {
       createS10n(Money.of(CurrencyUnit.USD, 25.68), oneMonth.some),
       createS10n(Money.of(rub, 576.32), oneMonth.some)
     )
-    moneyService.sum(s10ns, CurrencyUnit.EUR).unsafeRunSync shouldBe Money.of(CurrencyUnit.EUR, 31.29)
+    moneyService.sum(s10ns, CurrencyUnit.EUR).unsafeRunSync() shouldBe Money.of(CurrencyUnit.EUR, 31.29)
   }
 
   it should "sum subscriptions with different billing periods" in {
@@ -60,7 +60,7 @@ class MoneyServiceSpec extends AnyFlatSpec with Matchers {
       createS10n(Money.of(rub, 256), BillingPeriod(BillingPeriodDuration(2), BillingPeriodUnit.Week).some),
       createS10n(Money.of(rub, 10), BillingPeriod(BillingPeriodDuration(1), BillingPeriodUnit.Day).some)
     )
-    moneyService.sum(s10ns, rub).unsafeRunSync shouldBe Money.of(rub, 860.93)
+    moneyService.sum(s10ns, rub).unsafeRunSync() shouldBe Money.of(rub, 860.93)
   }
 
   it should "ignore one time subscriptions" in {
@@ -72,7 +72,7 @@ class MoneyServiceSpec extends AnyFlatSpec with Matchers {
       createS10n(Money.of(CurrencyUnit.EUR, 20))
     )
 
-    moneyService.sum(s10ns, CurrencyUnit.EUR).unsafeRunSync shouldBe Money.of(CurrencyUnit.EUR, 10)
+    moneyService.sum(s10ns, CurrencyUnit.EUR).unsafeRunSync() shouldBe Money.of(CurrencyUnit.EUR, 10)
   }
 
   behavior of "calcAmount"

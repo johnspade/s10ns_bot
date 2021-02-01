@@ -29,7 +29,7 @@ class DefaultEditS10nCurrencyDialogServiceSpec extends AnyFlatSpec with EditS10n
     val updatedUser = user.copy(dialog = dialog.some)
     (mockUserRepo.createOrUpdate _).expects(updatedUser).returns(updatedUser)
 
-    val result = editS10nCurrencyDialogService.onEditS10nCurrencyCb(user, EditS10nCurrency(s10nId)).unsafeRunSync
+    val result = editS10nCurrencyDialogService.onEditS10nCurrencyCb(user, EditS10nCurrency(s10nId)).unsafeRunSync()
     result should matchTo {
       List(ReplyMessage("Enter or select the currency code:", Markup.CurrencyReplyMarkup.some))
     }
@@ -47,17 +47,17 @@ class DefaultEditS10nCurrencyDialogServiceSpec extends AnyFlatSpec with EditS10n
     val updatedUser = user.copy(dialog = updatedDialog.some)
     (mockUserRepo.createOrUpdate _).expects(updatedUser).returns(updatedUser)
 
-    editS10nCurrencyDialogService.saveCurrency(user, dialogWithCurrencyState, "USD".some).unsafeRunSync shouldBe
+    editS10nCurrencyDialogService.saveCurrency(user, dialogWithCurrencyState, "USD".some).unsafeRunSync() shouldBe
       List(ReplyMessage("Amount:")).validNec
   }
 
   it should "fail if a text is missing" in {
-    editS10nCurrencyDialogService.saveCurrency(user, dialogWithCurrencyState, None).unsafeRunSync shouldBe
+    editS10nCurrencyDialogService.saveCurrency(user, dialogWithCurrencyState, None).unsafeRunSync() shouldBe
       TextCannotBeEmpty.invalidNec[String]
   }
 
   it should "fail if a currency's code is unknown" in {
-    editS10nCurrencyDialogService.saveCurrency(user, dialogWithCurrencyState, "AAA".some).unsafeRunSync shouldBe
+    editS10nCurrencyDialogService.saveCurrency(user, dialogWithCurrencyState, "AAA".some).unsafeRunSync() shouldBe
       UnknownCurrency.invalidNec[CurrencyUnit]
   }
 
@@ -72,7 +72,7 @@ class DefaultEditS10nCurrencyDialogServiceSpec extends AnyFlatSpec with EditS10n
     val updatedS10n = s10n.copy(amount = Money.of(CurrencyUnit.USD, 13.37))
     (mockS10nRepo.update _).expects(updatedS10n).returns(updatedS10n.some)
 
-    editS10nCurrencyDialogService.saveAmount(user, dialogWithAmountState, "13.37".some).unsafeRunSync shouldBe
+    editS10nCurrencyDialogService.saveAmount(user, dialogWithAmountState, "13.37".some).unsafeRunSync() shouldBe
       List(
         defaultSavedMessage,
         ReplyMessage(
@@ -88,17 +88,17 @@ class DefaultEditS10nCurrencyDialogServiceSpec extends AnyFlatSpec with EditS10n
   }
 
   it should "fail if a text is missing" in {
-    editS10nCurrencyDialogService.saveAmount(user, dialogWithAmountState, None).unsafeRunSync shouldBe
+    editS10nCurrencyDialogService.saveAmount(user, dialogWithAmountState, None).unsafeRunSync() shouldBe
       TextCannotBeEmpty.invalidNec[String]
   }
 
   it should "fail if an amount is not a number" in {
-    editS10nCurrencyDialogService.saveAmount(user, dialogWithAmountState, "NaN".some).unsafeRunSync shouldBe
+    editS10nCurrencyDialogService.saveAmount(user, dialogWithAmountState, "NaN".some).unsafeRunSync() shouldBe
       NotANumber.invalidNec[String]
   }
 
   it should "fail if an amount is not positive" in {
-    editS10nCurrencyDialogService.saveAmount(user, dialogWithAmountState, "-3".some).unsafeRunSync shouldBe
+    editS10nCurrencyDialogService.saveAmount(user, dialogWithAmountState, "-3".some).unsafeRunSync() shouldBe
       NumberMustBePositive.invalidNec[BigDecimal]
   }
 }

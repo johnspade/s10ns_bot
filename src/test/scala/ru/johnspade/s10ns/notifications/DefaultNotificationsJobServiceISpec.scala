@@ -40,7 +40,7 @@ class DefaultNotificationsJobServiceISpec extends SpecBase with MockFactory with
       s10nRepo,
       s10nsListMessageService,
       notificationService
-    ).unsafeRunSync
+    ).unsafeRunSync()
 
   private implicit val api: Api[IO] = stub[Api[IO]]
 
@@ -51,10 +51,10 @@ class DefaultNotificationsJobServiceISpec extends SpecBase with MockFactory with
 
   it should "send a notification if there is a task in the table" in {
     (api.execute[Message] _).when(*).returns(IO.pure(Message(0, date = 0, chat = Chat(0, `type` = ""))))
-    notificationRepo.create(Notification(FUUID.randomFUUID[IO].unsafeRunSync, s10nId))
-      .transact(xa).unsafeRunSync
+    notificationRepo.create(Notification(FUUID.randomFUUID[IO].unsafeRunSync(), s10nId))
+      .transact(xa).unsafeRunSync()
 
-    notificationsJobService.executeTask().unsafeRunSync
+    notificationsJobService.executeTask().unsafeRunSync()
     (api.execute[Message] _).verify(sendMessage(
       chatId = ChatIntId(0),
       text =
@@ -78,7 +78,7 @@ class DefaultNotificationsJobServiceISpec extends SpecBase with MockFactory with
   }
 
   it should "do nothing if there is no tasks" in {
-    notificationsJobService.executeTask().unsafeRunSync
+    notificationsJobService.executeTask().unsafeRunSync()
     (api.execute[Message] _).verify(*).never()
   }
 
@@ -95,21 +95,21 @@ class DefaultNotificationsJobServiceISpec extends SpecBase with MockFactory with
       sendNotifications = true
     ))
       .transact(xa)
-      .unsafeRunSync
-    s10nRepo.update(s10n.copy(lastNotification = Instant.now.some)).transact(xa).unsafeRunSync
-    notificationRepo.create(Notification(FUUID.randomFUUID[IO].unsafeRunSync, s10n.id))
-      .transact(xa).unsafeRunSync
+      .unsafeRunSync()
+    s10nRepo.update(s10n.copy(lastNotification = Instant.now.some)).transact(xa).unsafeRunSync()
+    notificationRepo.create(Notification(FUUID.randomFUUID[IO].unsafeRunSync(), s10n.id))
+      .transact(xa).unsafeRunSync()
 
-    notificationsJobService.executeTask().unsafeRunSync
+    notificationsJobService.executeTask().unsafeRunSync()
     (api.execute[Message] _).verify(*).never()
   }
 
   private val userRepo = new DoobieUserRepository
 
-  private lazy val s10nId = s10nRepo.getByUserId(userId).transact(xa).unsafeRunSync.head.id
+  private lazy val s10nId = s10nRepo.getByUserId(userId).transact(xa).unsafeRunSync().head.id
 
   override protected def beforeEach(): Unit = {
-    userRepo.createOrUpdate(User(UserId(911L), FirstName("John"), ChatId(0L).some)).transact(xa).unsafeRunSync
+    userRepo.createOrUpdate(User(UserId(911L), FirstName("John"), ChatId(0L).some)).transact(xa).unsafeRunSync()
     s10nRepo.create(SubscriptionDraft(
       userId = userId,
       name = SubscriptionName("Netflix"),
@@ -122,12 +122,12 @@ class DefaultNotificationsJobServiceISpec extends SpecBase with MockFactory with
       sendNotifications = true
     ))
       .transact(xa)
-      .unsafeRunSync
+      .unsafeRunSync()
   }
 
   override protected def afterEach(): Unit = {
-    sql"delete from notifications where true".update.run.transact(xa).unsafeRunSync
-    sql"delete from subscriptions where true".update.run.transact(xa).unsafeRunSync
-    sql"delete from users where true".update.run.transact(xa).unsafeRunSync
+    sql"delete from notifications where true".update.run.transact(xa).unsafeRunSync()
+    sql"delete from subscriptions where true".update.run.transact(xa).unsafeRunSync()
+    sql"delete from users where true".update.run.transact(xa).unsafeRunSync()
   }
 }

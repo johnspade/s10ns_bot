@@ -31,28 +31,28 @@ class DefaultExchangeRatesServiceSpec extends AnyFlatSpec with Matchers with Opt
       fixerApi,
       exchangeRatesRepo,
       exchangeRatesRefreshTimestampRepo,
-      ExchangeRatesCache.create[IO](sampleRates).unsafeRunSync,
+      ExchangeRatesCache.create[IO](sampleRates).unsafeRunSync(),
       RetryPolicies.alwaysGiveUp
-    ).unsafeRunSync
+    ).unsafeRunSync()
 
-    exchangeRatesService.getRates.unsafeRunSync should matchTo(sampleRates)
+    exchangeRatesService.getRates.unsafeRunSync() should matchTo(sampleRates)
   }
 
   "saveRates" should "update rates" in {
-    val cache = ExchangeRatesCache.create[IO](sampleRates).unsafeRunSync
+    val cache = ExchangeRatesCache.create[IO](sampleRates).unsafeRunSync()
     val exchangeRatesService = DefaultExchangeRatesService[IO, Id](
       fixerApi,
       exchangeRatesRepo,
       exchangeRatesRefreshTimestampRepo,
       cache,
       RetryPolicies.alwaysGiveUp
-    ).unsafeRunSync
-    exchangeRatesService.saveRates().unsafeRunSync
+    ).unsafeRunSync()
+    exchangeRatesService.saveRates().unsafeRunSync()
 
-    val expectedRates = fixerApi.getLatestRates.unsafeRunSync.rates
+    val expectedRates = fixerApi.getLatestRates.unsafeRunSync().rates
 
     exchangeRatesRepo.get() should matchTo(expectedRates)
-    cache.get.unsafeRunSync should matchTo(expectedRates)
+    cache.get.unsafeRunSync() should matchTo(expectedRates)
     exchangeRatesRefreshTimestampRepo.get().value.getEpochSecond shouldBe timestamp
   }
 
@@ -62,13 +62,13 @@ class DefaultExchangeRatesServiceSpec extends AnyFlatSpec with Matchers with Opt
       mockFixerApi,
       exchangeRatesRepo,
       exchangeRatesRefreshTimestampRepo,
-      ExchangeRatesCache.create[IO](sampleRates).unsafeRunSync,
+      ExchangeRatesCache.create[IO](sampleRates).unsafeRunSync(),
       RetryPolicies.limitRetries(2)
-    ).unsafeRunSync
+    ).unsafeRunSync()
 
     (() => mockFixerApi.getLatestRates).when().throws(new RuntimeException())
 
-    exchangeRatesService.saveRates().unsafeRunSync
+    exchangeRatesService.saveRates().unsafeRunSync()
     (() => mockFixerApi.getLatestRates).verify().repeat(3)
   }
 }

@@ -41,7 +41,7 @@ class DefaultPrepareNotificationsJobServiceISpec extends SpecBase with BeforeAnd
 
   it should "not create notifications if they're already sent" in new Wiring {
     val s10n1: Subscription = createS10n(sampleS10nDraft)
-    s10nRepo.update(s10n1.copy(lastNotification = Instant.now.some)).transact(xa).unsafeRunSync
+    s10nRepo.update(s10n1.copy(lastNotification = Instant.now.some)).transact(xa).unsafeRunSync()
 
     prepareAndGetNotifications shouldBe empty
   }
@@ -64,7 +64,7 @@ class DefaultPrepareNotificationsJobServiceISpec extends SpecBase with BeforeAnd
     private val notificationService = new NotificationService[IO](hoursBefore, s10nInfoService)
 
     protected val prepareNotificationsJobService: DefaultPrepareNotificationsJobService[IO, ConnectionIO] =
-      DefaultPrepareNotificationsJobService(s10nRepo, notificationRepo, notificationService).unsafeRunSync
+      DefaultPrepareNotificationsJobService(s10nRepo, notificationRepo, notificationService).unsafeRunSync()
 
     protected val sampleS10nDraft: SubscriptionDraft =
       SubscriptionDraft(
@@ -79,23 +79,23 @@ class DefaultPrepareNotificationsJobServiceISpec extends SpecBase with BeforeAnd
         sendNotifications = true
       )
 
-    protected def createS10n(draft: SubscriptionDraft): Subscription = s10nRepo.create(draft).transact(xa).unsafeRunSync
+    protected def createS10n(draft: SubscriptionDraft): Subscription = s10nRepo.create(draft).transact(xa).unsafeRunSync()
 
     protected def prepareAndGetNotifications: List[Notification] = {
-      prepareNotificationsJobService.prepareNotifications().unsafeRunSync
-      notificationRepo.getAll.transact(xa).unsafeRunSync
+      prepareNotificationsJobService.prepareNotifications().unsafeRunSync()
+      notificationRepo.getAll.transact(xa).unsafeRunSync()
     }
   }
 
   private val userRepo = new DoobieUserRepository
 
   override protected def beforeEach(): Unit = {
-    userRepo.createOrUpdate(User(id = UserId(0L), FirstName("John"), None)).transact(xa).unsafeRunSync
+    userRepo.createOrUpdate(User(id = UserId(0L), FirstName("John"), None)).transact(xa).unsafeRunSync()
   }
 
   override protected def afterEach(): Unit = {
-    sql"delete from notifications where true".update.run.transact(xa).unsafeRunSync
-    sql"delete from subscriptions where true".update.run.transact(xa).unsafeRunSync
-    sql"delete from users where true".update.run.transact(xa).unsafeRunSync
+    sql"delete from notifications where true".update.run.transact(xa).unsafeRunSync()
+    sql"delete from subscriptions where true".update.run.transact(xa).unsafeRunSync()
+    sql"delete from users where true".update.run.transact(xa).unsafeRunSync()
   }
 }

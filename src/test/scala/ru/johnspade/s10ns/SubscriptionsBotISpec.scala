@@ -47,36 +47,36 @@ class SubscriptionsBotISpec
     prepareStubs()
 
     sendMessage("/start")
-    verifySendMessage(BotStart.message.text, BotStart.markup.some, disableWebPagePreview = true.some).once
+    verifySendMessage(BotStart.message.text, BotStart.markup.some, disableWebPagePreview = true.some).once()
 
     sendMessage("/create")
-    verifySendMessage(Messages.Currency, Markup.CurrencyReplyMarkup.some).once
+    verifySendMessage(Messages.Currency, Markup.CurrencyReplyMarkup.some).once()
 
     sendMessage("EUR")
-    verifySendMessage(Messages.Name, ReplyKeyboardRemove(removeKeyboard = true).some).once
+    verifySendMessage(Messages.Name, ReplyKeyboardRemove(removeKeyboard = true).some).once()
 
     sendMessage("Netflix")
-    verifySendMessage(Messages.Amount).once
+    verifySendMessage(Messages.Amount).once()
 
     sendMessage("11.36")
-    verifySendMessage(Messages.IsOneTime, Markup.isOneTimeReplyMarkup("Skip").some).once
+    verifySendMessage(Messages.IsOneTime, Markup.isOneTimeReplyMarkup("Skip").some).once()
 
     sendCallbackQuery("OneTime\u001Dfalse")
-    verifySendMessage(Messages.BillingPeriodUnit, Markup.BillingPeriodUnitReplyMarkup.some).once
+    verifySendMessage(Messages.BillingPeriodUnit, Markup.BillingPeriodUnitReplyMarkup.some).once()
 
     sendCallbackQuery("PeriodUnit\u001DMonth")
-    verifySendMessage(Messages.BillingPeriodDuration).once
+    verifySendMessage(Messages.BillingPeriodDuration).once()
     verifyEditMessageText(" <em>Recurring</em>")
 
     sendMessage("1")
     verifySendMessage(
       Messages.FirstPaymentDate,
       calendarService.generateDaysKeyboard(LocalDate.now(ZoneOffset.UTC)).some
-    ).once
+    ).once()
     verifyEditMessageText(" <em>Months</em>")
 
     sendCallbackQuery(s"FirstPayment\u001D$today")
-    verifySendMessage(Messages.S10nSaved, BotStart.markup.some).once
+    verifySendMessage(Messages.S10nSaved, BotStart.markup.some).once()
     verifySendMessage(
       s"""*Netflix*
          |
@@ -93,7 +93,7 @@ class SubscriptionsBotISpec
         inlineKeyboardButton("List", S10ns(PageNumber(0)))
       )).some,
       Markdown.some
-    ).once
+    ).once()
     verifyEditMessageText(s" <em>${DateTimeFormatter.ISO_DATE.format(LocalDate.now(ZoneOffset.UTC))}</em>")
 
     verifyMethodCall(api, editMessageReplyMarkup(ChatIntId(0).some, 0.some)).repeat(3)
@@ -149,7 +149,7 @@ class SubscriptionsBotISpec
     container.password
   )
 
-  private lazy val s10nId = s10nRepo.getByUserId(UserId(userId.toLong)).transact(transactor).unsafeRunSync.head.id
+  private lazy val s10nId = s10nRepo.getByUserId(UserId(userId.toLong)).transact(transactor).unsafeRunSync().head.id
 
   private trait Wiring {
 
@@ -203,10 +203,10 @@ class SubscriptionsBotISpec
       editS10nBillingPeriodDialogService,
       editS10nCurrencyDialogService,
       editS10nOneTimeDialogService
-    ).unsafeRunSync
+    ).unsafeRunSync()
     private val calendarController = new CalendarController[IO](calendarService)
     private val settingsService = new DefaultSettingsService[IO](dialogEngine, new DefaultMsgService[IO, SettingsDialogState])
-    private val settingsController = SettingsController[IO](settingsService).unsafeRunSync
+    private val settingsController = SettingsController[IO](settingsService).unsafeRunSync()
     private val startController = new StartController[IO](dialogEngine)
     private val cbDataService = new CbDataService[IO]
     protected val bot: SubscriptionsBot[IO, ConnectionIO] = SubscriptionsBot[IO, ConnectionIO](
@@ -219,11 +219,11 @@ class SubscriptionsBotISpec
       new IgnoreController[IO],
       cbDataService,
       new UserMiddleware[IO, ConnectionIO](userRepo)
-    ).unsafeRunSync
+    ).unsafeRunSync()
 
-    protected def sendMessage(text: String): Unit = bot.onMessage(createMessage(text)).unsafeRunSync
+    protected def sendMessage(text: String): Unit = bot.onMessage(createMessage(text)).unsafeRunSync()
 
-    protected def sendCallbackQuery(data: String): Unit = bot.onCallbackQuery(createCallbackQuery(data)).unsafeRunSync
+    protected def sendCallbackQuery(data: String): Unit = bot.onCallbackQuery(createCallbackQuery(data)).unsafeRunSync()
 
     protected val today: String = DateTimeFormatter.ISO_DATE.format(LocalDate.now(ZoneOffset.UTC))
 

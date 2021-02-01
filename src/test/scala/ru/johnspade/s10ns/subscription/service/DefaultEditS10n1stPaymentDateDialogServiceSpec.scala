@@ -32,7 +32,7 @@ class DefaultEditS10n1stPaymentDateDialogServiceSpec extends AnyFlatSpec with Ed
     val updatedUser = user.copy(dialog = dialog.some)
     (mockUserRepo.createOrUpdate _).expects(updatedUser).returns(updatedUser)
 
-    val result = editS10n1stPaymentDateDialogService.onEditS10nFirstPaymentDateCb(user, EditS10nFirstPaymentDate(s10nId)).unsafeRunSync
+    val result = editS10n1stPaymentDateDialogService.onEditS10nFirstPaymentDateCb(user, EditS10nFirstPaymentDate(s10nId)).unsafeRunSync()
     result should matchTo {
       List(
         ReplyMessage("First payment date:", ReplyKeyboardRemove(removeKeyboard = true).some),
@@ -47,7 +47,7 @@ class DefaultEditS10n1stPaymentDateDialogServiceSpec extends AnyFlatSpec with Ed
     (mockS10nRepo.update _).expects(updatedS10n).returns(updatedS10n.some)
 
     val dialog = EditS10nFirstPaymentDateDialog(EditS10nFirstPaymentDateDialogState.FirstPaymentDate, s10n)
-    editS10n1stPaymentDateDialogService.saveFirstPaymentDate(FirstPayment(date), user, dialog).unsafeRunSync shouldBe
+    editS10n1stPaymentDateDialogService.saveFirstPaymentDate(FirstPayment(date), user, dialog).unsafeRunSync() shouldBe
       List(
         defaultSavedMessage,
         ReplyMessage(
@@ -70,7 +70,7 @@ class DefaultEditS10n1stPaymentDateDialogServiceSpec extends AnyFlatSpec with Ed
       s10n.copy(firstPaymentDate = FirstPaymentDate(LocalDate.of(2020, 10, 8)).some)
     )
 
-    editS10n1stPaymentDateDialogService.removeFirstPaymentDate(user, dialog).unsafeRunSync shouldBe
+    editS10n1stPaymentDateDialogService.removeFirstPaymentDate(user, dialog).unsafeRunSync() shouldBe
       List(
         defaultSavedMessage,
         ReplyMessage(

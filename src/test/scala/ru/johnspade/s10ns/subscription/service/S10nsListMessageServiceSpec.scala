@@ -53,7 +53,7 @@ class S10nsListMessageServiceSpec extends AnyFlatSpec with Matchers with OptionV
 
   it should "generate a message without nav buttons if an user has less than 10 subscriptions" in {
     val page = s10nsListMessageService.createSubscriptionsPage(List(s10n1, s10n2), PageNumber(0), CurrencyUnit.EUR)
-      .unsafeRunSync
+      .unsafeRunSync()
     page.text shouldBe
       s"""|Monthly: 17.27 €
          |
@@ -73,7 +73,7 @@ class S10nsListMessageServiceSpec extends AnyFlatSpec with Matchers with OptionV
 
   it should "generate a message with navigation buttons for next and previous pages" in {
     val page = s10nsListMessageService.createSubscriptionsPage(createS10ns(21), PageNumber(1), CurrencyUnit.EUR)
-      .unsafeRunSync
+      .unsafeRunSync()
     page.text shouldBe
       s"""|Monthly: 0.00 €
           |
@@ -93,7 +93,7 @@ class S10nsListMessageServiceSpec extends AnyFlatSpec with Matchers with OptionV
 
   it should "generate a message with the previous button only if there is no next page" in {
     val page = s10nsListMessageService.createSubscriptionsPage(createS10ns(11), PageNumber(1), CurrencyUnit.EUR)
-      .unsafeRunSync
+      .unsafeRunSync()
     page.text shouldBe
       s"""|Monthly: 0.00 €
           |
@@ -109,7 +109,7 @@ class S10nsListMessageServiceSpec extends AnyFlatSpec with Matchers with OptionV
 
   it should "generate a message with the next button only if there is no previous page" in {
     val page = s10nsListMessageService.createSubscriptionsPage(createS10ns(11), PageNumber(0), CurrencyUnit.EUR)
-      .unsafeRunSync
+      .unsafeRunSync()
     page.text shouldBe
       s"""|Monthly: 0.00 €
           |
@@ -131,7 +131,7 @@ class S10nsListMessageServiceSpec extends AnyFlatSpec with Matchers with OptionV
       CurrencyUnit.EUR,
       BillingPeriodUnit.Year
     )
-      .unsafeRunSync
+      .unsafeRunSync()
     page.text shouldBe
       s"""|Yearly: 143.67 €
          |
@@ -152,7 +152,7 @@ class S10nsListMessageServiceSpec extends AnyFlatSpec with Matchers with OptionV
       CurrencyUnit.EUR,
       BillingPeriodUnit.Week
     )
-      .unsafeRunSync
+      .unsafeRunSync()
     page.text shouldBe
       s"""|Weekly: 2.75 €
          |
@@ -171,7 +171,7 @@ class S10nsListMessageServiceSpec extends AnyFlatSpec with Matchers with OptionV
 
   it should "generate a message with subscription's info" in {
     val page = PageNumber(0)
-    val message = s10nsListMessageService.createSubscriptionMessage(CurrencyUnit.EUR, s10n1, page).unsafeRunSync
+    val message = s10nsListMessageService.createSubscriptionMessage(CurrencyUnit.EUR, s10n1, page).unsafeRunSync()
     val expectedNextPayment = firstPaymentDate.plusMonths(2)
     message.text shouldBe
       s"""|*Netflix*
@@ -197,7 +197,7 @@ class S10nsListMessageServiceSpec extends AnyFlatSpec with Matchers with OptionV
       None
     )
     val page = PageNumber(0)
-    val message = s10nsListMessageService.createSubscriptionMessage(CurrencyUnit.EUR, subscription, page).unsafeRunSync
+    val message = s10nsListMessageService.createSubscriptionMessage(CurrencyUnit.EUR, subscription, page).unsafeRunSync()
     message.text shouldBe
       s"""|*s10n*
           |
@@ -218,7 +218,7 @@ class S10nsListMessageServiceSpec extends AnyFlatSpec with Matchers with OptionV
       firstPaymentDate.some
     )
     val page = PageNumber(0)
-    val message = s10nsListMessageService.createSubscriptionMessage(CurrencyUnit.EUR, subscription, page).unsafeRunSync
+    val message = s10nsListMessageService.createSubscriptionMessage(CurrencyUnit.EUR, subscription, page).unsafeRunSync()
     message.text shouldBe
       s"""|*s10n*
           |

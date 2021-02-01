@@ -22,7 +22,7 @@ class DefaultDialogEngineSpec extends AnyFlatSpec with Matchers {
 
   "startDialog" should "update an user and remove the default keyboard" in {
     val message = ReplyMessage("Hello")
-    dialogEngine.startDialog(user, dialog, message).unsafeRunSync shouldBe
+    dialogEngine.startDialog(user, dialog, message).unsafeRunSync() shouldBe
       List(ReplyMessage("Hello", markup = ReplyKeyboardRemove(removeKeyboard = true).some))
     userRepo.users.get(user.id) shouldBe user.copy(dialog = dialog.some).some
   }
@@ -33,12 +33,12 @@ class DefaultDialogEngineSpec extends AnyFlatSpec with Matchers {
   }
 
   "resetAndCommit" should "clear dialogs and enable the default keyboard" in {
-    dialogEngine.resetAndCommit(userWithDialog, "Reset").unsafeRunSync shouldBe ReplyMessage("Reset", BotStart.markup.some)
+    dialogEngine.resetAndCommit(userWithDialog, "Reset").unsafeRunSync() shouldBe ReplyMessage("Reset", BotStart.markup.some)
     userRepo.users.get(user.id) shouldBe user.some
   }
 
   "sayHi" should "clear dialogs and welcome an user" in {
-    dialogEngine.sayHi(userWithDialog).unsafeRunSync shouldBe
+    dialogEngine.sayHi(userWithDialog).unsafeRunSync() shouldBe
       ReplyMessage(
         """Manage your subscriptions and get detailed insights of your recurring expenses.
           |

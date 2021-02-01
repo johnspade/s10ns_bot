@@ -61,7 +61,7 @@ object BotApp extends IOApp {
           notificationsModule <- NotificationsModule.make[F](subscriptionModule)
           _ <- exchangeRatesModule.exchangeRatesJobService.startExchangeRatesJob()
           _ <- notificationsModule.prepareNotificationsJobService.startPrepareNotificationsJob()
-          _ <- notificationsModule.notificationsJobService.startNotificationsJob
+          _ <- notificationsModule.notificationsJobService.startNotificationsJob()
           bot <- SubscriptionsBot[F, D](
             userModule.userRepository,
             subscriptionModule.subscriptionListController,

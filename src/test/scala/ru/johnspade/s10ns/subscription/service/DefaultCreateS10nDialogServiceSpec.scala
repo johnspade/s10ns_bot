@@ -50,7 +50,7 @@ class DefaultCreateS10nDialogServiceSpec
   private val draft = SubscriptionDraft.create(UserId(0L))
 
   "onCreateCommand" should "ask for a subscription's currency" in {
-    val result = createS10nDialogService.onCreateCommand(user).unsafeRunSync
+    val result = createS10nDialogService.onCreateCommand(user).unsafeRunSync()
     result should matchTo {
       List(ReplyMessage(
         "Enter or select the currency code:",
@@ -77,7 +77,7 @@ class DefaultCreateS10nDialogServiceSpec
   }
 
   "onCreateWithDefaultCurrencyCommand" should "ask for a subscription's name" in {
-    createS10nDialogService.onCreateWithDefaultCurrencyCommand(user).unsafeRunSync should matchTo {
+    createS10nDialogService.onCreateWithDefaultCurrencyCommand(user).unsafeRunSync() should matchTo {
       List(ReplyMessage("Name:", ReplyKeyboardRemove(removeKeyboard = true).some))
     }
   }
@@ -86,49 +86,49 @@ class DefaultCreateS10nDialogServiceSpec
 
   it should "fail if a text is missing" in {
     val dialog = CreateS10nDialog(CreateS10nDialogState.Name, draft)
-    createS10nDialogService.saveDraft.valueAt(user, dialog, None).unsafeRunSync shouldBe
+    createS10nDialogService.saveDraft.valueAt(user, dialog, None).unsafeRunSync() shouldBe
       TextCannotBeEmpty.invalidNec[String]
   }
 
   it should "fail if a name is too long" in {
     val dialog = CreateS10nDialog(CreateS10nDialogState.Name, draft)
     val name = List.fill(257)("a").mkString
-    createS10nDialogService.saveDraft.valueAt(user, dialog, name.some).unsafeRunSync shouldBe
+    createS10nDialogService.saveDraft.valueAt(user, dialog, name.some).unsafeRunSync() shouldBe
       NameTooLong.invalidNec[String]
   }
 
   it should "fail if a currency's code is unknown" in {
     val dialog = CreateS10nDialog(CreateS10nDialogState.Currency, draft)
     val code = "AAA"
-    createS10nDialogService.saveDraft.valueAt(user, dialog, code.some).unsafeRunSync shouldBe
+    createS10nDialogService.saveDraft.valueAt(user, dialog, code.some).unsafeRunSync() shouldBe
       UnknownCurrency.invalidNec[CurrencyUnit]
   }
 
   it should "fail if an amount is not a number" in {
     val dialog = CreateS10nDialog(CreateS10nDialogState.Amount, draft)
     val amountText = "NaN"
-    createS10nDialogService.saveDraft.valueAt(user, dialog, amountText.some).unsafeRunSync shouldBe
+    createS10nDialogService.saveDraft.valueAt(user, dialog, amountText.some).unsafeRunSync() shouldBe
       NotANumber.invalidNec[String]
   }
 
   it should "fail if an amount is not positive" in {
     val dialog = CreateS10nDialog(CreateS10nDialogState.Amount, draft)
     val amountText = "-3"
-    createS10nDialogService.saveDraft.valueAt(user, dialog, amountText.some).unsafeRunSync shouldBe
+    createS10nDialogService.saveDraft.valueAt(user, dialog, amountText.some).unsafeRunSync() shouldBe
       NumberMustBePositive.invalidNec[BigDecimal]
   }
 
   it should "fail if a duration is not a number" in {
     val dialog = CreateS10nDialog(CreateS10nDialogState.BillingPeriodDuration, draft)
     val durationText = "NaN"
-    createS10nDialogService.saveDraft.valueAt(user, dialog, durationText.some).unsafeRunSync shouldBe
+    createS10nDialogService.saveDraft.valueAt(user, dialog, durationText.some).unsafeRunSync() shouldBe
       NotANumber.invalidNec[String]
   }
 
   it should "fail if a duration is not positive" in {
     val dialog = CreateS10nDialog(CreateS10nDialogState.BillingPeriodDuration, draft)
     val durationText = "-1"
-    createS10nDialogService.saveDraft.valueAt(user, dialog, durationText.some).unsafeRunSync shouldBe
+    createS10nDialogService.saveDraft.valueAt(user, dialog, durationText.some).unsafeRunSync() shouldBe
       NumberMustBePositive.invalidNec[BigDecimal]
   }
 }

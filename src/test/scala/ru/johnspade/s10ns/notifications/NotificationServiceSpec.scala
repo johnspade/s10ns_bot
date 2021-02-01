@@ -33,28 +33,28 @@ class NotificationServiceSpec extends SpecBase {
   behavior of "needNotification"
 
   it should "return true if less than hoursBefore left" in {
-    notificationService.needNotification(sampleS10n, now).unsafeRunSync shouldBe true
+    notificationService.needNotification(sampleS10n, now).unsafeRunSync() shouldBe true
   }
 
   it should "return false if more than hoursBefore left" in {
     notificationService.needNotification(
       sampleS10n.copy(firstPaymentDate = FirstPaymentDate(LocalDate.now.plusMonths(1)).some),
       now
-    ).unsafeRunSync shouldBe false
+    ).unsafeRunSync() shouldBe false
   }
 
   it should "return false if sendNotifications is false" in {
     notificationService.needNotification(
       sampleS10n.copy(sendNotifications = false),
       now
-    ).unsafeRunSync shouldBe false
+    ).unsafeRunSync() shouldBe false
   }
 
   it should "return false if a notification is sent" in {
     notificationService.needNotification(
       sampleS10n.copy(lastNotification = now.some),
       now
-    ).unsafeRunSync shouldBe false
+    ).unsafeRunSync() shouldBe false
   }
 
   it should "return false if a notification was sent hoursBefore ago" in {

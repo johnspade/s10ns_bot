@@ -29,7 +29,7 @@ class DefaultEditS10nAmountDialogServiceSpec extends AnyFlatSpec with EditS10nDi
     val updatedUser = user.copy(dialog = dialog.some)
     (mockUserRepo.createOrUpdate _).expects(updatedUser).returns(updatedUser)
 
-    val result = editS10nAmountDialogService.onEditS10nAmountCb(user, EditS10nAmount(s10nId)).unsafeRunSync
+    val result = editS10nAmountDialogService.onEditS10nAmountCb(user, EditS10nAmount(s10nId)).unsafeRunSync()
     result should matchTo {
       List(ReplyMessage("Amount:", ReplyKeyboardRemove(removeKeyboard = true).some))
     }
@@ -41,7 +41,7 @@ class DefaultEditS10nAmountDialogServiceSpec extends AnyFlatSpec with EditS10nDi
     val updatedS10n = s10n.copy(amount = Money.of(CurrencyUnit.EUR, 13.37))
     (mockS10nRepo.update _).expects(updatedS10n).returns(updatedS10n.some)
 
-    editS10nAmountDialogService.saveAmount(user, dialog, "13.37".some).unsafeRunSync shouldBe
+    editS10nAmountDialogService.saveAmount(user, dialog, "13.37".some).unsafeRunSync() shouldBe
       List(
         defaultSavedMessage,
         ReplyMessage(
@@ -56,14 +56,14 @@ class DefaultEditS10nAmountDialogServiceSpec extends AnyFlatSpec with EditS10nDi
   }
 
   it should "fail if a text is missing" in {
-    editS10nAmountDialogService.saveAmount(user, dialog, None).unsafeRunSync shouldBe TextCannotBeEmpty.invalidNec[String]
+    editS10nAmountDialogService.saveAmount(user, dialog, None).unsafeRunSync() shouldBe TextCannotBeEmpty.invalidNec[String]
   }
 
   it should "fail if an amount is not a number" in {
-    editS10nAmountDialogService.saveAmount(user, dialog, "NaN".some).unsafeRunSync shouldBe NotANumber.invalidNec[String]
+    editS10nAmountDialogService.saveAmount(user, dialog, "NaN".some).unsafeRunSync() shouldBe NotANumber.invalidNec[String]
   }
 
   it should "fail if an amount is not positive" in {
-    editS10nAmountDialogService.saveAmount(user, dialog, "-3".some).unsafeRunSync shouldBe NumberMustBePositive.invalidNec[BigDecimal]
+    editS10nAmountDialogService.saveAmount(user, dialog, "-3".some).unsafeRunSync() shouldBe NumberMustBePositive.invalidNec[BigDecimal]
   }
 }

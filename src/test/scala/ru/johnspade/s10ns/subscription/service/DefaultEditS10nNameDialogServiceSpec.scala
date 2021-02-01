@@ -29,7 +29,7 @@ class DefaultEditS10nNameDialogServiceSpec extends AnyFlatSpec with Matchers wit
     val updatedUser = user.copy(dialog = dialog.some)
     (mockUserRepo.createOrUpdate _).expects(updatedUser).returns(updatedUser)
 
-    val result = editS10nNameDialogService.onEditS10nNameCb(user, EditS10nName(s10nId)).unsafeRunSync
+    val result = editS10nNameDialogService.onEditS10nNameCb(user, EditS10nName(s10nId)).unsafeRunSync()
     result should matchTo {
       List(ReplyMessage("Name:", ReplyKeyboardRemove(removeKeyboard = true).some))
     }
@@ -41,7 +41,7 @@ class DefaultEditS10nNameDialogServiceSpec extends AnyFlatSpec with Matchers wit
     val updatedS10n = s10n.copy(name = SubscriptionName("New name"))
     (mockS10nRepo.update _).expects(updatedS10n).returns(updatedS10n.some)
 
-    editS10nNameDialogService.saveName(user, dialog, "New name".some).unsafeRunSync shouldBe
+    editS10nNameDialogService.saveName(user, dialog, "New name".some).unsafeRunSync() shouldBe
       List(
         defaultSavedMessage,
         ReplyMessage(
@@ -57,11 +57,11 @@ class DefaultEditS10nNameDialogServiceSpec extends AnyFlatSpec with Matchers wit
 
 
   it should "fail if a text is missing" in {
-    editS10nNameDialogService.saveName(user, dialog, None).unsafeRunSync shouldBe TextCannotBeEmpty.invalidNec[String]
+    editS10nNameDialogService.saveName(user, dialog, None).unsafeRunSync() shouldBe TextCannotBeEmpty.invalidNec[String]
   }
 
   it should "fail if a name is too long" in {
     val name = List.fill(257)("a").mkString
-    editS10nNameDialogService.saveName(user, dialog, name.some).unsafeRunSync shouldBe NameTooLong.invalidNec[String]
+    editS10nNameDialogService.saveName(user, dialog, name.some).unsafeRunSync() shouldBe NameTooLong.invalidNec[String]
   }
 }
