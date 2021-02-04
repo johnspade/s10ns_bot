@@ -11,7 +11,7 @@ scalacOptions ++= Seq(
 )
 
 val TelegramiumVersion = "2.49.0"
-val TgbotUtilsVersion = "0.2.0"
+val TgbotUtilsVersion = "0.3.0"
 val DoobieVersion = "0.9.0"
 val FuuidVersion = "0.3.0"
 val CirceVersion = "0.13.0"
@@ -75,5 +75,7 @@ assemblyMergeStrategy in assembly := {
 
 resolvers += Resolver.bintrayRepo("johnspade", "maven")
 
+//lazy val `tgbot-utils` = ProjectRef(uri("https://github.com/johnspade/tgbot-utils.git#master"), "root")
 lazy val root: Project = (project in file("."))
   .withSerialTests
+//  .dependsOn(`tgbot-utils`)

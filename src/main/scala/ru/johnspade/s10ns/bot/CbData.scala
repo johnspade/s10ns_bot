@@ -8,7 +8,7 @@ import kantan.csv.enumeratum._
 import kantan.csv.java8._
 import kantan.csv.ops._
 import ru.johnspade.s10ns.bot.CbData._
-import ru.johnspade.s10ns.csv.MagnoliaRowEncoder._
+import ru.johnspade.tgbot.callbackdata.named.MagnoliaRowEncoder._
 import ru.johnspade.s10ns.subscription.BillingPeriodUnit
 import ru.johnspade.s10ns.subscription.tags._
 import supertagged.{@@, lifterF}
