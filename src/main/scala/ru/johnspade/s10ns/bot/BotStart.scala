@@ -2,8 +2,8 @@ package ru.johnspade.s10ns.bot
 
 import cats.syntax.option._
 import ru.johnspade.s10ns.bot.engine.ReplyMessage
-import telegramium.bots.ReplyKeyboardMarkup
 import telegramium.bots.high.keyboards.{KeyboardButtons, ReplyKeyboardMarkups}
+import telegramium.bots.{Html, ReplyKeyboardMarkup}
 
 object BotStart {
   val markup: ReplyKeyboardMarkup = ReplyKeyboardMarkups.singleColumn(
@@ -21,7 +21,12 @@ object BotStart {
       |
       |Select your default currency: /settings. Enter a currency code manually if it's not on the list.
       |
-      |Support a creator: https://buymeacoff.ee/johnspade ☕""".stripMargin
+      |<a href="https://buymeacoff.ee/johnspade">Buy me a coffee</a> ☕""".stripMargin
 
-  val message: ReplyMessage = ReplyMessage(Help, markup = markup.some, disableWebPagePreview = true.some)
+  val message: ReplyMessage = ReplyMessage(
+    Help,
+    markup = markup.some,
+    parseMode = Html.some,
+    disableWebPagePreview = true.some
+  )
 }

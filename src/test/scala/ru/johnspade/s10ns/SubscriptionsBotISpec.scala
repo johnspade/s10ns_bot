@@ -47,7 +47,7 @@ class SubscriptionsBotISpec
     prepareStubs()
 
     sendMessage("/start")
-    verifySendMessage(BotStart.message.text, BotStart.markup.some, disableWebPagePreview = true.some).once()
+    verifySendMessage(BotStart.message.text, BotStart.markup.some, parseMode = Html.some, disableWebPagePreview = true.some).once()
 
     sendMessage("/create")
     verifySendMessage(Messages.Currency, Markup.CurrencyReplyMarkup.some).once()

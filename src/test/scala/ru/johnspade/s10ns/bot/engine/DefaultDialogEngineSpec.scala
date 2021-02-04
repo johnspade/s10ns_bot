@@ -10,7 +10,7 @@ import ru.johnspade.s10ns.bot.{BotStart, SettingsDialog}
 import ru.johnspade.s10ns.settings.SettingsDialogState
 import ru.johnspade.s10ns.user.tags.{ChatId, FirstName, UserId}
 import ru.johnspade.s10ns.user.{InMemoryUserRepository, User}
-import telegramium.bots.ReplyKeyboardRemove
+import telegramium.bots.{Html, ReplyKeyboardRemove}
 
 class DefaultDialogEngineSpec extends AnyFlatSpec with Matchers {
   private val userRepo = new InMemoryUserRepository
@@ -44,8 +44,9 @@ class DefaultDialogEngineSpec extends AnyFlatSpec with Matchers {
           |
           |Select your default currency: /settings. Enter a currency code manually if it's not on the list.
           |
-          |Support a creator: https://buymeacoff.ee/johnspade ☕""".stripMargin,
+          |<a href="https://buymeacoff.ee/johnspade">Buy me a coffee</a> ☕""".stripMargin,
         markup = BotStart.markup.some,
+        parseMode = Html.some,
         disableWebPagePreview = true.some
       )
     userRepo.users.get(user.id) shouldBe user.some

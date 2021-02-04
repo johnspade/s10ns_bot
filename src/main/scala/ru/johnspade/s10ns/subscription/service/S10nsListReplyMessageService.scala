@@ -11,7 +11,7 @@ import ru.johnspade.s10ns.bot.engine.TelegramOps.inlineKeyboardButton
 import ru.johnspade.s10ns.bot.{EditS10n, EditS10nAmount, EditS10nBillingPeriod, EditS10nCurrency, EditS10nFirstPaymentDate, EditS10nName, EditS10nOneTime, Notify, RemoveS10n, S10n, S10ns, S10nsPeriod}
 import ru.johnspade.s10ns.subscription.tags.{OneTimeSubscription, PageNumber, SubscriptionId}
 import ru.johnspade.s10ns.subscription.{ExactAmount, NonExactAmount, S10nInfo, S10nList}
-import telegramium.bots.high.keyboards.InlineKeyboardMarkups
+import telegramium.bots.high.keyboards.{InlineKeyboardButtons, InlineKeyboardMarkups}
 import telegramium.bots.{Html, InlineKeyboardButton, InlineKeyboardMarkup, Markdown}
 
 // todo write unit tests
@@ -59,10 +59,10 @@ class S10nsListReplyMessageService {
         .map(_._2)
     }
 
-    val periodButtonRow = List(createPeriodButton())
+    val periodAndDonateRow = List(createPeriodButton(), InlineKeyboardButtons.url("Buy me a coffee ☕", "https://buymeacoff.ee/johnspade"))
     val subscriptionButtons = createSubscriptionButtons()
     val arrowButtons = createNavButtons(totalSize)
-    ReplyMessage(createText(), InlineKeyboardMarkup(periodButtonRow +: subscriptionButtons :+ arrowButtons).some, Html.some)
+    ReplyMessage(createText(), InlineKeyboardMarkup(subscriptionButtons ++ List(arrowButtons, periodAndDonateRow)).some, Html.some)
   }
 
   def createSubscriptionMessage(s10nInfo: S10nInfo): ReplyMessage = {

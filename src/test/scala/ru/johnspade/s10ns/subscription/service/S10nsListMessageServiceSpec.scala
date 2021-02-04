@@ -15,8 +15,8 @@ import ru.johnspade.s10ns.exchangerates.InMemoryExchangeRatesStorage
 import ru.johnspade.s10ns.subscription.tags.{BillingPeriodDuration, FirstPaymentDate, OneTimeSubscription, PageNumber, SubscriptionId, SubscriptionName}
 import ru.johnspade.s10ns.subscription.{BillingPeriod, BillingPeriodUnit, Subscription}
 import ru.johnspade.s10ns.user.tags.UserId
-import telegramium.bots.{KeyboardMarkup, InlineKeyboardMarkup}
-import telegramium.bots.high.keyboards.InlineKeyboardMarkups
+import telegramium.bots.{InlineKeyboardMarkup, KeyboardMarkup}
+import telegramium.bots.high.keyboards.{InlineKeyboardButtons, InlineKeyboardMarkups}
 
 import scala.concurrent.ExecutionContext
 
@@ -56,17 +56,20 @@ class S10nsListMessageServiceSpec extends AnyFlatSpec with Matchers with OptionV
       .unsafeRunSync()
     page.text shouldBe
       s"""|Monthly: 17.27 €
-         |
-         |1. Spotify – 5.30 €
-         |2. Netflix – ≈11.97 € <b>[${daysUntilNextPayment}d]</b>""".stripMargin
+          |
+          |1. Spotify – 5.30 €
+          |2. Netflix – ≈11.97 € <b>[${daysUntilNextPayment}d]</b>""".stripMargin
     page.markup.value should matchTo[KeyboardMarkup] {
       InlineKeyboardMarkup(List(
-        List(inlineKeyboardButton("Yearly", S10nsPeriod(BillingPeriodUnit.Year, PageNumber(0)))),
         List(
           inlineKeyboardButton("1", S10n(SubscriptionId(2L), PageNumber(0))),
           inlineKeyboardButton("2", S10n(SubscriptionId(1L), PageNumber(0)))
         ),
-        List()
+        List(),
+        List(
+          inlineKeyboardButton("Yearly", S10nsPeriod(BillingPeriodUnit.Year, PageNumber(0))),
+          InlineKeyboardButtons.url("Buy me a coffee ☕", "https://buymeacoff.ee/johnspade")
+        )
       ))
     }
   }
@@ -80,12 +83,15 @@ class S10nsListMessageServiceSpec extends AnyFlatSpec with Matchers with OptionV
           |${List.tabulate(10)(n => s"${n + 1}. s10n${n + 10} – 1.00 €").mkString("\n")}""".stripMargin
     page.markup.value should matchTo[KeyboardMarkup] {
       InlineKeyboardMarkup(List(
-        List(inlineKeyboardButton("Yearly", S10nsPeriod(BillingPeriodUnit.Year, PageNumber(1)))),
         List.tabulate(5)(n => inlineKeyboardButton((n + 1).toString, S10n(SubscriptionId(n + 10.toLong), PageNumber(1)))),
         List.tabulate(5)(n => inlineKeyboardButton((n + 6).toString, S10n(SubscriptionId(n + 15.toLong), PageNumber(1)))),
         List(
           inlineKeyboardButton("⬅", S10ns(PageNumber(0))),
           inlineKeyboardButton("➡", S10ns(PageNumber(2)))
+        ),
+        List(
+          inlineKeyboardButton("Yearly", S10nsPeriod(BillingPeriodUnit.Year, PageNumber(1))),
+          InlineKeyboardButtons.url("Buy me a coffee ☕", "https://buymeacoff.ee/johnspade")
         )
       ))
     }
@@ -99,10 +105,13 @@ class S10nsListMessageServiceSpec extends AnyFlatSpec with Matchers with OptionV
           |
           |1. s10n10 – 1.00 €""".stripMargin
     page.markup.value should matchTo[KeyboardMarkup] {
-      InlineKeyboardMarkups.singleColumn(List(
-        inlineKeyboardButton("Yearly", S10nsPeriod(BillingPeriodUnit.Year, PageNumber(1))),
-        inlineKeyboardButton("1", S10n(SubscriptionId(10L), PageNumber(1))),
-        inlineKeyboardButton("⬅", S10ns(PageNumber(0)))
+      InlineKeyboardMarkup(List(
+        List(inlineKeyboardButton("1", S10n(SubscriptionId(10L), PageNumber(1)))),
+        List(inlineKeyboardButton("⬅", S10ns(PageNumber(0)))),
+        List(
+          inlineKeyboardButton("Yearly", S10nsPeriod(BillingPeriodUnit.Year, PageNumber(1))),
+          InlineKeyboardButtons.url("Buy me a coffee ☕", "https://buymeacoff.ee/johnspade")
+        )
       ))
     }
   }
@@ -116,10 +125,13 @@ class S10nsListMessageServiceSpec extends AnyFlatSpec with Matchers with OptionV
           |${List.tabulate(10)(n => s"${n + 1}. s10n$n – 1.00 €").mkString("\n")}""".stripMargin
     page.markup.value should matchTo[KeyboardMarkup] {
       InlineKeyboardMarkup(List(
-        List(inlineKeyboardButton("Yearly", S10nsPeriod(BillingPeriodUnit.Year, PageNumber(0)))),
         List.tabulate(5)(n => inlineKeyboardButton((n + 1).toString, S10n(SubscriptionId(n.toLong), PageNumber(0)))),
         List.tabulate(5)(n => inlineKeyboardButton((n + 6).toString, S10n(SubscriptionId(n + 5.toLong), PageNumber(0)))),
-        List(inlineKeyboardButton("➡", S10ns(PageNumber(1))))
+        List(inlineKeyboardButton("➡", S10ns(PageNumber(1)))),
+        List(
+          inlineKeyboardButton("Yearly", S10nsPeriod(BillingPeriodUnit.Year, PageNumber(0))),
+          InlineKeyboardButtons.url("Buy me a coffee ☕", "https://buymeacoff.ee/johnspade")
+        )
       ))
     }
   }
@@ -134,13 +146,16 @@ class S10nsListMessageServiceSpec extends AnyFlatSpec with Matchers with OptionV
       .unsafeRunSync()
     page.text shouldBe
       s"""|Yearly: 143.67 €
-         |
-         |1. Netflix – ≈143.67 € <b>[${daysUntilNextPayment}d]</b>""".stripMargin
+          |
+          |1. Netflix – ≈143.67 € <b>[${daysUntilNextPayment}d]</b>""".stripMargin
     page.markup.value should matchTo[KeyboardMarkup] {
       InlineKeyboardMarkup(List(
-        List(inlineKeyboardButton("Weekly", S10nsPeriod(BillingPeriodUnit.Week, PageNumber(0)))),
         List(inlineKeyboardButton("1", S10n(SubscriptionId(1L), PageNumber(0)))),
-        List()
+        List(),
+        List(
+          inlineKeyboardButton("Weekly", S10nsPeriod(BillingPeriodUnit.Week, PageNumber(0))),
+          InlineKeyboardButtons.url("Buy me a coffee ☕", "https://buymeacoff.ee/johnspade")
+        )
       ))
     }
   }
@@ -155,13 +170,16 @@ class S10nsListMessageServiceSpec extends AnyFlatSpec with Matchers with OptionV
       .unsafeRunSync()
     page.text shouldBe
       s"""|Weekly: 2.75 €
-         |
-         |1. Netflix – ≈2.75 € <b>[${daysUntilNextPayment}d]</b>""".stripMargin
+          |
+          |1. Netflix – ≈2.75 € <b>[${daysUntilNextPayment}d]</b>""".stripMargin
     page.markup.value should matchTo[KeyboardMarkup] {
       InlineKeyboardMarkup(List(
-        List(inlineKeyboardButton("Monthly", S10nsPeriod(BillingPeriodUnit.Month, PageNumber(0)))),
         List(inlineKeyboardButton("1", S10n(SubscriptionId(1L), PageNumber(0)))),
-        List()
+        List(),
+        List(
+          inlineKeyboardButton("Monthly", S10nsPeriod(BillingPeriodUnit.Month, PageNumber(0))),
+          InlineKeyboardButtons.url("Buy me a coffee ☕", "https://buymeacoff.ee/johnspade")
+        )
       ))
     }
   }
