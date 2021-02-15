@@ -5,4 +5,4 @@ Manage your subscriptions and get detailed insights of your recurring expenses.
 
 ![](screenshot.png)
 
-Built with [Telegramium](https://github.com/apimorphism/telegramium).
+Built with [Telegramium](https://github.com/apimorphism/telegramium) and [tgbot-utils](https://github.com/johnspade/tgbot-utils).
