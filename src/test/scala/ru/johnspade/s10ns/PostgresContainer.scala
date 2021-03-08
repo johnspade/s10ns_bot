@@ -7,12 +7,13 @@ import doobie.free.connection.ConnectionIO
 import doobie.implicits._
 import doobie.util.transactor.Transactor
 import org.flywaydb.core.Flyway
+import org.testcontainers.utility.DockerImageName
 
 import scala.concurrent.ExecutionContext
 
 object PostgresContainer {
   lazy val container: PostgreSQLContainer = {
-    val instance = PostgreSQLContainer(dockerImageNameOverride = "postgres:11.9")
+    val instance = PostgreSQLContainer(dockerImageNameOverride = DockerImageName.parse("postgres:12.6"))
     instance.container.start()
 
     import instance.{container => pgContainer}

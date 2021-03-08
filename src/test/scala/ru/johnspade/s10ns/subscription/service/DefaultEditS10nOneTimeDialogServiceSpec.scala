@@ -14,6 +14,7 @@ import ru.johnspade.s10ns.subscription.service.impl.DefaultEditS10nOneTimeDialog
 import ru.johnspade.s10ns.subscription.tags.{BillingPeriodDuration, OneTimeSubscription}
 import ru.johnspade.s10ns.subscription.{BillingPeriod, BillingPeriodUnit}
 import telegramium.bots.{Markdown, ReplyKeyboardRemove}
+import com.softwaremill.diffx.generic.auto._
 
 class DefaultEditS10nOneTimeDialogServiceSpec extends AnyFlatSpec with EditS10nDialogServiceSpec with Matchers with DiffMatcher {
   private val editS10nOneTimeDialogService = new DefaultEditS10nOneTimeDialogService(

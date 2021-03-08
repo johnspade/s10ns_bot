@@ -13,6 +13,7 @@ import ru.johnspade.s10ns.subscription.dialog.EditS10nNameDialogState
 import ru.johnspade.s10ns.subscription.service.impl.DefaultEditS10nNameDialogService
 import ru.johnspade.s10ns.subscription.tags.SubscriptionName
 import telegramium.bots.{Markdown, ReplyKeyboardRemove}
+import com.softwaremill.diffx.generic.auto._
 
 class DefaultEditS10nNameDialogServiceSpec extends AnyFlatSpec with Matchers with DiffMatcher with EditS10nDialogServiceSpec {
   private val editS10nNameDialogService = new DefaultEditS10nNameDialogService(

@@ -17,6 +17,7 @@ import ru.johnspade.s10ns.subscription.{BillingPeriod, BillingPeriodUnit, Subscr
 import ru.johnspade.s10ns.user.tags.UserId
 import telegramium.bots.{InlineKeyboardMarkup, KeyboardMarkup}
 import telegramium.bots.high.keyboards.{InlineKeyboardButtons, InlineKeyboardMarkups}
+import com.softwaremill.diffx.generic.auto._
 
 import scala.concurrent.ExecutionContext
 

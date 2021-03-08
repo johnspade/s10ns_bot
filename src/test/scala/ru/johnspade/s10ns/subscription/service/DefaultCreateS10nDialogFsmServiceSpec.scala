@@ -25,6 +25,7 @@ import ru.johnspade.s10ns.user.{InMemoryUserRepository, User}
 import telegramium.bots.{Markdown, ReplyKeyboardRemove, InlineKeyboardMarkup}
 import telegramium.bots.high.keyboards.{InlineKeyboardButtons, InlineKeyboardMarkups}
 import tofu.logging.Logs
+import com.softwaremill.diffx.generic.auto._
 
 import scala.concurrent.ExecutionContext
 

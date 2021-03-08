@@ -9,6 +9,7 @@ import ru.johnspade.s10ns.bot.engine.TelegramOps.inlineKeyboardButton
 import ru.johnspade.s10ns.bot.{Calendar, DropFirstPayment, FirstPayment, Ignore, Months, Years}
 import ru.johnspade.s10ns.subscription.tags.FirstPaymentDate
 import telegramium.bots.{InlineKeyboardButton, InlineKeyboardMarkup}
+import com.softwaremill.diffx.generic.auto._
 
 class CalendarServiceSpec extends AnyFlatSpec with Matchers with DiffMatcher {
   private val calendarService = new CalendarService

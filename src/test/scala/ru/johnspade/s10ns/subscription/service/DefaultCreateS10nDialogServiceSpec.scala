@@ -21,6 +21,7 @@ import ru.johnspade.s10ns.subscription.service.impl.{DefaultCreateS10nDialogFsmS
 import ru.johnspade.s10ns.user.tags.{FirstName, UserId}
 import ru.johnspade.s10ns.user.{InMemoryUserRepository, User}
 import telegramium.bots.{KeyboardButton, ReplyKeyboardMarkup, ReplyKeyboardRemove}
+import com.softwaremill.diffx.generic.auto._
 
 import scala.concurrent.ExecutionContext
 

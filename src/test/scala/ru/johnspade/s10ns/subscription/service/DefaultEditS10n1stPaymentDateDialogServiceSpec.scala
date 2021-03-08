@@ -15,6 +15,7 @@ import ru.johnspade.s10ns.subscription.dialog.{EditS10n1stPaymentDateMsgService,
 import ru.johnspade.s10ns.subscription.service.impl.DefaultEditS10n1stPaymentDateDialogService
 import ru.johnspade.s10ns.subscription.tags.FirstPaymentDate
 import telegramium.bots.{Markdown, ReplyKeyboardRemove}
+import com.softwaremill.diffx.generic.auto._
 
 class DefaultEditS10n1stPaymentDateDialogServiceSpec extends AnyFlatSpec with EditS10nDialogServiceSpec with Matchers with DiffMatcher {
   private val calendarService = new CalendarService
