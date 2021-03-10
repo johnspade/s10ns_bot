@@ -10,7 +10,7 @@ scalacOptions ++= Seq(
   "-language:higherKinds"
 )
 
-val TelegramiumVersion = "3.50.2"
+val TelegramiumVersion = "4.51.0"
 val TgbotUtilsVersion = "0.3.0"
 val DoobieVersion = "0.10.0"
 val FuuidVersion = "0.5.0"
