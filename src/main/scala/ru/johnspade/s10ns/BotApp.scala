@@ -11,7 +11,7 @@ import org.flywaydb.core.Flyway
 import org.http4s.client.blaze.BlazeClientBuilder
 import pureconfig.ConfigSource
 import pureconfig.generic.auto._
-import ru.johnspade.s10ns.bot.{BotModule, Config}
+import ru.johnspade.s10ns.bot.{BotModule, Config, DbConfig}
 import ru.johnspade.s10ns.calendar.CalendarModule
 import ru.johnspade.s10ns.exchangerates.ExchangeRatesModule
 import ru.johnspade.s10ns.notifications.NotificationsModule
@@ -28,15 +28,15 @@ object BotApp extends IOApp {
   private type D[A] = ConnectionIO[A]
 
   override def run(args: List[String]): IO[ExitCode] = {
-    def createTransactor[F[_]: Async: ContextShift](connectionUrl: String) =
+    def createTransactor[F[_]: Async: ContextShift](dbConfig: DbConfig) =
       for {
         ce <- ExecutionContexts.fixedThreadPool[F](32)
         te <- ExecutionContexts.cachedThreadPool[F]
         xa <- HikariTransactor.newHikariTransactor[F](
-          "org.postgresql.Driver",
-          s"jdbc:postgresql://$connectionUrl",
-          null,
-          null,
+          dbConfig.driver,
+          dbConfig.url,
+          dbConfig.user,
+          dbConfig.password,
           ce,
           Blocker.liftExecutionContext(te)
         )
@@ -56,7 +56,6 @@ object BotApp extends IOApp {
           botModule <- BotModule.make[F](userModule, exchangeRatesModule)
           settingsModule <- SettingsModule.make[F](botModule)
           subscriptionModule <- SubscriptionModule.make[F](userModule, botModule, calendarModule)
-          logger <- logs.forService[BotApp.type]
           notificationsModule <- NotificationsModule.make[F](subscriptionModule)
           _ <- exchangeRatesModule.exchangeRatesJobService.startExchangeRatesJob()
           _ <- notificationsModule.prepareNotificationsJobService.startPrepareNotificationsJob()
@@ -73,25 +72,26 @@ object BotApp extends IOApp {
             botModule.cbDataService,
             botModule.userMiddleware
           )
-        } yield bot.start()
+          _ <- bot.start().use(_ => Async[F].async[Unit](_ => ()))
+        } yield ()
       }
     }
 
     Blocker[IO].use { blocker =>
       IO(ConfigSource.default.loadOrThrow[Config]).flatMap { conf =>
-        createTransactor[IO](conf.app.db)
+        createTransactor[IO](conf.db)
           .use { xa =>
             val transact = new ~>[ConnectionIO, IO] {
               override def apply[A](fa: ConnectionIO[A]): IO[A] = fa.transact(xa)
             }
             xa.configure { dataSource =>
               IO {
-                val flyWay = Flyway.configure().dataSource(dataSource).load()
-                flyWay.migrate()
+                val flyway = Flyway.configure().dataSource(dataSource).load()
+                flyway.migrate()
                 ()
               }
             } *>
-              init[IO](conf, transact, blocker).flatMap(_.use(_ => IO.never))
+              init[IO](conf, transact, blocker).map(_ => ExitCode.Success)
           }
       }
     }

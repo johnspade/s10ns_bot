@@ -15,7 +15,7 @@ import ru.johnspade.s10ns.PostgresContainer.container
 import ru.johnspade.s10ns.TelegramiumScalamockUtils.verifyMethodCall
 import ru.johnspade.s10ns.bot.engine.TelegramOps.inlineKeyboardButton
 import ru.johnspade.s10ns.bot.engine.{DefaultDialogEngine, DefaultMsgService}
-import ru.johnspade.s10ns.bot.{BotStart, CbDataService, EditS10n, IgnoreController, Markup, Messages, MoneyService, Notify, RemoveS10n, S10ns, StartController, UserMiddleware}
+import ru.johnspade.s10ns.bot.{BotConfig, BotStart, CbDataService, EditS10n, IgnoreController, Markup, Messages, MoneyService, Notify, RemoveS10n, S10ns, StartController, UserMiddleware}
 import ru.johnspade.s10ns.calendar.{CalendarController, CalendarService}
 import ru.johnspade.s10ns.exchangerates.InMemoryExchangeRatesStorage
 import ru.johnspade.s10ns.settings.{DefaultSettingsService, SettingsController, SettingsDialogState}
@@ -209,7 +209,9 @@ class SubscriptionsBotISpec
     private val settingsController = SettingsController[IO](settingsService).unsafeRunSync()
     private val startController = new StartController[IO](dialogEngine)
     private val cbDataService = new CbDataService[IO]
+    private val botConfig = BotConfig("", 8080, "", "0.0.0.0")
     protected val bot: SubscriptionsBot[IO, ConnectionIO] = SubscriptionsBot[IO, ConnectionIO](
+      botConfig,
       userRepo,
       s10nListController,
       s10nController,
