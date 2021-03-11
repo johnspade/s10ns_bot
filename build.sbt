@@ -45,7 +45,7 @@ libraryDependencies ++= Seq(
   "org.joda" % "joda-money" % "1.0.1",
   "ru.tinkoff" %% "tofu-logging" % "0.9.2",
   "com.github.pureconfig" %% "pureconfig" % PureconfigVersion,
-  "com.github.pureconfig" %% "pureconfig-cats-effect" % PureconfigVersion,
+  "com.github.pureconfig" %% "pureconfig-magnolia" % PureconfigVersion,
   "com.github.cb372" %% "cats-retry-core" % CatsRetryVersion,
   "com.github.cb372" %% "cats-retry-cats-effect" % CatsRetryVersion,
   "com.nrinaudo" %% "kantan.csv" % KantanVersion,

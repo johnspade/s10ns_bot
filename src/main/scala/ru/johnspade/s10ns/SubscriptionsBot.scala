@@ -1,21 +1,22 @@
 package ru.johnspade.s10ns
 
-import cats.effect.{Sync, Timer}
+import cats.effect.{ConcurrentEffect, ContextShift, Sync, Timer}
 import cats.implicits._
 import cats.{Monad, Parallel, ~>}
 import ru.johnspade.s10ns.bot.engine.ReplyMessage
 import ru.johnspade.s10ns.bot.engine.TelegramOps.{TelegramUserOps, sendReplyMessages, singleTextMessage}
-import ru.johnspade.tgbot.callbackqueries.{CallbackDataDecoder, CallbackQueryHandler, DecodeError, ParseError}
-import ru.johnspade.s10ns.bot.{CbData, CbDataService, CreateS10nDialog, Dialog, EditS10nAmountDialog, EditS10nBillingPeriodDialog, EditS10nCurrencyDialog, EditS10nNameDialog, EditS10nOneTimeDialog, Errors, IgnoreController, SettingsDialog, StartController, UserMiddleware}
+import ru.johnspade.s10ns.bot.{BotConfig, CbData, CbDataService, CreateS10nDialog, Dialog, EditS10nAmountDialog, EditS10nBillingPeriodDialog, EditS10nCurrencyDialog, EditS10nNameDialog, EditS10nOneTimeDialog, Errors, IgnoreController, SettingsDialog, StartController, UserMiddleware}
 import ru.johnspade.s10ns.calendar.CalendarController
 import ru.johnspade.s10ns.settings.SettingsController
 import ru.johnspade.s10ns.subscription.controller.{S10nController, SubscriptionListController}
 import ru.johnspade.s10ns.user.{User, UserRepository}
-import telegramium.bots.high.{Api, LongPollBot}
+import ru.johnspade.tgbot.callbackqueries.{CallbackDataDecoder, CallbackQueryHandler, DecodeError, ParseError}
+import telegramium.bots.high.{Api, WebhookBot}
 import telegramium.bots.{CallbackQuery, Message, User => TgUser}
 import tofu.logging.{Logging, Logs}
 
-class SubscriptionsBot[F[_]: Sync: Timer: Parallel: Logging, D[_]: Monad](
+class SubscriptionsBot[F[_]: Sync: Timer: ConcurrentEffect: ContextShift: Logging, D[_]: Monad](
+  private val botConfig: BotConfig,
   private val userRepo: UserRepository[D],
   private val s10nListController: SubscriptionListController[F],
   private val s10nController: S10nController[F],
@@ -25,7 +26,14 @@ class SubscriptionsBot[F[_]: Sync: Timer: Parallel: Logging, D[_]: Monad](
   private val ignoreController: IgnoreController[F],
   private val cbDataService: CbDataService[F],
   private val userMiddleware: UserMiddleware[F, D]
-)(private implicit val api: Api[F], val transact: D ~> F) extends LongPollBot[F](api) {
+)(private implicit val api: Api[F], val transact: D ~> F)
+  extends WebhookBot[F](
+    api,
+    botConfig.port,
+    url = s"${botConfig.url}/${botConfig.token}",
+    path = botConfig.token,
+    host = botConfig.host
+  ) {
 
   override def onMessage(msg: Message): F[Unit] =
     msg.from.map { user =>
@@ -123,7 +131,8 @@ class SubscriptionsBot[F[_]: Sync: Timer: Parallel: Logging, D[_]: Monad](
 }
 
 object SubscriptionsBot {
-  def apply[F[_]: Sync: Timer: Parallel, D[_]: Monad](
+  def apply[F[_]: ConcurrentEffect: ContextShift: Timer: Parallel, D[_]: Monad](
+    botConfig: BotConfig,
     userRepo: UserRepository[D],
     s10nListController: SubscriptionListController[F],
     s10nController: S10nController[F],
@@ -136,6 +145,7 @@ object SubscriptionsBot {
   )(implicit api: Api[F], transact: D ~> F, logs: Logs[F, F]): F[SubscriptionsBot[F, D]] =
     logs.forService[SubscriptionsBot[F, D]].map { implicit l =>
       new SubscriptionsBot[F, D](
+        botConfig,
         userRepo,
         s10nListController,
         s10nController,

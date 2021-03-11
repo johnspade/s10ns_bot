@@ -11,7 +11,6 @@ import org.flywaydb.core.Flyway
 import org.http4s.client.blaze.BlazeClientBuilder
 import pureconfig.ConfigSource
 import pureconfig.generic.auto._
-import pureconfig.module.catseffect._
 import ru.johnspade.s10ns.bot.{BotModule, Config}
 import ru.johnspade.s10ns.calendar.CalendarModule
 import ru.johnspade.s10ns.exchangerates.ExchangeRatesModule
@@ -49,7 +48,7 @@ object BotApp extends IOApp {
 
       BlazeClientBuilder[F](ExecutionContext.global).resource.use { httpClient =>
         implicit val api: Api[F] =
-          BotApi(httpClient, s"https://api.telegram.org/bot${conf.telegram.token}", blocker)
+          BotApi(httpClient, s"https://api.telegram.org/bot${conf.bot.token}", blocker)
         for {
           calendarModule <- CalendarModule.make[F]
           userModule <- UserModule.make[F]()
@@ -63,6 +62,7 @@ object BotApp extends IOApp {
           _ <- notificationsModule.prepareNotificationsJobService.startPrepareNotificationsJob()
           _ <- notificationsModule.notificationsJobService.startNotificationsJob()
           bot <- SubscriptionsBot[F, D](
+            conf.bot,
             userModule.userRepository,
             subscriptionModule.subscriptionListController,
             subscriptionModule.editS10nDialogController,
@@ -73,13 +73,12 @@ object BotApp extends IOApp {
             botModule.cbDataService,
             botModule.userMiddleware
           )
-          _ <- bot.start().handleErrorWith(e => logger.errorCause(e.getMessage, e))
-        } yield ()
+        } yield bot.start()
       }
     }
 
     Blocker[IO].use { blocker =>
-      loadF[IO, Config](ConfigSource.file("config.properties"), blocker).flatMap { conf =>
+      IO(ConfigSource.default.loadOrThrow[Config]).flatMap { conf =>
         createTransactor[IO](conf.app.db)
           .use { xa =>
             val transact = new ~>[ConnectionIO, IO] {
@@ -92,7 +91,7 @@ object BotApp extends IOApp {
                 ()
               }
             } *>
-              init[IO](conf, transact, blocker).map(_ => ExitCode.Success)
+              init[IO](conf, transact, blocker).flatMap(_.use(_ => IO.never))
           }
       }
     }
