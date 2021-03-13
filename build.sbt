@@ -11,7 +11,7 @@ scalacOptions ++= Seq(
 )
 
 val TelegramiumVersion = "4.51.0"
-val TgbotUtilsVersion = "0.3.0"
+val TgbotUtilsVersion = "0.4.0"
 val DoobieVersion = "0.10.0"
 val FuuidVersion = "0.5.0"
 val CirceVersion = "0.13.0"
@@ -67,12 +67,7 @@ libraryDependencies ++= Seq(
 addCompilerPlugin("com.olegpy" %% "better-monadic-for" % "0.3.1")
 addCompilerPlugin("org.typelevel" %% "kind-projector" % "0.11.3" cross CrossVersion.full)
 
-assemblyMergeStrategy in assembly := {
-  case PathList("META-INF", _) => MergeStrategy.discard
-  case _ => MergeStrategy.first
-}
-
-resolvers += Resolver.bintrayRepo("johnspade", "maven")
+enablePlugins(JavaAppPackaging)
 
 //lazy val `tgbot-utils` = ProjectRef(uri("https://github.com/johnspade/tgbot-utils.git#master"), "root")
 lazy val root: Project = (project in file("."))
