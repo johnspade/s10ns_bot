@@ -2,8 +2,6 @@ import TestSettings._
 
 name := "s10ns_bot"
 
-version := "0.1"
-
 scalaVersion := "2.13.5"
 
 scalacOptions ++= Seq(
@@ -67,9 +65,12 @@ libraryDependencies ++= Seq(
 addCompilerPlugin("com.olegpy" %% "better-monadic-for" % "0.3.1")
 addCompilerPlugin("org.typelevel" %% "kind-projector" % "0.11.3" cross CrossVersion.full)
 
-enablePlugins(JavaAppPackaging)
+ThisBuild / dynverSeparator := "-"
 
-//lazy val `tgbot-utils` = ProjectRef(uri("https://github.com/johnspade/tgbot-utils.git#master"), "root")
 lazy val root: Project = (project in file("."))
+  .enablePlugins(JavaAppPackaging, DockerPlugin, AshScriptPlugin)
   .withSerialTests
-//  .dependsOn(`tgbot-utils`)
+  .settings(
+    dockerBaseImage := "adoptopenjdk/openjdk11:jre-11.0.10_9-alpine",
+    dockerExposedPorts ++= Seq(8080)
+  )
