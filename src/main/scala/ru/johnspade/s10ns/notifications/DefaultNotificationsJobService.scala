@@ -1,18 +1,23 @@
 package ru.johnspade.s10ns.notifications
 
 import java.time.Instant
-
 import cats.data.OptionT
 import cats.effect.{Clock, Concurrent, Timer}
-import cats.implicits._
-import cats.{Monad, ~>}
+import cats.syntax.functor._
+import cats.syntax.apply._
+import cats.syntax.applicativeError._
+import cats.syntax.applicative._
+import cats.syntax.option._
+import cats.syntax.foldable._
+import cats.syntax.flatMap._
+import cats.{Monad, MonadError, ~>}
 import ru.johnspade.s10ns.subscription.Subscription
 import ru.johnspade.s10ns.subscription.repository.SubscriptionRepository
 import ru.johnspade.s10ns.subscription.service.S10nsListMessageService
 import ru.johnspade.s10ns.user.User
 import ru.johnspade.s10ns.{currentTimestamp, repeat}
 import telegramium.bots.ChatIntId
-import telegramium.bots.high.Api
+import telegramium.bots.high.{Api, FailedRequest}
 import telegramium.bots.high.Methods._
 import telegramium.bots.high.implicits._
 import tofu.logging._
@@ -25,7 +30,7 @@ class DefaultNotificationsJobService[F[_]: Concurrent: Clock: Timer: Logging, D[
   private val s10nRepo: SubscriptionRepository[D],
   private val s10nListMessageService: S10nsListMessageService[F],
   private val notificationService: NotificationService[F]
-)(private implicit val transact: D ~> F) extends NotificationsJobService[F] {
+)(implicit transact: D ~> F, monadError: MonadError[F, Throwable]) extends NotificationsJobService[F] {
   def executeTask()(implicit bot: Api[F]): F[Unit] = {
     def sendNotification(s10nWithUser: (Subscription, User), timestamp: Instant) = {
       val (s10n, user) = s10nWithUser
@@ -38,7 +43,12 @@ class DefaultNotificationsJobService[F[_]: Concurrent: Clock: Timer: Logging, D[
               parseMode = message.parseMode,
               replyMarkup = message.markup
             )
-              .exec.void
+              .exec
+              .void
+              .recoverWith { case FailedRequest(_, Some(403), Some("Forbidden: bot was blocked by the user")) =>
+                warn"Bot was blocked by the user ${user.id.toString}, disabling notifications" *>
+                  transact(s10nRepo.disableNotificationsForUser(user.id))
+              }
           }
       }
         .sequence_
@@ -63,9 +73,9 @@ class DefaultNotificationsJobService[F[_]: Concurrent: Clock: Timer: Logging, D[
 
   def startNotificationsJob()(implicit bot: Api[F]): F[Unit] =
     Concurrent[F].start {
-    repeat(executeTask(), 30.seconds)
-  }
-    .void
+      repeat(executeTask(), 30.seconds)
+    }
+      .void
 }
 
 object DefaultNotificationsJobService {

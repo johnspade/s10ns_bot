@@ -54,6 +54,12 @@ class DoobieSubscriptionRepository extends SubscriptionRepository[ConnectionIO] 
       newS10n = oldS10n.map(_ => s10n)
       _ <- newS10n.fold(connection.unit)(SubscriptionSql.update(_).run.map(_ => ()))
     } yield newS10n
+
+  override def disableNotificationsForUser(userId: UserId): ConnectionIO[Unit] =
+    SubscriptionSql
+      .disableNotifications(userId)
+      .run
+      .map(_ => ())
 }
 
 object DoobieSubscriptionRepository {
@@ -121,6 +127,13 @@ object DoobieSubscriptionRepository {
         where id = $id
       """.update
     }
+
+    def disableNotifications(userId: UserId): Update0 =
+      sql"""
+        update subscriptions
+        set send_notifications = false
+        where user_id = $userId and send_notifications = true
+      """.update
   }
 
   private implicit val moneyRead: Read[Money] =

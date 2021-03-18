@@ -21,4 +21,6 @@ trait SubscriptionRepository[D[_]] {
   def remove(id: SubscriptionId): D[Unit]
 
   def update(s10n: Subscription): D[Option[Subscription]]
+
+  def disableNotificationsForUser(userId: UserId): D[Unit]
 }
