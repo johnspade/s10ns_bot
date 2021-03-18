@@ -21,7 +21,7 @@ class InMemorySubscriptionRepository extends SubscriptionRepository[Id] {
     subscriptions.put(s10n.id, s10n)
     s10n
   }
-  
+
   override def getById(id: SubscriptionId): Option[Subscription] = subscriptions.get(id)
 
   def getByIdWithUser(id: SubscriptionId): Id[Option[(Subscription, User)]] = ???
@@ -43,4 +43,13 @@ class InMemorySubscriptionRepository extends SubscriptionRepository[Id] {
     subscriptions.put(s10n.id, s10n)
     s10n.some
   }
+
+  override def disableNotificationsForUser(userId: UserId): Id[Unit] =
+    subscriptions
+      .values
+      .filter(_.userId == userId)
+      .map(_.copy(sendNotifications = false))
+      .foreach { s =>
+        subscriptions.put(s.id, s)
+      }
 }

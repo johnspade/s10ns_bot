@@ -10,6 +10,7 @@ class DoobieSubscriptionRepositorySpec extends DoobieRepositorySpec {
   private val sampleS10nId = SubscriptionId(0L)
   private val sampleS10nDraft = SubscriptionDraft.create(UserId(0L))
   private val sampleS10n = Subscription.fromDraft(sampleS10nDraft, sampleS10nId)
+  private val sampleUserId = UserId(0L)
 
   test("create") {
     check(create(sampleS10nDraft))
@@ -24,7 +25,7 @@ class DoobieSubscriptionRepositorySpec extends DoobieRepositorySpec {
   }
 
   test("getByUserId") {
-    check(getByUserId(UserId(0L)))
+    check(getByUserId(sampleUserId))
   }
 
   test("remove") {
@@ -33,5 +34,9 @@ class DoobieSubscriptionRepositorySpec extends DoobieRepositorySpec {
 
   test("update") {
     check(update(sampleS10n))
+  }
+
+  test("disableNotificationsForUser") {
+    check(disableNotifications(sampleUserId))
   }
 }

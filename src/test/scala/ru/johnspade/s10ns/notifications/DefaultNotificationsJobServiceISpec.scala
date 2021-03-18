@@ -9,7 +9,7 @@ import doobie.implicits._
 import io.chrisdavenport.fuuid.FUUID
 import org.joda.money.CurrencyUnit
 import org.scalamock.scalatest.MockFactory
-import org.scalatest.BeforeAndAfterEach
+import org.scalatest.{BeforeAndAfterEach, OptionValues}
 import ru.johnspade.s10ns.PostgresContainer.{transact, xa}
 import ru.johnspade.s10ns.SpecBase
 import ru.johnspade.s10ns.bot.engine.TelegramOps.inlineKeyboardButton
@@ -26,7 +26,7 @@ import telegramium.bots.high.keyboards.InlineKeyboardMarkups
 import telegramium.bots.high.{Api, _}
 import telegramium.bots.{Chat, ChatIntId, Markdown, Message}
 
-class DefaultNotificationsJobServiceISpec extends SpecBase with MockFactory with BeforeAndAfterEach {
+class DefaultNotificationsJobServiceISpec extends SpecBase with MockFactory with BeforeAndAfterEach with OptionValues {
 
   private val notificationRepo = new DoobieNotificationRepository
   private val s10nRepo = new DoobieSubscriptionRepository
@@ -102,6 +102,56 @@ class DefaultNotificationsJobServiceISpec extends SpecBase with MockFactory with
 
     notificationsJobService.executeTask().unsafeRunSync()
     (api.execute[Message] _).verify(*).never()
+  }
+
+  it should "disable notifications if bot was blocked by the user" in {
+    (api.execute[Message] _)
+      .when(*)
+      .returns(IO.raiseError(FailedRequest(Methods.sendChatAction(), 403.some, "Forbidden: bot was blocked by the user".some)))
+    val s10n = s10nRepo.create(SubscriptionDraft(
+      userId = userId,
+      name = SubscriptionName("Netflix"),
+      currency = CurrencyUnit.EUR,
+      amount = SubscriptionAmount(1136L),
+      oneTime = OneTimeSubscription(false).some,
+      periodDuration = BillingPeriodDuration(1).some,
+      periodUnit = BillingPeriodUnit.Month.some,
+      firstPaymentDate = FirstPaymentDate(LocalDate.now(ZoneOffset.UTC)).some,
+      sendNotifications = true
+    ))
+      .transact(xa)
+      .unsafeRunSync()
+    notificationRepo.create(Notification(FUUID.randomFUUID[IO].unsafeRunSync(), s10n.id))
+      .transact(xa).unsafeRunSync()
+
+    notificationsJobService.executeTask().unsafeRunSync()
+
+    s10nRepo.getById(s10n.id).transact(xa).unsafeRunSync().value.sendNotifications shouldBe false
+  }
+
+  it should "not disable notifications on other errors" in {
+    (api.execute[Message] _)
+      .when(*)
+      .returns(IO.raiseError(FailedRequest(Methods.sendChatAction(), 500.some, "Failed".some)))
+    val s10n = s10nRepo.create(SubscriptionDraft(
+      userId = userId,
+      name = SubscriptionName("Netflix"),
+      currency = CurrencyUnit.EUR,
+      amount = SubscriptionAmount(1136L),
+      oneTime = OneTimeSubscription(false).some,
+      periodDuration = BillingPeriodDuration(1).some,
+      periodUnit = BillingPeriodUnit.Month.some,
+      firstPaymentDate = FirstPaymentDate(LocalDate.now(ZoneOffset.UTC)).some,
+      sendNotifications = true
+    ))
+      .transact(xa)
+      .unsafeRunSync()
+    notificationRepo.create(Notification(FUUID.randomFUUID[IO].unsafeRunSync(), s10n.id))
+      .transact(xa).unsafeRunSync()
+
+    an[FailedRequest[Boolean]] shouldBe thrownBy(notificationsJobService.executeTask().unsafeRunSync())
+
+    s10nRepo.getById(s10n.id).transact(xa).unsafeRunSync().value.sendNotifications shouldBe true
   }
 
   private val userRepo = new DoobieUserRepository
