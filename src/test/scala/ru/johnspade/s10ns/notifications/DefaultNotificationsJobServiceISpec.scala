@@ -107,7 +107,7 @@ class DefaultNotificationsJobServiceISpec extends SpecBase with MockFactory with
   it should "disable notifications if bot was blocked by the user" in {
     (api.execute[Message] _)
       .when(*)
-      .returns(IO.raiseError(FailedRequest(Methods.sendChatAction(), 403.some, "Forbidden: bot was blocked by the user".some)))
+      .returns(IO.raiseError(FailedRequest(Methods.getMe(), 403.some, "Forbidden: bot was blocked by the user".some)))
     val s10n = s10nRepo.create(SubscriptionDraft(
       userId = userId,
       name = SubscriptionName("Netflix"),
@@ -132,7 +132,7 @@ class DefaultNotificationsJobServiceISpec extends SpecBase with MockFactory with
   it should "not disable notifications on other errors" in {
     (api.execute[Message] _)
       .when(*)
-      .returns(IO.raiseError(FailedRequest(Methods.sendChatAction(), 500.some, "Failed".some)))
+      .returns(IO.raiseError(FailedRequest(Methods.getMe(), 500.some, "Failed".some)))
     val s10n = s10nRepo.create(SubscriptionDraft(
       userId = userId,
       name = SubscriptionName("Netflix"),
