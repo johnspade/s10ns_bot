@@ -11,10 +11,9 @@ import org.scalatest.matchers.should.Matchers
 import ru.johnspade.s10ns.subscription.tags.{BillingPeriodDuration, FirstPaymentDate}
 import ru.johnspade.s10ns.subscription.{BillingPeriod, BillingPeriodUnit, RemainingTime}
 
-import scala.concurrent.ExecutionContext
+import cats.effect.unsafe.implicits.global
 
 class S10nInfoServiceSpec extends AnyFlatSpec with Matchers with OptionValues {
-  private implicit val clock: Clock[IO] = IO.timer(ExecutionContext.global).clock
   private val s10nInfoService = new S10nInfoService[IO]
 
   private val amount = Money.of(CurrencyUnit.USD, 13.37)

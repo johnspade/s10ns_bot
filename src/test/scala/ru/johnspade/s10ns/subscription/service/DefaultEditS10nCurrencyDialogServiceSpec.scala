@@ -14,6 +14,7 @@ import ru.johnspade.s10ns.subscription.dialog.EditS10nCurrencyDialogState
 import ru.johnspade.s10ns.subscription.service.impl.DefaultEditS10nCurrencyDialogService
 import telegramium.bots.Markdown
 import com.softwaremill.diffx.generic.auto._
+import cats.effect.unsafe.implicits.global
 
 class DefaultEditS10nCurrencyDialogServiceSpec extends AnyFlatSpec with EditS10nDialogServiceSpec with Matchers with DiffMatcher {
   private val editS10nCurrencyDialogService = new DefaultEditS10nCurrencyDialogService(

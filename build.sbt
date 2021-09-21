@@ -2,33 +2,33 @@ import TestSettings._
 
 name := "s10ns_bot"
 
-scalaVersion := "2.13.5"
+scalaVersion := "2.13.6"
 
 scalacOptions ++= Seq(
   "-language:higherKinds"
 )
 
-val TelegramiumVersion = "4.52.0"
-val TgbotUtilsVersion = "0.4.0"
-val DoobieVersion = "0.10.0"
-val FuuidVersion = "0.5.0"
-val CirceVersion = "0.13.0"
-val SttpVersion = "1.7.2"
-val PureconfigVersion = "0.14.1"
-val CatsRetryVersion = "0.3.2"
+val TelegramiumVersion = "7.53.0"
+val TgbotUtilsVersion = "0.5.0"
+val DoobieVersion = "1.0.0-RC1"
+val FuuidVersion = "0.8.0-M2"
+val CirceVersion = "0.14.1"
+val SttpVersion = "3.3.14"
+val PureconfigVersion = "0.16.0"
+val CatsRetryVersion = "3.1.0"
 val KantanVersion = "0.6.1"
-val EnumeratumVersion = "1.6.0"
-val TestcontainersScalaVersion = "0.39.3"
+val EnumeratumVersion = "1.7.0"
+val TestcontainersScalaVersion = "0.39.7"
 
 libraryDependencies ++= Seq(
   "io.github.apimorphism" %% "telegramium-core" % TelegramiumVersion,
   "io.github.apimorphism" %% "telegramium-high" % TelegramiumVersion,
   "ru.johnspade" %% "tgbot-utils" % TgbotUtilsVersion,
-  "com.softwaremill.sttp" %% "core" % SttpVersion,
-  "com.softwaremill.sttp" %% "async-http-client-backend-cats" % SttpVersion,
-  "com.softwaremill.sttp" %% "circe" % SttpVersion,
-  "org.typelevel" %% "cats-effect" % "2.3.3",
-  "ch.qos.logback" % "logback-classic" % "1.2.3",
+  "com.softwaremill.sttp.client3" %% "core" % SttpVersion,
+  "com.softwaremill.sttp.client3" %% "async-http-client-backend-cats" % SttpVersion,
+  "com.softwaremill.sttp.client3" %% "circe" % SttpVersion,
+  "org.typelevel" %% "cats-effect" % "3.2.8",
+  "ch.qos.logback" % "logback-classic" % "1.2.6",
   "io.circe" %% "circe-core" % CirceVersion,
   "io.circe" %% "circe-generic" % CirceVersion,
   "io.circe" %% "circe-generic-extras" % CirceVersion,
@@ -41,29 +41,31 @@ libraryDependencies ++= Seq(
   "com.beachape" %% "enumeratum-circe" % EnumeratumVersion,
   "com.beachape" %% "enumeratum-doobie" % EnumeratumVersion,
   "org.joda" % "joda-money" % "1.0.1",
-  "ru.tinkoff" %% "tofu-logging" % "0.9.2",
+  "tf.tofu" %% "tofu-core-ce3" % "0.10.4",
+  "tf.tofu" %% "tofu-logging-derivation" % "0.10.4",
+  "tf.tofu" %% "tofu-logging-layout" % "0.10.4",
+  "tf.tofu" %% "tofu-logging-structured" % "0.10.4",
   "com.github.pureconfig" %% "pureconfig" % PureconfigVersion,
   "com.github.pureconfig" %% "pureconfig-magnolia" % PureconfigVersion,
-  "com.github.cb372" %% "cats-retry-core" % CatsRetryVersion,
-  "com.github.cb372" %% "cats-retry-cats-effect" % CatsRetryVersion,
+  "com.github.cb372" %% "cats-retry" % CatsRetryVersion,
   "com.nrinaudo" %% "kantan.csv" % KantanVersion,
   "com.nrinaudo" %% "kantan.csv-java8" % KantanVersion,
   "com.nrinaudo" %% "kantan.csv-enumeratum" % KantanVersion,
   "org.rudogma" %% "supertagged" % "1.5",
-  "org.flywaydb" % "flyway-core" % "7.6.0",
-  "com.softwaremill.quicklens" %% "quicklens" % "1.6.1",
-  "com.ibm.icu" % "icu4j" % "68.2",
+  "org.flywaydb" % "flyway-core" % "7.15.0",
+  "com.softwaremill.quicklens" %% "quicklens" % "1.7.4",
+  "com.ibm.icu" % "icu4j" % "69.1",
   "io.chrisdavenport" %% "fuuid" % FuuidVersion,
   "io.chrisdavenport" %% "fuuid-doobie" % FuuidVersion,
-  "org.scalatest" %% "scalatest" % "3.2.6" % Test,
+  "org.scalatest" %% "scalatest" % "3.2.9" % Test,
   "com.dimafeng" %% "testcontainers-scala-scalatest" % TestcontainersScalaVersion % Test,
   "com.dimafeng" %% "testcontainers-scala-postgresql" % TestcontainersScalaVersion % Test,
-  "com.softwaremill.diffx" %% "diffx-scalatest" % "0.4.4" % Test,
+  "com.softwaremill.diffx" %% "diffx-scalatest" % "0.5.6" % Test,
   "org.scalamock" %% "scalamock" % "5.1.0" % Test
 )
 
 addCompilerPlugin("com.olegpy" %% "better-monadic-for" % "0.3.1")
-addCompilerPlugin("org.typelevel" %% "kind-projector" % "0.11.3" cross CrossVersion.full)
+addCompilerPlugin("org.typelevel" %% "kind-projector" % "0.13.2" cross CrossVersion.full)
 
 ThisBuild / dynverSeparator := "-"
 

@@ -13,7 +13,7 @@ import ru.johnspade.s10ns.subscription.service.{CreateS10nDialogFsmService, Crea
 import ru.johnspade.s10ns.subscription.tags._
 import ru.johnspade.s10ns.user.User
 
-class DefaultCreateS10nDialogService[F[_] : Sync, D[_] : Monad](
+class DefaultCreateS10nDialogService[F[_] : Monad, D[_] : Monad](
   private val createS10nDialogFsmService: CreateS10nDialogFsmService[F],
   private val stateMessageService: StateMessageService[F, CreateS10nDialogState],
   private val dialogEngine: DialogEngine[F]

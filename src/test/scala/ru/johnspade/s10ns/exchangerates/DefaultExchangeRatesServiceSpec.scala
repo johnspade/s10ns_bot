@@ -3,7 +3,7 @@ package ru.johnspade.s10ns.exchangerates
 import java.time.Instant
 
 import cats.Id
-import cats.effect.{IO, Timer}
+import cats.effect.IO
 import com.softwaremill.diffx.scalatest.DiffMatcher
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.OptionValues
@@ -13,10 +13,9 @@ import retry.RetryPolicies
 import ru.johnspade.s10ns.TestTransactor.transact
 import tofu.logging.Logs
 
-import scala.concurrent.ExecutionContext
+import cats.effect.unsafe.implicits.global
 
 class DefaultExchangeRatesServiceSpec extends AnyFlatSpec with Matchers with OptionValues with DiffMatcher with MockFactory {
-  private implicit val timer: Timer[IO] = IO.timer(ExecutionContext.global)
   private implicit val logs: Logs[IO, IO] = Logs.sync[IO, IO]
 
   private val timestamp = Instant.now.getEpochSecond

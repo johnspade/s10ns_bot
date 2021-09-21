@@ -1,6 +1,5 @@
 package ru.johnspade.s10ns.subscription.service.impl
 
-import cats.effect.Sync
 import cats.implicits._
 import cats.{Monad, ~>}
 import org.joda.money.{CurrencyUnit, Money}
@@ -13,7 +12,7 @@ import ru.johnspade.s10ns.subscription.service.{CreateS10nDialogFsmService, S10n
 import ru.johnspade.s10ns.subscription.tags._
 import ru.johnspade.s10ns.user.{User, UserRepository}
 
-class DefaultCreateS10nDialogFsmService[F[_]: Sync, D[_]: Monad](
+class DefaultCreateS10nDialogFsmService[F[_]: Monad, D[_]: Monad](
   private val subscriptionRepo: SubscriptionRepository[D],
   private val userRepo: UserRepository[D],
   private val dialogEngine: TransactionalDialogEngine[F, D],

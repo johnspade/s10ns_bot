@@ -19,10 +19,9 @@ import telegramium.bots.{InlineKeyboardMarkup, KeyboardMarkup}
 import telegramium.bots.high.keyboards.{InlineKeyboardButtons, InlineKeyboardMarkups}
 import com.softwaremill.diffx.generic.auto._
 
-import scala.concurrent.ExecutionContext
+import cats.effect.unsafe.implicits.global
 
 class S10nsListMessageServiceSpec extends AnyFlatSpec with Matchers with OptionValues with DiffMatcher {
-  private implicit val clock: Clock[IO] = IO.timer(ExecutionContext.global).clock
 
   private val moneyService = new MoneyService[IO](new InMemoryExchangeRatesStorage)
   private val s10nInfoService = new S10nInfoService[IO]

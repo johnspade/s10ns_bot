@@ -8,6 +8,6 @@ import telegramium.bots.high.Api
 
 class IgnoreController[F[_]: Sync](implicit bot: Api[F]) extends CallbackQueryController[F] {
   override def routes: CbDataRoutes[F] = CallbackQueryRoutes.of {
-    case Ignore in cb => ackCb[F](cb)
+    case Ignore in cb => ackCb(cb)
   }
 }

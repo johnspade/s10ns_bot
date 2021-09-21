@@ -1,6 +1,5 @@
 package ru.johnspade.s10ns
 
-import cats.effect.{ConcurrentEffect, ContextShift, Sync, Timer}
 import cats.implicits._
 import cats.{Monad, Parallel, ~>}
 import ru.johnspade.s10ns.bot.engine.ReplyMessage
@@ -14,8 +13,9 @@ import ru.johnspade.tgbot.callbackqueries.{CallbackDataDecoder, CallbackQueryHan
 import telegramium.bots.high.{Api, WebhookBot}
 import telegramium.bots.{CallbackQuery, Message, User => TgUser}
 import tofu.logging.{Logging, Logs}
+import cats.effect.Async
 
-class SubscriptionsBot[F[_]: Sync: Timer: ConcurrentEffect: ContextShift: Logging, D[_]: Monad](
+class SubscriptionsBot[F[_]: Async: Logging, D[_]: Monad](
   private val botConfig: BotConfig,
   private val userRepo: UserRepository[D],
   private val s10nListController: SubscriptionListController[F],
@@ -29,10 +29,8 @@ class SubscriptionsBot[F[_]: Sync: Timer: ConcurrentEffect: ContextShift: Loggin
 )(private implicit val api: Api[F], val transact: D ~> F)
   extends WebhookBot[F](
     api,
-    botConfig.port,
     url = s"${botConfig.url}/${botConfig.token}",
-    path = botConfig.token,
-    host = botConfig.host
+    path = botConfig.token
   ) {
 
   override def onMessage(msg: Message): F[Unit] =
@@ -84,7 +82,7 @@ class SubscriptionsBot[F[_]: Sync: Timer: ConcurrentEffect: ContextShift: Loggin
         case d: EditS10nCurrencyDialog => s10nController.s10nEditCurrencyMessage(user, d, msg)
         case d: EditS10nOneTimeDialog => s10nController.s10nBillingPeriodDurationMessage(user, d, msg)
         case d: EditS10nBillingPeriodDialog => s10nController.s10nBillingPeriodDurationMessage(user, d, msg)
-        case _ => Sync[F].pure(singleTextMessage(Errors.UseInlineKeyboard))
+        case _ => Monad[F].pure(singleTextMessage(Errors.UseInlineKeyboard))
       }
 
     def handleText(user: User, text: String): F[List[ReplyMessage]] = {
@@ -93,7 +91,7 @@ class SubscriptionsBot[F[_]: Sync: Timer: ConcurrentEffect: ContextShift: Loggin
           if (importantCommands.exists(text.startsWith))
             handleCommands(user, text)
           else
-            Sync[F].pure(List(ReplyMessage("Cannot execute this command. Use /reset to stop.")))
+            Monad[F].pure(List(ReplyMessage("Cannot execute this command. Use /reset to stop.")))
         }
         else
           handleDialogs(user, dialog)
@@ -131,7 +129,7 @@ class SubscriptionsBot[F[_]: Sync: Timer: ConcurrentEffect: ContextShift: Loggin
 }
 
 object SubscriptionsBot {
-  def apply[F[_]: ConcurrentEffect: ContextShift: Timer: Parallel, D[_]: Monad](
+  def apply[F[_]: Parallel: Async, D[_]: Monad](
     botConfig: BotConfig,
     userRepo: UserRepository[D],
     s10nListController: SubscriptionListController[F],

@@ -11,6 +11,7 @@ import ru.johnspade.s10ns.settings.SettingsDialogState
 import ru.johnspade.s10ns.user.tags.{ChatId, FirstName, UserId}
 import ru.johnspade.s10ns.user.{InMemoryUserRepository, User}
 import telegramium.bots.{Html, ReplyKeyboardRemove}
+import cats.effect.unsafe.implicits.global
 
 class DefaultDialogEngineSpec extends AnyFlatSpec with Matchers {
   private val userRepo = new InMemoryUserRepository

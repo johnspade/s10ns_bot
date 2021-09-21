@@ -16,6 +16,7 @@ import ru.johnspade.s10ns.subscription.tags.{BillingPeriodDuration, FirstPayment
 import ru.johnspade.s10ns.subscription.{BillingPeriodUnit, Subscription, SubscriptionDraft}
 import ru.johnspade.s10ns.user.tags.{FirstName, UserId}
 import ru.johnspade.s10ns.user.{DoobieUserRepository, User}
+import cats.effect.unsafe.implicits.global
 
 class DefaultPrepareNotificationsJobServiceISpec extends SpecBase with BeforeAndAfterEach {
 

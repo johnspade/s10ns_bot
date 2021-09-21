@@ -1,6 +1,6 @@
 package ru.johnspade.s10ns
 
-import cats.effect.{Async, Blocker, ConcurrentEffect, ContextShift, ExitCode, IO, IOApp, Timer}
+import cats.effect.{Async, ExitCode, IO, IOApp, Temporal}
 import cats.implicits._
 import cats.{Parallel, ~>}
 import doobie.free.connection.ConnectionIO
@@ -8,7 +8,7 @@ import doobie.hikari.HikariTransactor
 import doobie.implicits._
 import doobie.util.ExecutionContexts
 import org.flywaydb.core.Flyway
-import org.http4s.client.blaze.BlazeClientBuilder
+import org.http4s.blaze.client.BlazeClientBuilder
 import pureconfig.ConfigSource
 import pureconfig.generic.auto._
 import ru.johnspade.s10ns.bot.{BotModule, Config, DbConfig}
@@ -28,27 +28,25 @@ object BotApp extends IOApp {
   private type D[A] = ConnectionIO[A]
 
   override def run(args: List[String]): IO[ExitCode] = {
-    def createTransactor[F[_]: Async: ContextShift](dbConfig: DbConfig) =
+    def createTransactor[F[_]: Async](dbConfig: DbConfig) =
       for {
-        ce <- ExecutionContexts.fixedThreadPool[F](32)
         te <- ExecutionContexts.cachedThreadPool[F]
         xa <- HikariTransactor.newHikariTransactor[F](
           dbConfig.driver,
           dbConfig.url,
           dbConfig.user,
           dbConfig.password,
-          ce,
-          Blocker.liftExecutionContext(te)
+          te
         )
       } yield xa
 
-    def init[F[_]: ConcurrentEffect: ContextShift: Timer: Parallel](conf: Config, transact: D ~> F, blocker: Blocker) = {
+    def init[F[_]: Temporal: Parallel: Async](conf: Config, transact: D ~> F) = {
       implicit val logs: Logs[F, F] = Logs.sync[F, F]
       implicit val xa: D ~> F = transact
 
       BlazeClientBuilder[F](ExecutionContext.global).resource.use { httpClient =>
         implicit val api: Api[F] =
-          BotApi(httpClient, s"https://api.telegram.org/bot${conf.bot.token}", blocker)
+          BotApi(httpClient, s"https://api.telegram.org/bot${conf.bot.token}")
         for {
           calendarModule <- CalendarModule.make[F]
           userModule <- UserModule.make[F]()
@@ -72,28 +70,30 @@ object BotApp extends IOApp {
             botModule.cbDataService,
             botModule.userMiddleware
           )
-          _ <- bot.start().use(_ => Async[F].async[Unit](_ => ()))
+          _ <- bot.start(
+            port = conf.bot.port,
+            executionContext = ExecutionContext.global,
+            host = "0.0.0.0"
+          ).use(_ => Async[F].async_[Unit](_ => ()))
         } yield ()
       }
     }
 
-    Blocker[IO].use { blocker =>
-      IO(ConfigSource.default.loadOrThrow[Config]).flatMap { conf =>
-        createTransactor[IO](conf.db)
-          .use { xa =>
-            val transact = new ~>[ConnectionIO, IO] {
-              override def apply[A](fa: ConnectionIO[A]): IO[A] = fa.transact(xa)
-            }
-            xa.configure { dataSource =>
-              IO {
-                val flyway = Flyway.configure().dataSource(dataSource).load()
-                flyway.migrate()
-                ()
-              }
-            } *>
-              init[IO](conf, transact, blocker).map(_ => ExitCode.Success)
+    IO(ConfigSource.default.loadOrThrow[Config]).flatMap { conf =>
+      createTransactor[IO](conf.db)
+        .use { xa =>
+          val transact = new ~>[ConnectionIO, IO] {
+            override def apply[A](fa: ConnectionIO[A]): IO[A] = fa.transact(xa)
           }
-      }
+          xa.configure { dataSource =>
+            IO {
+              val flyway = Flyway.configure().dataSource(dataSource).load()
+              flyway.migrate()
+              ()
+            }
+          } *>
+            init[IO](conf, transact).map(_ => ExitCode.Success)
+        }
     }
   }
 }

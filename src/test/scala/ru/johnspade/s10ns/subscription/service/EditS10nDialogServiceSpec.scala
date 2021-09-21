@@ -20,7 +20,6 @@ import telegramium.bots.InlineKeyboardMarkup
 import scala.concurrent.ExecutionContext
 
 trait EditS10nDialogServiceSpec extends MockFactory {
-  protected implicit val clock: Clock[IO] = IO.timer(ExecutionContext.global).clock
 
   protected val mockS10nRepo: SubscriptionRepository[Id] = mock[SubscriptionRepository[Id]]
   protected val mockUserRepo: UserRepository[Id] = mock[UserRepository[Id]]

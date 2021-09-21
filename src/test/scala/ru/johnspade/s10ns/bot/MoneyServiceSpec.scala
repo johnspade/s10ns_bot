@@ -12,6 +12,7 @@ import ru.johnspade.s10ns.exchangerates.{ExchangeRatesStorage, InMemoryExchangeR
 import ru.johnspade.s10ns.subscription.tags.{BillingPeriodDuration, SubscriptionId, SubscriptionName}
 import ru.johnspade.s10ns.subscription.{BillingPeriod, BillingPeriodUnit, Subscription}
 import ru.johnspade.s10ns.user.tags.UserId
+import cats.effect.unsafe.implicits.global
 
 class MoneyServiceSpec extends AnyFlatSpec with Matchers {
   private val exchangeRatesStorage: ExchangeRatesStorage[IO] = new InMemoryExchangeRatesStorage

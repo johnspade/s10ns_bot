@@ -1,15 +1,14 @@
 package ru.johnspade.s10ns.notifications
 
-import java.time.Instant
 import cats.data.OptionT
-import cats.effect.{Clock, Concurrent, Timer}
-import cats.syntax.functor._
-import cats.syntax.apply._
-import cats.syntax.applicativeError._
+import cats.effect.{Concurrent, Temporal}
 import cats.syntax.applicative._
-import cats.syntax.option._
-import cats.syntax.foldable._
+import cats.syntax.applicativeError._
+import cats.syntax.apply._
 import cats.syntax.flatMap._
+import cats.syntax.foldable._
+import cats.syntax.functor._
+import cats.syntax.option._
 import cats.{Monad, MonadError, ~>}
 import ru.johnspade.s10ns.subscription.Subscription
 import ru.johnspade.s10ns.subscription.repository.SubscriptionRepository
@@ -17,15 +16,16 @@ import ru.johnspade.s10ns.subscription.service.S10nsListMessageService
 import ru.johnspade.s10ns.user.User
 import ru.johnspade.s10ns.{currentTimestamp, repeat}
 import telegramium.bots.ChatIntId
-import telegramium.bots.high.{Api, FailedRequest}
 import telegramium.bots.high.Methods._
 import telegramium.bots.high.implicits._
+import telegramium.bots.high.{Api, FailedRequest}
 import tofu.logging._
 import tofu.syntax.logging._
 
+import java.time.Instant
 import scala.concurrent.duration._
 
-class DefaultNotificationsJobService[F[_]: Concurrent: Clock: Timer: Logging, D[_]: Monad](
+class DefaultNotificationsJobService[F[_]: Concurrent: Temporal: Logging, D[_]: Monad](
   private val notificationRepo: NotificationRepository[D],
   private val s10nRepo: SubscriptionRepository[D],
   private val s10nListMessageService: S10nsListMessageService[F],
@@ -79,7 +79,7 @@ class DefaultNotificationsJobService[F[_]: Concurrent: Clock: Timer: Logging, D[
 }
 
 object DefaultNotificationsJobService {
-  def apply[F[_]: Concurrent: Timer, D[_]: Monad](
+  def apply[F[_]: Concurrent: Temporal, D[_]: Monad](
     notificationRepo: NotificationRepository[D],
     s10nRepo: SubscriptionRepository[D],
     s10nsListMessageService: S10nsListMessageService[F],

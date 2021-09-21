@@ -1,21 +1,21 @@
 package ru.johnspade.s10ns.subscription.controller
 
-import cats.effect.Sync
 import cats.implicits._
+import cats.{Defer, Monad}
 import ru.johnspade.s10ns.CbDataUserRoutes
 import ru.johnspade.s10ns.bot.engine.ReplyMessage
 import ru.johnspade.s10ns.bot.engine.TelegramOps.ackCb
-import ru.johnspade.tgbot.callbackqueries.CallbackQueryContextRoutes
-import ru.johnspade.s10ns.bot.{CallbackQueryUserController, CbData, EditS10n, Notify, RemoveS10n, S10n, S10ns, S10nsPeriod}
+import ru.johnspade.s10ns.bot.{CallbackQueryUserController, EditS10n, Notify, RemoveS10n, S10n, S10ns, S10nsPeriod}
 import ru.johnspade.s10ns.subscription.service.SubscriptionListService
 import ru.johnspade.s10ns.subscription.tags.PageNumber
 import ru.johnspade.s10ns.user.User
+import ru.johnspade.tgbot.callbackqueries.CallbackQueryContextRoutes
 import telegramium.bots.high.Methods._
 import telegramium.bots.high._
 import telegramium.bots.high.implicits._
 import telegramium.bots.{CallbackQuery, ChatIntId, InlineKeyboardMarkup}
 
-class SubscriptionListController[F[_]: Sync](
+class SubscriptionListController[F[_]: Monad: Defer](
   private val s10nListService: SubscriptionListService[F]
 )(implicit bot: Api[F]) extends CallbackQueryUserController[F] {
   def listCommand(from: User): F[ReplyMessage] = s10nListService.onListCommand(from, PageNumber(0))

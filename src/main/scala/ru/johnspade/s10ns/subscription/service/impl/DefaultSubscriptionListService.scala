@@ -18,7 +18,7 @@ import ru.johnspade.s10ns.user.User
 import ru.johnspade.s10ns.user.tags._
 import telegramium.bots.{CallbackQuery, InlineKeyboardMarkup}
 
-class DefaultSubscriptionListService[F[_]: Sync, D[_]: Monad](
+class DefaultSubscriptionListService[F[_]: Monad, D[_]: Monad](
   private val s10nRepo: SubscriptionRepository[D],
   private val s10nsListMessageService: S10nsListMessageService[F]
 )(private implicit val transact: D ~> F) extends SubscriptionListService[F] {

@@ -14,6 +14,7 @@ import ru.johnspade.s10ns.subscription.dialog.EditS10nAmountDialogState
 import ru.johnspade.s10ns.subscription.service.impl.DefaultEditS10nAmountDialogService
 import telegramium.bots.{Markdown, ReplyKeyboardRemove}
 import com.softwaremill.diffx.generic.auto._
+import cats.effect.unsafe.implicits.global
 
 class DefaultEditS10nAmountDialogServiceSpec extends AnyFlatSpec with EditS10nDialogServiceSpec with Matchers with DiffMatcher {
   private val editS10nAmountDialogService = new DefaultEditS10nAmountDialogService(

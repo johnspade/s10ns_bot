@@ -1,8 +1,8 @@
 package ru.johnspade.s10ns.exchangerates
 
 import cats.effect.Sync
-import cats.effect.concurrent.Ref
 import cats.implicits._
+import cats.effect.Ref
 
 trait ExchangeRatesCache[F[_]] {
   def get: F[Map[String, BigDecimal]]
@@ -12,7 +12,7 @@ trait ExchangeRatesCache[F[_]] {
 
 object ExchangeRatesCache {
   def create[F[_] : Sync](rates: Map[String, BigDecimal]): F[ExchangeRatesCache[F]] =
-    Ref.of(rates).map { r =>
+    Ref.of[F, Map[String, BigDecimal]](rates).map { r =>
       new ExchangeRatesCache[F] {
         override def get: F[Map[String, BigDecimal]] = r.get
 

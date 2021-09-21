@@ -1,24 +1,25 @@
 package ru.johnspade.s10ns.subscription.controller
 
-import cats.effect.{Sync, Timer}
+import cats.{Defer, Monad}
+import cats.effect.Temporal
 import cats.syntax.apply._
 import cats.syntax.flatMap._
 import cats.syntax.functor._
 import cats.syntax.option._
 import ru.johnspade.s10ns.bot.engine.ReplyMessage
 import ru.johnspade.s10ns.bot.engine.TelegramOps.{ackCb, clearMarkup, handleCallback, sendReplyMessages, singleTextMessage, toReplyMessages}
-import ru.johnspade.tgbot.callbackqueries.CallbackQueryContextRoutes
 import ru.johnspade.s10ns.bot.{CallbackQueryUserController, CbData, CreateS10nDialog, DropFirstPayment, EditS10nAmount, EditS10nAmountDialog, EditS10nBillingPeriod, EditS10nBillingPeriodDialog, EditS10nCurrency, EditS10nCurrencyDialog, EditS10nFirstPaymentDate, EditS10nFirstPaymentDateDialog, EditS10nName, EditS10nNameDialog, EditS10nOneTime, EditS10nOneTimeDialog, Errors, EveryMonth, FirstPayment, OneTime, PeriodUnit, SkipIsOneTime}
 import ru.johnspade.s10ns.subscription.dialog.{EditS10nAmountDialogState, EditS10nBillingPeriodDialogState, EditS10nCurrencyDialogState, EditS10nNameDialogState, EditS10nOneTimeDialogState}
 import ru.johnspade.s10ns.subscription.service.{CreateS10nDialogService, EditS10n1stPaymentDateDialogService, EditS10nAmountDialogService, EditS10nBillingPeriodDialogService, EditS10nCurrencyDialogService, EditS10nNameDialogService, EditS10nOneTimeDialogService}
 import ru.johnspade.s10ns.user.User
 import ru.johnspade.s10ns.{CbDataUserRoutes, ackDefaultError}
+import ru.johnspade.tgbot.callbackqueries.CallbackQueryContextRoutes
 import telegramium.bots.high.implicits._
 import telegramium.bots.high.{Api, Methods}
 import telegramium.bots.{CallbackQuery, ChatIntId, Html, Message}
 import tofu.logging.{Logging, Logs}
 
-class S10nController[F[_]: Sync: Logging: Timer](
+class S10nController[F[_]: Logging: Temporal: Defer](
   private val createS10nDialogService: CreateS10nDialogService[F],
   private val editS10n1stPaymentDateDialogService: EditS10n1stPaymentDateDialogService[F],
   private val editS10nNameDialogService: EditS10nNameDialogService[F],
@@ -118,7 +119,7 @@ class S10nController[F[_]: Sync: Logging: Timer](
       .lift
       .apply(user, dialog, message.text)
       .map(_.map(toReplyMessages))
-      .getOrElse(Sync[F].pure(singleTextMessage(Errors.UseInlineKeyboard)))
+      .getOrElse(Monad[F].pure(singleTextMessage(Errors.UseInlineKeyboard)))
 
   def s10nNameMessage(user: User, dialog: EditS10nNameDialog, message: Message): F[List[ReplyMessage]] =
     dialog.state match {
@@ -174,11 +175,11 @@ class S10nController[F[_]: Sync: Logging: Timer](
       parseMode = Html.some
     ).exec.void
 
-  private val useInlineKeyboardError = Sync[F].pure(singleTextMessage(Errors.UseInlineKeyboard))
+  private val useInlineKeyboardError = Monad[F].pure(singleTextMessage(Errors.UseInlineKeyboard))
 }
 
 object S10nController {
-  def apply[F[_]: Sync: Timer](
+  def apply[F[_]: Temporal: Defer](
     createS10nDialogService: CreateS10nDialogService[F],
     editS10n1stPaymentDateDialogService: EditS10n1stPaymentDateDialogService[F],
     editS10nNameDialogService: EditS10nNameDialogService[F],

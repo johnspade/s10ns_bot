@@ -1,14 +1,7 @@
 package ru.johnspade.s10ns.notifications
 
-import java.time.Instant
-
-import cats.effect.{Clock, Concurrent, Timer}
-import cats.instances.list._
-import cats.instances.option._
-import cats.syntax.applicative._
-import cats.syntax.flatMap._
-import cats.syntax.functor._
-import cats.syntax.traverse._
+import cats.effect.{Async, Concurrent}
+import cats.implicits._
 import cats.{Monad, ~>}
 import io.chrisdavenport.fuuid.FUUID
 import ru.johnspade.s10ns.subscription.Subscription
@@ -17,9 +10,10 @@ import ru.johnspade.s10ns.{currentTimestamp, repeat}
 import tofu.logging._
 import tofu.syntax.logging._
 
+import java.time.Instant
 import scala.concurrent.duration._
 
-class DefaultPrepareNotificationsJobService[F[_]: Concurrent: Clock: Timer: Logging, D[_]: Monad](
+class DefaultPrepareNotificationsJobService[F[_]: Concurrent: Async: Logging, D[_]: Monad](
   private val s10nRepo: SubscriptionRepository[D],
   private val notificationRepo: NotificationRepository[D],
   private val notificationsService: NotificationService[F]
@@ -53,7 +47,7 @@ class DefaultPrepareNotificationsJobService[F[_]: Concurrent: Clock: Timer: Logg
 }
 
 object DefaultPrepareNotificationsJobService {
-  def apply[F[_]: Concurrent: Clock: Timer, D[_]: Monad](
+  def apply[F[_]: Concurrent: Async, D[_]: Monad](
     subscriptionRepo: SubscriptionRepository[D],
     notificationRepo: NotificationRepository[D],
     notificationService: NotificationService[F]

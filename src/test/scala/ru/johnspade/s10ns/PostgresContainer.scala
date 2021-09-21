@@ -1,6 +1,6 @@
 package ru.johnspade.s10ns
 
-import cats.effect.{ContextShift, IO}
+import cats.effect.IO
 import cats.~>
 import com.dimafeng.testcontainers.PostgreSQLContainer
 import doobie.free.connection.ConnectionIO
@@ -27,7 +27,6 @@ object PostgresContainer {
     instance
   }
 
-  private implicit val cs: ContextShift[IO] = IO.contextShift(ExecutionContext.global)
   implicit lazy val xa: Transactor[IO] = Transactor.fromDriverManager[IO](
     "org.postgresql.Driver",
     container.jdbcUrl,

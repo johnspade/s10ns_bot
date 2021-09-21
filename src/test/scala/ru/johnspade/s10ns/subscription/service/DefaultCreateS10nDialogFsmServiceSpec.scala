@@ -27,10 +27,9 @@ import telegramium.bots.high.keyboards.{InlineKeyboardButtons, InlineKeyboardMar
 import tofu.logging.Logs
 import com.softwaremill.diffx.generic.auto._
 
-import scala.concurrent.ExecutionContext
+import cats.effect.unsafe.implicits.global
 
 class DefaultCreateS10nDialogFsmServiceSpec extends AnyFlatSpec with Matchers with DiffMatcher with MockFactory {
-  private implicit val clock: Clock[IO] = IO.timer(ExecutionContext.global).clock
   private implicit val logs: Logs[IO, IO] = Logs.sync[IO, IO]
 
   private val mockS10nRepo = mock[SubscriptionRepository[Id]]

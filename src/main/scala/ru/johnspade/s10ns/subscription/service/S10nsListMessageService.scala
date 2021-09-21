@@ -11,7 +11,7 @@ import ru.johnspade.s10ns.subscription.tags.{FirstPaymentDate, PageNumber}
 import ru.johnspade.s10ns.subscription.{BillingPeriod, BillingPeriodUnit, ExactAmount, NonExactAmount, S10nAmount, S10nInfo, S10nItem, S10nList, Subscription}
 import telegramium.bots.InlineKeyboardMarkup
 
-class S10nsListMessageService[F[_]: Sync](
+class S10nsListMessageService[F[_]: Monad](
   private val moneyService: MoneyService[F],
   private val s10nInfoService: S10nInfoService[F],
   private val s10nsListReplyMessageService: S10nsListReplyMessageService

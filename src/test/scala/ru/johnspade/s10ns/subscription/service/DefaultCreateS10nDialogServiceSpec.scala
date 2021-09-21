@@ -23,11 +23,10 @@ import ru.johnspade.s10ns.user.{InMemoryUserRepository, User}
 import telegramium.bots.{KeyboardButton, ReplyKeyboardMarkup, ReplyKeyboardRemove}
 import com.softwaremill.diffx.generic.auto._
 
-import scala.concurrent.ExecutionContext
+import cats.effect.unsafe.implicits.global
 
 class DefaultCreateS10nDialogServiceSpec
   extends AnyFlatSpec with Matchers with DiffMatcher with PartialFunctionValues with MockFactory {
-  private implicit val clock: Clock[IO] = IO.timer(ExecutionContext.global).clock
 
   private val userRepo = new InMemoryUserRepository
   private val mockS10nRepo = mock[SubscriptionRepository[Id]]

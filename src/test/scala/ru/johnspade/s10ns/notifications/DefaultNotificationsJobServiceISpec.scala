@@ -25,6 +25,7 @@ import telegramium.bots.high.Methods.sendMessage
 import telegramium.bots.high.keyboards.InlineKeyboardMarkups
 import telegramium.bots.high.{Api, _}
 import telegramium.bots.{Chat, ChatIntId, Markdown, Message}
+import cats.effect.unsafe.implicits.global
 
 class DefaultNotificationsJobServiceISpec extends SpecBase with MockFactory with BeforeAndAfterEach with OptionValues {
 

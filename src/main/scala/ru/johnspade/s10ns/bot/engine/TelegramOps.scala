@@ -1,8 +1,7 @@
 package ru.johnspade.s10ns.bot.engine
 
-import cats.Monad
+import cats.{Functor, Monad}
 import cats.data.Validated.{Invalid, Valid}
-import cats.effect.{Sync, Timer}
 import cats.implicits._
 import ru.johnspade.s10ns.bot.ValidatorNec.ValidationResult
 import ru.johnspade.s10ns.bot.{CbData, Dialog}
@@ -16,6 +15,7 @@ import telegramium.bots.{CallbackQuery, ChatIntId, InlineKeyboardButton, Message
 import tofu.logging.Logging
 
 import scala.concurrent.duration.{FiniteDuration, MILLISECONDS}
+import cats.effect.Temporal
 
 object TelegramOps {
   implicit class TelegramUserOps(val value: telegramium.bots.User) extends AnyVal {
@@ -28,7 +28,7 @@ object TelegramOps {
       )
   }
 
-  def sendReplyMessage[F[_]: Sync: Timer](msg: Message, reply: ReplyMessage)(implicit bot: Api[F]): F[Unit] =
+  def sendReplyMessage[F[_]](msg: Message, reply: ReplyMessage)(implicit bot: Api[F], F: Functor[F]): F[Unit] =
     sendMessage(
       ChatIntId(msg.chat.id),
       reply.text,
@@ -37,7 +37,7 @@ object TelegramOps {
       disableWebPagePreview = reply.disableWebPagePreview
     ).exec.void
 
-  def ackCb[F[_]: Sync](cb: CallbackQuery, text: Option[String] = None)(implicit bot: Api[F]): F[Unit] =
+  def ackCb[F[_]](cb: CallbackQuery, text: Option[String] = None)(implicit bot: Api[F], F: Functor[F]): F[Unit] =
     answerCallbackQuery(cb.id, text).exec.void
 
   def toReplyMessage(reply: ValidationResult[ReplyMessage]): ReplyMessage =
@@ -57,14 +57,14 @@ object TelegramOps {
   def inlineKeyboardButton(text: String, cbData: CbData): InlineKeyboardButton =
     InlineKeyboardButtons.callbackData(text, callbackData = cbData.toCsv)
 
-  def clearMarkup[F[_]: Sync](cb: CallbackQuery)(implicit bot: Api[F]): F[Unit] =
+  def clearMarkup[F[_]](cb: CallbackQuery)(implicit bot: Api[F], F: Functor[F]): F[Unit] =
     editMessageReplyMarkup(
       cb.message.map(msg => ChatIntId(msg.chat.id)), cb.message.map(_.messageId)
     )
       .exec
       .void
 
-  def handleCallback[F[_]: Sync: Logging: Timer](query: CallbackQuery, replies: List[ReplyMessage])(
+  def handleCallback[F[_]: Logging: Temporal](query: CallbackQuery, replies: List[ReplyMessage])(
     implicit bot: Api[F]
   ): F[Unit] = {
     def sendReplies() =
@@ -77,14 +77,14 @@ object TelegramOps {
     ackCb(query) *> sendReplies()
   }
 
-  def sendReplyMessages[F[_]: Sync: Logging: Timer](msg: Message, replies: List[ReplyMessage])(
+  def sendReplyMessages[F[_]: Logging: Temporal](msg: Message, replies: List[ReplyMessage])(
     implicit bot: Api[F]
   ): F[Unit] =
     replies.map { reply =>
-      sendReplyMessage(msg, reply)
+      sendReplyMessage[F](msg, reply)
         .void
         .handleErrorWith(e => Logging[F].errorCause(e.getMessage, e)) *>
-        Timer[F].sleep(FiniteDuration(400, MILLISECONDS))
+        Temporal[F].sleep(FiniteDuration(400, MILLISECONDS))
     }
       .sequence_
 }

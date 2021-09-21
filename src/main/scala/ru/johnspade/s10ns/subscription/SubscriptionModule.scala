@@ -1,8 +1,8 @@
 package ru.johnspade.s10ns.subscription
 
-import cats.effect.{Clock, Sync, Timer}
+import cats.effect.{Clock, Sync}
 import cats.implicits._
-import cats.~>
+import cats.{Defer, ~>}
 import doobie.free.connection.ConnectionIO
 import ru.johnspade.s10ns.bot.BotModule
 import ru.johnspade.s10ns.bot.engine.DefaultMsgService
@@ -15,6 +15,7 @@ import ru.johnspade.s10ns.subscription.service.{S10nInfoService, S10nsListMessag
 import ru.johnspade.s10ns.user.UserModule
 import telegramium.bots.high.Api
 import tofu.logging.Logs
+import cats.effect.Temporal
 
 final class SubscriptionModule[F[_], D[_]](
   val subscriptionRepository: SubscriptionRepository[D],
@@ -25,7 +26,7 @@ final class SubscriptionModule[F[_], D[_]](
 )
 
 object SubscriptionModule {
-  def make[F[_]: Sync: Clock: Timer](
+  def make[F[_]: Clock: Temporal: Defer](
     userModule: UserModule[ConnectionIO],
     botModule: BotModule[F, ConnectionIO],
     calendarModule: CalendarModule[F]

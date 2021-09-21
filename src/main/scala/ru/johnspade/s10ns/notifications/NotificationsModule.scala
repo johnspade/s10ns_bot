@@ -1,8 +1,7 @@
 package ru.johnspade.s10ns.notifications
 
-import cats.effect.{Clock, Concurrent, Timer}
-import cats.syntax.flatMap._
-import cats.syntax.functor._
+import cats.effect.{Async, Clock, Concurrent}
+import cats.implicits._
 import cats.~>
 import doobie.free.connection.ConnectionIO
 import ru.johnspade.s10ns.subscription.SubscriptionModule
@@ -14,7 +13,7 @@ final class NotificationsModule[F[_], D[_]] private(
 )
 
 object NotificationsModule {
-  def make[F[_]: Concurrent: Timer: Clock](
+  def make[F[_]: Concurrent: Clock: Async](
     subscriptionModule: SubscriptionModule[F, ConnectionIO]
   )(implicit transact: ConnectionIO ~> F, logs: Logs[F, F]): F[NotificationsModule[F, ConnectionIO]] = {
     import subscriptionModule.{s10nInfoService, s10nsListMessageService, subscriptionRepository}

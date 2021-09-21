@@ -10,6 +10,7 @@ import ru.johnspade.tgbot.callbackqueries.{CallbackDataDecoder, CallbackQueryHan
 import telegramium.bots.client.Method
 import telegramium.bots.high.{Api, Methods}
 import telegramium.bots.{CallbackQuery, ChatIntId, User}
+import cats.effect.unsafe.implicits.global
 
 class CallbackQueryHandlerSpec extends AnyFlatSpec with Matchers with MockFactory {
   private implicit val api: Api[IO] = stub[Api[IO]]

@@ -2,7 +2,7 @@ package ru.johnspade.s10ns
 
 import java.time.format.DateTimeFormatter
 import java.time.{LocalDate, ZoneOffset}
-import cats.effect.{ContextShift, IO, Timer}
+import cats.effect.IO
 import cats.syntax.option._
 import cats.~>
 import doobie.free.connection.ConnectionIO
@@ -33,8 +33,7 @@ import telegramium.bots.high.keyboards.InlineKeyboardMarkups
 import telegramium.bots.high.{Api, _}
 import telegramium.bots.{CallbackQuery, Chat, ChatIntId, Html, KeyboardMarkup, Markdown, Message, ParseMode, ReplyKeyboardRemove, User}
 import tofu.logging.Logs
-
-import scala.concurrent.ExecutionContext
+import cats.effect.unsafe.implicits.global
 
 class SubscriptionsBotISpec
   extends AnyFreeSpec
@@ -140,8 +139,6 @@ class SubscriptionsBotISpec
   }
 
   private val s10nRepo = new DoobieSubscriptionRepository
-  private implicit val cs: ContextShift[IO] = IO.contextShift(ExecutionContext.global)
-  private implicit val timer: Timer[IO] = IO.timer(ExecutionContext.global)
   protected implicit val transactor: Transactor[IO] = Transactor.fromDriverManager[IO](
     "org.postgresql.Driver",
     container.jdbcUrl,

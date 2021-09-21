@@ -1,17 +1,15 @@
 package ru.johnspade.s10ns.exchangerates
 
 import java.time.Instant
-
-import cats.effect.{Sync, Timer}
-import cats.implicits._
+import cats.syntax.all._
 import cats.{Monad, ~>}
-import retry.CatsEffect._
 import retry.RetryDetails.{GivingUp, WillDelayAndRetry}
 import retry._
 import tofu.logging._
 import tofu.syntax.logging._
+import cats.effect.Temporal
 
-class DefaultExchangeRatesService[F[_]: Sync: Logging: Timer, D[_]: Monad](
+class DefaultExchangeRatesService[F[_]: Logging: Temporal, D[_]: Monad](
   private val fixerApi: FixerApi[F],
   private val exchangeRatesRepository: ExchangeRatesRepository[D],
   private val exchangeRatesRefreshTimestampRepo: ExchangeRatesRefreshTimestampRepository[D],
@@ -50,7 +48,7 @@ class DefaultExchangeRatesService[F[_]: Sync: Logging: Timer, D[_]: Monad](
 }
 
 object DefaultExchangeRatesService {
-  def apply[F[_]: Sync: Timer, D[_]: Monad](
+  def apply[F[_]: Temporal, D[_]: Monad](
     fixerApi: FixerApi[F],
     exchangeRatesRepository: ExchangeRatesRepository[D],
     exchangeRatesRefreshTimestampRepo: ExchangeRatesRefreshTimestampRepository[D],

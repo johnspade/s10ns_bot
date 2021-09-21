@@ -1,31 +1,25 @@
 package ru.johnspade.s10ns.exchangerates
 
-import cats.effect.Sync
 import cats.implicits._
-import com.softwaremill.sttp._
-import com.softwaremill.sttp.circe._
+import cats.{Monad, MonadError}
 import io.circe.Error
 import io.circe.generic.auto._
+import sttp.client3._
+import sttp.client3.circe._
 
-class FixerApiInterpreter[F[_] : Sync](private val token: String)(implicit sttpBackend: SttpBackend[F, Nothing])
+class FixerApiInterpreter[F[_]](private val token: String, sttpBackend: SttpBackend[F, Any])(implicit monadError: MonadError[F, Throwable])
   extends FixerApi[F] {
   override def getLatestRates: F[ExchangeRates] = {
-    def handleErrors(response: Response[Either[DeserializationError[Error], ExchangeRates]]) =
+    def handleErrors(response: Response[Either[ResponseException[String, Error], ExchangeRates]]) =
       response.body match {
         case Left(e) =>
-          cats.MonadError[F, Throwable].raiseError[Either[DeserializationError[Error], ExchangeRates]](new RuntimeException(e))
-        case Right(body) => Sync[F].pure(body)
+          monadError.raiseError[ExchangeRates](new RuntimeException(e))
+        case Right(body) => Monad[F].pure(body)
       }
 
-    def handleDeserializationErrors(body: Either[DeserializationError[Error], ExchangeRates]) =
-      body match {
-        case Left(e) => cats.MonadError[F, Throwable].raiseError[ExchangeRates](new RuntimeException(e.message))
-        case Right(rates) => Sync[F].pure(rates)
-      }
-
-    sttp.get(uri"http://data.fixer.io/api/latest?access_key=$token")
+    basicRequest.get(uri"http://data.fixer.io/api/latest?access_key=$token")
       .response(asJson[ExchangeRates])
-      .send()
-      .flatMap(handleErrors(_).flatMap(handleDeserializationErrors))
+      .send(sttpBackend)
+      .flatMap(handleErrors(_))
   }
 }

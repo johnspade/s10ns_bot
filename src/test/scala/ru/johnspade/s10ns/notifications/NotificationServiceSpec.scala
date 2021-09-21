@@ -11,6 +11,7 @@ import ru.johnspade.s10ns.subscription.service.S10nInfoService
 import ru.johnspade.s10ns.subscription.tags.{BillingPeriodDuration, FirstPaymentDate, OneTimeSubscription, SubscriptionId, SubscriptionName}
 import ru.johnspade.s10ns.subscription.{BillingPeriod, BillingPeriodUnit, Subscription}
 import ru.johnspade.s10ns.user.tags.UserId
+import cats.effect.unsafe.implicits.global
 
 class NotificationServiceSpec extends SpecBase {
   private val s10nInfoService = new S10nInfoService[IO]
