@@ -4,7 +4,7 @@ import java.time.Instant
 
 import cats.Id
 import cats.effect.IO
-import com.softwaremill.diffx.scalatest.DiffMatcher
+import com.softwaremill.diffx.scalatest.DiffShouldMatcher
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.OptionValues
 import org.scalatest.flatspec.AnyFlatSpec
@@ -15,7 +15,7 @@ import tofu.logging.Logs
 
 import cats.effect.unsafe.implicits.global
 
-class DefaultExchangeRatesServiceSpec extends AnyFlatSpec with Matchers with OptionValues with DiffMatcher with MockFactory {
+class DefaultExchangeRatesServiceSpec extends AnyFlatSpec with Matchers with OptionValues with DiffShouldMatcher with MockFactory {
   private implicit val logs: Logs[IO, IO] = Logs.sync[IO, IO]
 
   private val timestamp = Instant.now.getEpochSecond
@@ -34,7 +34,7 @@ class DefaultExchangeRatesServiceSpec extends AnyFlatSpec with Matchers with Opt
       RetryPolicies.alwaysGiveUp
     ).unsafeRunSync()
 
-    exchangeRatesService.getRates.unsafeRunSync() should matchTo(sampleRates)
+    exchangeRatesService.getRates.unsafeRunSync() shouldMatchTo sampleRates
   }
 
   "saveRates" should "update rates" in {
@@ -50,8 +50,8 @@ class DefaultExchangeRatesServiceSpec extends AnyFlatSpec with Matchers with Opt
 
     val expectedRates = fixerApi.getLatestRates.unsafeRunSync().rates
 
-    exchangeRatesRepo.get() should matchTo(expectedRates)
-    cache.get.unsafeRunSync() should matchTo(expectedRates)
+    exchangeRatesRepo.get() shouldMatchTo expectedRates
+    cache.get.unsafeRunSync() shouldMatchTo expectedRates
     exchangeRatesRefreshTimestampRepo.get().value.getEpochSecond shouldBe timestamp
   }
 

@@ -1,10 +1,10 @@
 package ru.johnspade.s10ns.subscription.service
 
-import java.time.format.DateTimeFormatter
-import java.time.{LocalDate, Period, ZoneOffset}
-import cats.effect.{Clock, IO}
+import cats.effect.IO
+import cats.effect.unsafe.implicits.global
 import cats.syntax.option._
-import com.softwaremill.diffx.scalatest.DiffMatcher
+import com.softwaremill.diffx.generic.auto._
+import com.softwaremill.diffx.scalatest.DiffShouldMatcher
 import org.joda.money.{CurrencyUnit, Money}
 import org.scalatest.OptionValues
 import org.scalatest.flatspec.AnyFlatSpec
@@ -15,13 +15,13 @@ import ru.johnspade.s10ns.exchangerates.InMemoryExchangeRatesStorage
 import ru.johnspade.s10ns.subscription.tags.{BillingPeriodDuration, FirstPaymentDate, OneTimeSubscription, PageNumber, SubscriptionId, SubscriptionName}
 import ru.johnspade.s10ns.subscription.{BillingPeriod, BillingPeriodUnit, Subscription}
 import ru.johnspade.s10ns.user.tags.UserId
-import telegramium.bots.{InlineKeyboardMarkup, KeyboardMarkup}
 import telegramium.bots.high.keyboards.{InlineKeyboardButtons, InlineKeyboardMarkups}
-import com.softwaremill.diffx.generic.auto._
+import telegramium.bots.{InlineKeyboardMarkup, KeyboardMarkup}
 
-import cats.effect.unsafe.implicits.global
+import java.time.format.DateTimeFormatter
+import java.time.{LocalDate, Period, ZoneOffset}
 
-class S10nsListMessageServiceSpec extends AnyFlatSpec with Matchers with OptionValues with DiffMatcher {
+class S10nsListMessageServiceSpec extends AnyFlatSpec with Matchers with OptionValues with DiffShouldMatcher {
 
   private val moneyService = new MoneyService[IO](new InMemoryExchangeRatesStorage)
   private val s10nInfoService = new S10nInfoService[IO]
@@ -59,7 +59,7 @@ class S10nsListMessageServiceSpec extends AnyFlatSpec with Matchers with OptionV
           |
           |1. Spotify – 5.30 €
           |2. Netflix – ≈11.97 € <b>[${daysUntilNextPayment}d]</b>""".stripMargin
-    page.markup.value should matchTo[KeyboardMarkup] {
+    page.markup.value shouldMatchTo {
       InlineKeyboardMarkup(List(
         List(
           inlineKeyboardButton("1", S10n(SubscriptionId(2L), PageNumber(0))),
@@ -81,7 +81,7 @@ class S10nsListMessageServiceSpec extends AnyFlatSpec with Matchers with OptionV
       s"""|Monthly: 0.00 €
           |
           |${List.tabulate(10)(n => s"${n + 1}. s10n${n + 10} – 1.00 €").mkString("\n")}""".stripMargin
-    page.markup.value should matchTo[KeyboardMarkup] {
+    page.markup.value shouldMatchTo {
       InlineKeyboardMarkup(List(
         List.tabulate(5)(n => inlineKeyboardButton((n + 1).toString, S10n(SubscriptionId(n + 10.toLong), PageNumber(1)))),
         List.tabulate(5)(n => inlineKeyboardButton((n + 6).toString, S10n(SubscriptionId(n + 15.toLong), PageNumber(1)))),
@@ -104,7 +104,7 @@ class S10nsListMessageServiceSpec extends AnyFlatSpec with Matchers with OptionV
       s"""|Monthly: 0.00 €
           |
           |1. s10n10 – 1.00 €""".stripMargin
-    page.markup.value should matchTo[KeyboardMarkup] {
+    page.markup.value shouldMatchTo {
       InlineKeyboardMarkup(List(
         List(inlineKeyboardButton("1", S10n(SubscriptionId(10L), PageNumber(1)))),
         List(inlineKeyboardButton("⬅", S10ns(PageNumber(0)))),
@@ -123,7 +123,7 @@ class S10nsListMessageServiceSpec extends AnyFlatSpec with Matchers with OptionV
       s"""|Monthly: 0.00 €
           |
           |${List.tabulate(10)(n => s"${n + 1}. s10n$n – 1.00 €").mkString("\n")}""".stripMargin
-    page.markup.value should matchTo[KeyboardMarkup] {
+    page.markup.value shouldMatchTo {
       InlineKeyboardMarkup(List(
         List.tabulate(5)(n => inlineKeyboardButton((n + 1).toString, S10n(SubscriptionId(n.toLong), PageNumber(0)))),
         List.tabulate(5)(n => inlineKeyboardButton((n + 6).toString, S10n(SubscriptionId(n + 5.toLong), PageNumber(0)))),
@@ -148,7 +148,7 @@ class S10nsListMessageServiceSpec extends AnyFlatSpec with Matchers with OptionV
       s"""|Yearly: 143.67 €
           |
           |1. Netflix – ≈143.67 € <b>[${daysUntilNextPayment}d]</b>""".stripMargin
-    page.markup.value should matchTo[KeyboardMarkup] {
+    page.markup.value shouldMatchTo {
       InlineKeyboardMarkup(List(
         List(inlineKeyboardButton("1", S10n(SubscriptionId(1L), PageNumber(0)))),
         List(),
@@ -172,7 +172,7 @@ class S10nsListMessageServiceSpec extends AnyFlatSpec with Matchers with OptionV
       s"""|Weekly: 2.75 €
           |
           |1. Netflix – ≈2.75 € <b>[${daysUntilNextPayment}d]</b>""".stripMargin
-    page.markup.value should matchTo[KeyboardMarkup] {
+    page.markup.value shouldMatchTo {
       InlineKeyboardMarkup(List(
         List(inlineKeyboardButton("1", S10n(SubscriptionId(1L), PageNumber(0)))),
         List(),
@@ -252,7 +252,7 @@ class S10nsListMessageServiceSpec extends AnyFlatSpec with Matchers with OptionV
     import s10n1.id
 
     val markup = s10nsListMessageService.createEditS10nMarkup(s10n1, PageNumber(0))
-    markup should matchTo {
+    markup shouldMatchTo {
       InlineKeyboardMarkups.singleColumn(List(
         inlineKeyboardButton("Name", EditS10nName(id)),
         inlineKeyboardButton("Amount", EditS10nAmount(id)),
@@ -280,7 +280,7 @@ class S10nsListMessageServiceSpec extends AnyFlatSpec with Matchers with OptionV
     import subscription.id
 
     val markup = s10nsListMessageService.createEditS10nMarkup(subscription, PageNumber(0))
-    markup should matchTo {
+    markup shouldMatchTo {
       InlineKeyboardMarkup(List(
         List(inlineKeyboardButton("Name", EditS10nName(id))),
         List(inlineKeyboardButton("Amount", EditS10nAmount(id))),
@@ -307,7 +307,7 @@ class S10nsListMessageServiceSpec extends AnyFlatSpec with Matchers with OptionV
     }
 
   private def checkS10nMessageMarkup(markup: Option[KeyboardMarkup], s10nId: SubscriptionId, page: PageNumber): Unit =
-    markup.value should matchTo[KeyboardMarkup] {
+    markup.value shouldMatchTo {
       InlineKeyboardMarkups.singleColumn(List(
         inlineKeyboardButton("Edit", EditS10n(s10nId, page)),
         inlineKeyboardButton("Enable notifications", Notify(s10nId, enable = true, page)),

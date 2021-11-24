@@ -4,7 +4,7 @@ import java.time.{LocalDate, ZoneOffset}
 
 import cats.effect.IO
 import cats.syntax.option._
-import com.softwaremill.diffx.scalatest.DiffMatcher
+import com.softwaremill.diffx.scalatest.DiffShouldMatcher
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import ru.johnspade.s10ns.TestTransactor.transact
@@ -18,7 +18,7 @@ import telegramium.bots.{Markdown, ReplyKeyboardRemove}
 import com.softwaremill.diffx.generic.auto._
 import cats.effect.unsafe.implicits.global
 
-class DefaultEditS10n1stPaymentDateDialogServiceSpec extends AnyFlatSpec with EditS10nDialogServiceSpec with Matchers with DiffMatcher {
+class DefaultEditS10n1stPaymentDateDialogServiceSpec extends AnyFlatSpec with EditS10nDialogServiceSpec with Matchers with DiffShouldMatcher {
   private val calendarService = new CalendarService
   private val editS10n1stPaymentDateDialogService = new DefaultEditS10n1stPaymentDateDialogService(
     s10nsListMessageService,
@@ -35,7 +35,7 @@ class DefaultEditS10n1stPaymentDateDialogServiceSpec extends AnyFlatSpec with Ed
     (mockUserRepo.createOrUpdate _).expects(updatedUser).returns(updatedUser)
 
     val result = editS10n1stPaymentDateDialogService.onEditS10nFirstPaymentDateCb(user, EditS10nFirstPaymentDate(s10nId)).unsafeRunSync()
-    result should matchTo {
+    result shouldMatchTo {
       List(
         ReplyMessage("First payment date:", ReplyKeyboardRemove(removeKeyboard = true).some),
         ReplyMessage("\uD83D\uDD18/☑️", calendarService.generateDaysKeyboard(LocalDate.now(ZoneOffset.UTC)).some)

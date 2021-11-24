@@ -3,7 +3,7 @@ package ru.johnspade.s10ns.subscription.service
 import cats.effect.IO
 import cats.syntax.option._
 import cats.syntax.validated._
-import com.softwaremill.diffx.scalatest.DiffMatcher
+import com.softwaremill.diffx.scalatest.DiffShouldMatcher
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import ru.johnspade.s10ns.TestTransactor.transact
@@ -17,7 +17,7 @@ import telegramium.bots.{Markdown, ReplyKeyboardRemove}
 import com.softwaremill.diffx.generic.auto._
 import cats.effect.unsafe.implicits.global
 
-class DefaultEditS10nOneTimeDialogServiceSpec extends AnyFlatSpec with EditS10nDialogServiceSpec with Matchers with DiffMatcher {
+class DefaultEditS10nOneTimeDialogServiceSpec extends AnyFlatSpec with EditS10nDialogServiceSpec with Matchers with DiffShouldMatcher {
   private val editS10nOneTimeDialogService = new DefaultEditS10nOneTimeDialogService(
     s10nsListMessageService,
     new DefaultMsgService[IO, EditS10nOneTimeDialogState],
@@ -33,7 +33,7 @@ class DefaultEditS10nOneTimeDialogServiceSpec extends AnyFlatSpec with EditS10nD
     (mockUserRepo.createOrUpdate _).expects(updatedUser).returns(updatedUser)
 
     val result = editS10nOneTimeDialogService.onEditS10nOneTimeCb(user, EditS10nOneTime(s10nId)).unsafeRunSync()
-    result should matchTo {
+    result shouldMatchTo {
       List(
         ReplyMessage("Recurring/one time:", ReplyKeyboardRemove(removeKeyboard = true).some),
         ReplyMessage("\uD83D\uDD18/☑️", Markup.isOneTimeReplyMarkup("Do not fill (remove)").some)

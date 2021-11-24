@@ -3,7 +3,7 @@ package ru.johnspade.s10ns.subscription.service
 import cats.effect.IO
 import cats.syntax.option._
 import cats.syntax.validated._
-import com.softwaremill.diffx.scalatest.DiffMatcher
+import com.softwaremill.diffx.scalatest.DiffShouldMatcher
 import org.joda.money.{CurrencyUnit, Money}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
@@ -16,7 +16,7 @@ import telegramium.bots.Markdown
 import com.softwaremill.diffx.generic.auto._
 import cats.effect.unsafe.implicits.global
 
-class DefaultEditS10nCurrencyDialogServiceSpec extends AnyFlatSpec with EditS10nDialogServiceSpec with Matchers with DiffMatcher {
+class DefaultEditS10nCurrencyDialogServiceSpec extends AnyFlatSpec with EditS10nDialogServiceSpec with Matchers with DiffShouldMatcher {
   private val editS10nCurrencyDialogService = new DefaultEditS10nCurrencyDialogService(
     s10nsListMessageService,
     new DefaultMsgService[IO, EditS10nCurrencyDialogState],
@@ -32,7 +32,7 @@ class DefaultEditS10nCurrencyDialogServiceSpec extends AnyFlatSpec with EditS10n
     (mockUserRepo.createOrUpdate _).expects(updatedUser).returns(updatedUser)
 
     val result = editS10nCurrencyDialogService.onEditS10nCurrencyCb(user, EditS10nCurrency(s10nId)).unsafeRunSync()
-    result should matchTo {
+    result shouldMatchTo {
       List(ReplyMessage("Enter or select the currency code:", Markup.CurrencyReplyMarkup.some))
     }
   }

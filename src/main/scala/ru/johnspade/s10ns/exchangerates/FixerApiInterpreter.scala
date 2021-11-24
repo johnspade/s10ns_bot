@@ -20,6 +20,6 @@ class FixerApiInterpreter[F[_]](private val token: String, sttpBackend: SttpBack
     basicRequest.get(uri"http://data.fixer.io/api/latest?access_key=$token")
       .response(asJson[ExchangeRates])
       .send(sttpBackend)
-      .flatMap(handleErrors(_))
+      .flatMap(handleErrors)
   }
 }

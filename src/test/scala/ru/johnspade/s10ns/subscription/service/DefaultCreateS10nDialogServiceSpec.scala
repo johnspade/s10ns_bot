@@ -3,7 +3,7 @@ package ru.johnspade.s10ns.subscription.service
 import cats.Id
 import cats.effect.{Clock, IO}
 import cats.implicits._
-import com.softwaremill.diffx.scalatest.DiffMatcher
+import com.softwaremill.diffx.scalatest.DiffShouldMatcher
 import org.joda.money.CurrencyUnit
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.PartialFunctionValues
@@ -26,7 +26,7 @@ import com.softwaremill.diffx.generic.auto._
 import cats.effect.unsafe.implicits.global
 
 class DefaultCreateS10nDialogServiceSpec
-  extends AnyFlatSpec with Matchers with DiffMatcher with PartialFunctionValues with MockFactory {
+  extends AnyFlatSpec with Matchers with DiffShouldMatcher with PartialFunctionValues with MockFactory {
 
   private val userRepo = new InMemoryUserRepository
   private val mockS10nRepo = mock[SubscriptionRepository[Id]]
@@ -51,7 +51,7 @@ class DefaultCreateS10nDialogServiceSpec
 
   "onCreateCommand" should "ask for a subscription's currency" in {
     val result = createS10nDialogService.onCreateCommand(user).unsafeRunSync()
-    result should matchTo {
+    result shouldMatchTo {
       List(ReplyMessage(
         "Enter or select the currency code:",
         markup = ReplyKeyboardMarkup(
@@ -77,7 +77,7 @@ class DefaultCreateS10nDialogServiceSpec
   }
 
   "onCreateWithDefaultCurrencyCommand" should "ask for a subscription's name" in {
-    createS10nDialogService.onCreateWithDefaultCurrencyCommand(user).unsafeRunSync() should matchTo {
+    createS10nDialogService.onCreateWithDefaultCurrencyCommand(user).unsafeRunSync() shouldMatchTo {
       List(ReplyMessage("Name:", ReplyKeyboardRemove(removeKeyboard = true).some))
     }
   }

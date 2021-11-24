@@ -3,7 +3,7 @@ package ru.johnspade.s10ns.subscription.service
 import cats.effect.IO
 import cats.syntax.option._
 import cats.syntax.validated._
-import com.softwaremill.diffx.scalatest.DiffMatcher
+import com.softwaremill.diffx.scalatest.DiffShouldMatcher
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import ru.johnspade.s10ns.TestTransactor.transact
@@ -16,7 +16,7 @@ import telegramium.bots.{Markdown, ReplyKeyboardRemove}
 import com.softwaremill.diffx.generic.auto._
 import cats.effect.unsafe.implicits.global
 
-class DefaultEditS10nNameDialogServiceSpec extends AnyFlatSpec with Matchers with DiffMatcher with EditS10nDialogServiceSpec {
+class DefaultEditS10nNameDialogServiceSpec extends AnyFlatSpec with Matchers with DiffShouldMatcher with EditS10nDialogServiceSpec {
   private val editS10nNameDialogService = new DefaultEditS10nNameDialogService(
     s10nsListMessageService,
     new DefaultMsgService[IO, EditS10nNameDialogState],
@@ -32,7 +32,7 @@ class DefaultEditS10nNameDialogServiceSpec extends AnyFlatSpec with Matchers wit
     (mockUserRepo.createOrUpdate _).expects(updatedUser).returns(updatedUser)
 
     val result = editS10nNameDialogService.onEditS10nNameCb(user, EditS10nName(s10nId)).unsafeRunSync()
-    result should matchTo {
+    result shouldMatchTo {
       List(ReplyMessage("Name:", ReplyKeyboardRemove(removeKeyboard = true).some))
     }
   }

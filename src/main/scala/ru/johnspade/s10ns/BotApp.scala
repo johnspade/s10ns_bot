@@ -21,8 +21,6 @@ import ru.johnspade.s10ns.user.UserModule
 import telegramium.bots.high._
 import tofu.logging._
 
-import scala.concurrent.ExecutionContext
-
 object BotApp extends IOApp {
   private type F[A] = IO[A]
   private type D[A] = ConnectionIO[A]
@@ -44,7 +42,7 @@ object BotApp extends IOApp {
       implicit val logs: Logs[F, F] = Logs.sync[F, F]
       implicit val xa: D ~> F = transact
 
-      BlazeClientBuilder[F](ExecutionContext.global).resource.use { httpClient =>
+      BlazeClientBuilder[F].resource.use { httpClient =>
         implicit val api: Api[F] =
           BotApi(httpClient, s"https://api.telegram.org/bot${conf.bot.token}")
         for {
@@ -72,7 +70,6 @@ object BotApp extends IOApp {
           )
           _ <- bot.start(
             port = conf.bot.port,
-            executionContext = ExecutionContext.global,
             host = "0.0.0.0"
           ).use(_ => Async[F].async_[Unit](_ => ()))
         } yield ()

@@ -1,7 +1,6 @@
 package ru.johnspade.s10ns.subscription.service.impl
 
 import cats.data.EitherT
-import cats.effect.Sync
 import cats.instances.either._
 import cats.instances.option._
 import cats.syntax.flatMap._
@@ -66,7 +65,7 @@ class DefaultSubscriptionListService[F[_]: Monad, D[_]: Monad](
   override def onEditS10nCb(cb: CallbackQuery, data: EditS10n): F[Either[String, InlineKeyboardMarkup]] = {
     def checkUserAndGetMarkup(subscription: Subscription) =
       Either.cond(
-        subscription.userId == UserId(cb.from.id.toLong),
+        subscription.userId == UserId(cb.from.id),
         s10nsListMessageService.createEditS10nMarkup(subscription, data.page),
         Errors.AccessDenied
       )

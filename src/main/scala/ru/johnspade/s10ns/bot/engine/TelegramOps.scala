@@ -21,7 +21,7 @@ object TelegramOps {
   implicit class TelegramUserOps(val value: telegramium.bots.User) extends AnyVal {
     def toUser(chatId: Option[Long] = None, dialog: Option[Dialog] = None): User =
       User(
-        id = UserId(value.id.toLong),
+        id = UserId(value.id),
         firstName = FirstName(value.firstName),
         chatId = chatId.map(ChatId(_)),
         dialog = dialog

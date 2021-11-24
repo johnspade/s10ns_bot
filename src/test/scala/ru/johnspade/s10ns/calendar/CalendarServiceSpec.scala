@@ -2,7 +2,7 @@ package ru.johnspade.s10ns.calendar
 
 import java.time.{LocalDate, YearMonth}
 
-import com.softwaremill.diffx.scalatest.DiffMatcher
+import com.softwaremill.diffx.scalatest.DiffShouldMatcher
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import ru.johnspade.s10ns.bot.engine.TelegramOps.inlineKeyboardButton
@@ -11,12 +11,12 @@ import ru.johnspade.s10ns.subscription.tags.FirstPaymentDate
 import telegramium.bots.{InlineKeyboardButton, InlineKeyboardMarkup}
 import com.softwaremill.diffx.generic.auto._
 
-class CalendarServiceSpec extends AnyFlatSpec with Matchers with DiffMatcher {
+class CalendarServiceSpec extends AnyFlatSpec with Matchers with DiffShouldMatcher {
   private val calendarService = new CalendarService
 
   "generateYearsKeyboard" should "return a range of years" in {
     val markup = calendarService.generateYearsKeyboard(YearMonth.of(2020, 1))
-    markup should matchTo(InlineKeyboardMarkup(List(
+    markup shouldMatchTo InlineKeyboardMarkup(List(
       List(year(2015), year(2016), year(2017), year(2018), year(2019)),
       List(year(2020), year(2021), year(2022), year(2023), year(2024)),
       List(
@@ -24,21 +24,21 @@ class CalendarServiceSpec extends AnyFlatSpec with Matchers with DiffMatcher {
         inlineKeyboardButton("Skip/remove", DropFirstPayment),
         inlineKeyboardButton("➡", Years(YearMonth.of(2030, 1)))
       )
-    )))
+    ))
   }
 
   "generateMonthsKeyboard" should "return months" in {
     val markup = calendarService.generateMonthsKeyboard(2020)
-    markup should matchTo(InlineKeyboardMarkup(List(
+    markup shouldMatchTo InlineKeyboardMarkup(List(
       List(month("Jan", 1), month("Feb", 2), month("Mar", 3), month("Apr", 4), month("May", 5), month("Jun", 6)),
       List(month("Jul", 7), month("Aug", 8), month("Sep", 9), month("Oct", 10), month("Nov", 11), month("Dec", 12)),
       List(inlineKeyboardButton("Skip/remove", DropFirstPayment))
-    )))
+    ))
   }
 
   "generateDaysKeyboard" should "return a correct calendar" in {
     val markup = calendarService.generateDaysKeyboard(LocalDate.of(2020, 1, 27))
-    markup should matchTo(InlineKeyboardMarkup(List(
+    markup shouldMatchTo InlineKeyboardMarkup(List(
       List(
         inlineKeyboardButton("Jan", Months(2020)),
         inlineKeyboardButton("2020", Years(YearMonth.of(2020, 1)))
@@ -54,7 +54,7 @@ class CalendarServiceSpec extends AnyFlatSpec with Matchers with DiffMatcher {
         inlineKeyboardButton("Skip/remove", DropFirstPayment),
         inlineKeyboardButton("➡", Calendar(LocalDate.of(2020, 2, 1)))
       )
-    )))
+    ))
   }
 
   private def ignored(text: String): InlineKeyboardButton = inlineKeyboardButton(text, Ignore)
