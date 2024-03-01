@@ -22,23 +22,28 @@ import ru.johnspade.s10ns.subscription.service.S10nsListMessageService
 import ru.johnspade.s10ns.user.User
 import ru.johnspade.s10ns.user.UserRepository
 
-class DefaultEditS10nCurrencyDialogService[F[_] : Monad, D[_] : Monad](
-  s10nsListMessageService: S10nsListMessageService[F],
-  stateMessageService: StateMessageService[F, EditS10nCurrencyDialogState],
-  userRepo: UserRepository[D],
-  s10nRepo: SubscriptionRepository[D],
-  dialogEngine: TransactionalDialogEngine[F, D]
+class DefaultEditS10nCurrencyDialogService[F[_]: Monad, D[_]: Monad](
+    s10nsListMessageService: S10nsListMessageService[F],
+    stateMessageService: StateMessageService[F, EditS10nCurrencyDialogState],
+    userRepo: UserRepository[D],
+    s10nRepo: SubscriptionRepository[D],
+    dialogEngine: TransactionalDialogEngine[F, D]
 )(implicit transact: D ~> F)
-  extends EditS10nDialogService[F, D, EditS10nCurrencyDialogState](
-    s10nsListMessageService, stateMessageService, userRepo, s10nRepo, dialogEngine
-  ) with EditS10nCurrencyDialogService[F] {
+    extends EditS10nDialogService[F, D, EditS10nCurrencyDialogState](
+      s10nsListMessageService,
+      stateMessageService,
+      userRepo,
+      s10nRepo,
+      dialogEngine
+    )
+    with EditS10nCurrencyDialogService[F] {
   override def onEditS10nCurrencyCb(user: User, data: EditS10nCurrency): F[List[ReplyMessage]] =
     onEditS10nDialogCb(
       user = user,
       s10nId = data.subscriptionId,
       state = EditS10nCurrencyDialogState.Currency,
-      createDialog =
-        s10n => EditS10nCurrencyDialog(
+      createDialog = s10n =>
+        EditS10nCurrencyDialog(
           EditS10nCurrencyDialogState.Currency,
           s10n
         )
@@ -55,13 +60,18 @@ class DefaultEditS10nCurrencyDialogService[F[_] : Monad, D[_] : Monad](
       .andThen(amount => validateAmount(amount))
       .traverse(saveAmount(user, dialog, _))
 
-  private def saveCurrency(user: User, dialog: EditS10nCurrencyDialog, currency: CurrencyUnit): F[List[ReplyMessage]] = {
+  private def saveCurrency(
+      user: User,
+      dialog: EditS10nCurrencyDialog,
+      currency: CurrencyUnit
+  ): F[List[ReplyMessage]] = {
     val updatedDialog = dialog.modify(_.draft.amount).setTo(Money.zero(currency))
     transition(user, updatedDialog)(EditS10nCurrencyDialogEvent.ChosenCurrency)
   }
 
   private def saveAmount(user: User, dialog: EditS10nCurrencyDialog, amount: BigDecimal): F[List[ReplyMessage]] = {
-    val updatedDialog = dialog.modify(_.draft.amount).setTo(Money.of(dialog.draft.amount.getCurrencyUnit, amount.bigDecimal))
+    val updatedDialog =
+      dialog.modify(_.draft.amount).setTo(Money.of(dialog.draft.amount.getCurrencyUnit, amount.bigDecimal))
     transition(user, updatedDialog)(EditS10nCurrencyDialogEvent.EnteredAmount)
   }
 }

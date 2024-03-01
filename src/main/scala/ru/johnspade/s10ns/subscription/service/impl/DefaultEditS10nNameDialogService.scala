@@ -22,22 +22,27 @@ import ru.johnspade.s10ns.user.User
 import ru.johnspade.s10ns.user.UserRepository
 
 class DefaultEditS10nNameDialogService[F[_]: Monad, D[_]: Monad](
-  s10nsListMessageService: S10nsListMessageService[F],
-  stateMessageService: StateMessageService[F, EditS10nNameDialogState],
-  userRepo: UserRepository[D],
-  s10nRepo: SubscriptionRepository[D],
-  dialogEngine: TransactionalDialogEngine[F, D]
+    s10nsListMessageService: S10nsListMessageService[F],
+    stateMessageService: StateMessageService[F, EditS10nNameDialogState],
+    userRepo: UserRepository[D],
+    s10nRepo: SubscriptionRepository[D],
+    dialogEngine: TransactionalDialogEngine[F, D]
 )(implicit transact: D ~> F)
-  extends EditS10nDialogService[F, D, EditS10nNameDialogState](
-    s10nsListMessageService, stateMessageService, userRepo, s10nRepo, dialogEngine
-  ) with EditS10nNameDialogService[F] {
+    extends EditS10nDialogService[F, D, EditS10nNameDialogState](
+      s10nsListMessageService,
+      stateMessageService,
+      userRepo,
+      s10nRepo,
+      dialogEngine
+    )
+    with EditS10nNameDialogService[F] {
   def onEditS10nNameCb(user: User, data: EditS10nName): F[List[ReplyMessage]] =
     onEditS10nDialogCb(
       user = user,
       s10nId = data.subscriptionId,
       state = EditS10nNameDialogState.Name,
-      createDialog =
-        s10n => EditS10nNameDialog(
+      createDialog = s10n =>
+        EditS10nNameDialog(
           state = EditS10nNameDialogState.Name,
           draft = s10n
         )

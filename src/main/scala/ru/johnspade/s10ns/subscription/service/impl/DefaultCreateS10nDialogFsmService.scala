@@ -22,12 +22,13 @@ import ru.johnspade.s10ns.user.User
 import ru.johnspade.s10ns.user.UserRepository
 
 class DefaultCreateS10nDialogFsmService[F[_]: Monad, D[_]: Monad](
-  private val subscriptionRepo: SubscriptionRepository[D],
-  private val userRepo: UserRepository[D],
-  private val dialogEngine: TransactionalDialogEngine[F, D],
-  private val s10nsListMessageService: S10nsListMessageService[F],
-  private val stateMessageService: StateMessageService[F, CreateS10nDialogState]
-)(private implicit val transact: D ~> F) extends CreateS10nDialogFsmService[F] {
+    private val subscriptionRepo: SubscriptionRepository[D],
+    private val userRepo: UserRepository[D],
+    private val dialogEngine: TransactionalDialogEngine[F, D],
+    private val s10nsListMessageService: S10nsListMessageService[F],
+    private val stateMessageService: StateMessageService[F, CreateS10nDialogState]
+)(private implicit val transact: D ~> F)
+    extends CreateS10nDialogFsmService[F] {
 
   override def saveName(user: User, dialog: CreateS10nDialog, name: SubscriptionName): F[List[ReplyMessage]] = {
     val draft = dialog.draft.copy(name = name)
@@ -46,12 +47,20 @@ class DefaultCreateS10nDialogFsmService[F[_]: Monad, D[_]: Monad](
     transition(user, dialog.copy(draft = draft), CreateS10nDialogEvent.EnteredAmount)
   }
 
-  override def saveBillingPeriodDuration(user: User, dialog: CreateS10nDialog, duration: BillingPeriodDuration): F[List[ReplyMessage]] = {
+  override def saveBillingPeriodDuration(
+      user: User,
+      dialog: CreateS10nDialog,
+      duration: BillingPeriodDuration
+  ): F[List[ReplyMessage]] = {
     val draft = dialog.draft.copy(periodDuration = duration.some)
     transition(user, dialog.copy(draft = draft), CreateS10nDialogEvent.EnteredBillingPeriodDuration)
   }
 
-  override def saveBillingPeriodUnit(user: User, dialog: CreateS10nDialog, unit: BillingPeriodUnit): F[List[ReplyMessage]] = {
+  override def saveBillingPeriodUnit(
+      user: User,
+      dialog: CreateS10nDialog,
+      unit: BillingPeriodUnit
+  ): F[List[ReplyMessage]] = {
     val draft = dialog.draft.copy(periodUnit = unit.some)
     transition(user, dialog.copy(draft = draft), CreateS10nDialogEvent.ChosenBillingPeriodUnit)
   }
@@ -67,17 +76,26 @@ class DefaultCreateS10nDialogFsmService[F[_]: Monad, D[_]: Monad](
   override def skipIsOneTime(user: User, dialog: CreateS10nDialog): F[List[ReplyMessage]] =
     transition(user, dialog, CreateS10nDialogEvent.SkippedIsOneTime)
 
-  override def saveIsOneTime(user: User, dialog: CreateS10nDialog, oneTime: OneTimeSubscription): F[List[ReplyMessage]] = {
+  override def saveIsOneTime(
+      user: User,
+      dialog: CreateS10nDialog,
+      oneTime: OneTimeSubscription
+  ): F[List[ReplyMessage]] = {
     val draft = dialog.draft.copy(oneTime = oneTime.some)
-    val event = if (oneTime) CreateS10nDialogEvent.ChosenOneTime
-    else CreateS10nDialogEvent.ChosenRecurring
+    val event =
+      if (oneTime) CreateS10nDialogEvent.ChosenOneTime
+      else CreateS10nDialogEvent.ChosenRecurring
     transition(user, dialog.copy(draft = draft), event)
   }
 
   override def skipFirstPaymentDate(user: User, dialog: CreateS10nDialog): F[List[ReplyMessage]] =
     transition(user, dialog, CreateS10nDialogEvent.SkippedFirstPaymentDate)
 
-  override def saveFirstPaymentDate(user: User, dialog: CreateS10nDialog, date: FirstPaymentDate): F[List[ReplyMessage]] = {
+  override def saveFirstPaymentDate(
+      user: User,
+      dialog: CreateS10nDialog,
+      date: FirstPaymentDate
+  ): F[List[ReplyMessage]] = {
     val draft = dialog.draft.copy(firstPaymentDate = date.some)
     transition(user, dialog.copy(draft = draft), CreateS10nDialogEvent.ChosenFirstPaymentDate)
   }
@@ -88,12 +106,14 @@ class DefaultCreateS10nDialogFsmService[F[_]: Monad, D[_]: Monad](
       case finished @ CreateS10nDialogState.Finished =>
         transact {
           subscriptionRepo.create(updatedDialog.draft).flatMap { s10n =>
-            dialogEngine.reset(user, finished.message)
+            dialogEngine
+              .reset(user, finished.message)
               .map((_, s10n))
           }
         }
           .flatMap { p =>
-            s10nsListMessageService.createSubscriptionMessage(user.defaultCurrency, p._2, PageNumber(0))
+            s10nsListMessageService
+              .createSubscriptionMessage(user.defaultCurrency, p._2, PageNumber(0))
               .map(List(p._1, _))
           }
       case _ =>

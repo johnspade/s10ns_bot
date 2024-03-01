@@ -11,14 +11,14 @@ import tofu.logging.Logs
 
 import ru.johnspade.s10ns.subscription.SubscriptionModule
 
-final class NotificationsModule[F[_], D[_]] private(
-  val prepareNotificationsJobService: PrepareNotificationsJobService[F],
-  val notificationsJobService: NotificationsJobService[F]
+final class NotificationsModule[F[_], D[_]] private (
+    val prepareNotificationsJobService: PrepareNotificationsJobService[F],
+    val notificationsJobService: NotificationsJobService[F]
 )
 
 object NotificationsModule {
   def make[F[_]: Concurrent: Clock: Async](
-    subscriptionModule: SubscriptionModule[F, ConnectionIO]
+      subscriptionModule: SubscriptionModule[F, ConnectionIO]
   )(implicit transact: ConnectionIO ~> F, logs: Logs[F, F]): F[NotificationsModule[F, ConnectionIO]] = {
     import subscriptionModule.{s10nInfoService, s10nsListMessageService, subscriptionRepository}
 

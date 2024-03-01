@@ -25,7 +25,11 @@ import ru.johnspade.s10ns.subscription.dialog.EditS10nFirstPaymentDateDialogStat
 import ru.johnspade.s10ns.subscription.service.impl.DefaultEditS10n1stPaymentDateDialogService
 import ru.johnspade.s10ns.subscription.tags.FirstPaymentDate
 
-class DefaultEditS10n1stPaymentDateDialogServiceSpec extends AnyFlatSpec with EditS10nDialogServiceSpec with Matchers with DiffShouldMatcher {
+class DefaultEditS10n1stPaymentDateDialogServiceSpec
+    extends AnyFlatSpec
+    with EditS10nDialogServiceSpec
+    with Matchers
+    with DiffShouldMatcher {
   private val calendarService = new CalendarService
   private val editS10n1stPaymentDateDialogService = new DefaultEditS10n1stPaymentDateDialogService(
     s10nsListMessageService,
@@ -37,11 +41,13 @@ class DefaultEditS10n1stPaymentDateDialogServiceSpec extends AnyFlatSpec with Ed
 
   "onEditS10nFirstPaymentDateCb" should "ask for a new subscriptions first date" in {
     (mockS10nRepo.getById _).expects(s10nId).returns(s10n.some)
-    val dialog = EditS10nFirstPaymentDateDialog(EditS10nFirstPaymentDateDialogState.FirstPaymentDate, s10n)
+    val dialog      = EditS10nFirstPaymentDateDialog(EditS10nFirstPaymentDateDialogState.FirstPaymentDate, s10n)
     val updatedUser = user.copy(dialog = dialog.some)
     (mockUserRepo.createOrUpdate _).expects(updatedUser).returns(updatedUser)
 
-    val result = editS10n1stPaymentDateDialogService.onEditS10nFirstPaymentDateCb(user, EditS10nFirstPaymentDate(s10nId)).unsafeRunSync()
+    val result = editS10n1stPaymentDateDialogService
+      .onEditS10nFirstPaymentDateCb(user, EditS10nFirstPaymentDate(s10nId))
+      .unsafeRunSync()
     result shouldMatchTo {
       List(
         ReplyMessage("First payment date:", ReplyKeyboardRemove(removeKeyboard = true).some),
@@ -51,7 +57,7 @@ class DefaultEditS10n1stPaymentDateDialogServiceSpec extends AnyFlatSpec with Ed
   }
 
   "saveFirstPaymentDate" should "just save a subscription" in {
-    val date = FirstPaymentDate(LocalDate.of(2020, 10, 8))
+    val date        = FirstPaymentDate(LocalDate.of(2020, 10, 8))
     val updatedS10n = s10n.copy(firstPaymentDate = date.some)
     (mockS10nRepo.update _).expects(updatedS10n).returns(updatedS10n.some)
 

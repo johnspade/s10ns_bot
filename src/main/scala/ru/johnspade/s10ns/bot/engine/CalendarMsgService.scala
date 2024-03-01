@@ -13,8 +13,8 @@ import telegramium.bots.InlineKeyboardMarkup
 import ru.johnspade.s10ns.calendar.CalendarService
 import ru.johnspade.s10ns.currentTimestamp
 
-class CalendarMsgService[F[_] : Monad : Clock, S <: DialogState](
-  private val calendarService: CalendarService
+class CalendarMsgService[F[_]: Monad: Clock, S <: DialogState](
+    private val calendarService: CalendarService
 ) extends StateMessageService[F, S] {
   protected def createMessageWithCalendar(state: DialogState): F[ReplyMessage] = {
     def generateCalendar: F[InlineKeyboardMarkup] =

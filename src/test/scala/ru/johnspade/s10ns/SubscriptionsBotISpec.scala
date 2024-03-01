@@ -82,10 +82,7 @@ import ru.johnspade.s10ns.subscription.tags.PageNumber
 import ru.johnspade.s10ns.user.DoobieUserRepository
 import ru.johnspade.s10ns.user.tags.UserId
 
-class SubscriptionsBotISpec
-  extends AnyFreeSpec
-    with BeforeAndAfterAll
-    with MockFactory {
+class SubscriptionsBotISpec extends AnyFreeSpec with BeforeAndAfterAll with MockFactory {
 
   private implicit val api: Api[IO] = stub[Api[IO]]
 
@@ -93,7 +90,12 @@ class SubscriptionsBotISpec
     prepareStubs()
 
     sendMessage("/start")
-    verifySendMessage(BotStart.message.text, BotStart.markup.some, parseMode = Html.some, disableWebPagePreview = true.some).once()
+    verifySendMessage(
+      BotStart.message.text,
+      BotStart.markup.some,
+      parseMode = Html.some,
+      disableWebPagePreview = true.some
+    ).once()
 
     sendMessage("/create")
     verifySendMessage(Messages.Currency, Markup.CurrencyReplyMarkup.some).once()
@@ -132,12 +134,16 @@ class SubscriptionsBotISpec
          |_Next payment:_ $today
          |_First payment:_ $today
          |_Paid in total:_ 0.00 €""".stripMargin,
-      InlineKeyboardMarkups.singleColumn(List(
-        inlineKeyboardButton("Edit", EditS10n(s10nId, PageNumber(0))),
-        inlineKeyboardButton("Enable notifications", Notify(s10nId, enable = true, PageNumber(0))),
-        inlineKeyboardButton("Remove", RemoveS10n(s10nId, PageNumber(0))),
-        inlineKeyboardButton("List", S10ns(PageNumber(0)))
-      )).some,
+      InlineKeyboardMarkups
+        .singleColumn(
+          List(
+            inlineKeyboardButton("Edit", EditS10n(s10nId, PageNumber(0))),
+            inlineKeyboardButton("Enable notifications", Notify(s10nId, enable = true, PageNumber(0))),
+            inlineKeyboardButton("Remove", RemoveS10n(s10nId, PageNumber(0))),
+            inlineKeyboardButton("List", S10ns(PageNumber(0)))
+          )
+        )
+        .some,
       Markdown.some
     ).once()
     verifyEditMessageText(s" <em>${DateTimeFormatter.ISO_DATE.format(LocalDate.now(ZoneOffset.UTC))}</em>")
@@ -147,7 +153,7 @@ class SubscriptionsBotISpec
   }
 
   private val userId = 1337
-  private val user = User(userId, isBot = false, "John")
+  private val user   = User(userId, isBot = false, "John")
 
   private def createMessage(text: String) =
     Message(
@@ -168,18 +174,20 @@ class SubscriptionsBotISpec
     )
 
   private def verifySendMessage(
-    text: String,
-    markup: Option[KeyboardMarkup] = None,
-    parseMode: Option[ParseMode] = None,
-    disableWebPagePreview: Option[Boolean] = None
+      text: String,
+      markup: Option[KeyboardMarkup] = None,
+      parseMode: Option[ParseMode] = None,
+      disableWebPagePreview: Option[Boolean] = None
   ) =
-    (api.execute[Message] _).verify(sendMessage(
-      ChatIntId(0),
-      text,
-      replyMarkup = markup,
-      parseMode = parseMode,
-      disableWebPagePreview = disableWebPagePreview
-    ))
+    (api.execute[Message] _).verify(
+      sendMessage(
+        ChatIntId(0),
+        text,
+        replyMarkup = markup,
+        parseMode = parseMode,
+        disableWebPagePreview = disableWebPagePreview
+      )
+    )
 
   private def verifyEditMessageText(text: String): Unit = {
     verifyMethodCall(api, editMessageText(ChatIntId(0).some, messageId = 0.some, text = text, parseMode = Html.some))
@@ -202,7 +210,7 @@ class SubscriptionsBotISpec
     }
 
     private implicit val logs: Logs[IO, IO] = Logs.sync[IO, IO]
-    protected val userRepo = new DoobieUserRepository
+    protected val userRepo                  = new DoobieUserRepository
 
     private val moneyService = new MoneyService[IO](new InMemoryExchangeRatesStorage)
     private val s10nsListMessageService = new S10nsListMessageService[IO](
@@ -210,34 +218,65 @@ class SubscriptionsBotISpec
       new S10nInfoService[IO],
       new S10nsListReplyMessageService
     )
-    private val s10nsListService = new DefaultSubscriptionListService[IO, ConnectionIO](s10nRepo, s10nsListMessageService)
-    private val s10nListController = new SubscriptionListController[IO](s10nsListService)
-    protected val calendarService = new CalendarService
-    private val dialogEngine = new DefaultDialogEngine[IO, ConnectionIO](userRepo)
+    private val s10nsListService =
+      new DefaultSubscriptionListService[IO, ConnectionIO](s10nRepo, s10nsListMessageService)
+    private val s10nListController   = new SubscriptionListController[IO](s10nsListService)
+    protected val calendarService    = new CalendarService
+    private val dialogEngine         = new DefaultDialogEngine[IO, ConnectionIO](userRepo)
     private val createS10nMsgService = new CreateS10nMsgService[IO](calendarService)
     private val createS10nDialogFsmService = new DefaultCreateS10nDialogFsmService[IO, ConnectionIO](
-      s10nRepo, userRepo, dialogEngine, s10nsListMessageService, createS10nMsgService
+      s10nRepo,
+      userRepo,
+      dialogEngine,
+      s10nsListMessageService,
+      createS10nMsgService
     )
     private val createS10nDialogService = new DefaultCreateS10nDialogService[IO, ConnectionIO](
-      createS10nDialogFsmService, createS10nMsgService, dialogEngine
+      createS10nDialogFsmService,
+      createS10nMsgService,
+      dialogEngine
     )
     val editS10n1stPaymentDateDialogService = new DefaultEditS10n1stPaymentDateDialogService[IO, ConnectionIO](
-      s10nsListMessageService, new EditS10n1stPaymentDateMsgService[IO](calendarService), userRepo, s10nRepo, dialogEngine
+      s10nsListMessageService,
+      new EditS10n1stPaymentDateMsgService[IO](calendarService),
+      userRepo,
+      s10nRepo,
+      dialogEngine
     )
     val editS10nNameDialogService = new DefaultEditS10nNameDialogService[IO, ConnectionIO](
-      s10nsListMessageService, new DefaultMsgService[IO, EditS10nNameDialogState], userRepo, s10nRepo, dialogEngine
+      s10nsListMessageService,
+      new DefaultMsgService[IO, EditS10nNameDialogState],
+      userRepo,
+      s10nRepo,
+      dialogEngine
     )
     val editS10nAmountDialogService = new DefaultEditS10nAmountDialogService[IO, ConnectionIO](
-      s10nsListMessageService, new DefaultMsgService[IO, EditS10nAmountDialogState], userRepo, s10nRepo, dialogEngine
+      s10nsListMessageService,
+      new DefaultMsgService[IO, EditS10nAmountDialogState],
+      userRepo,
+      s10nRepo,
+      dialogEngine
     )
     val editS10nBillingPeriodDialogService = new DefaultEditS10nBillingPeriodDialogService[IO, ConnectionIO](
-      s10nsListMessageService, new DefaultMsgService[IO, EditS10nBillingPeriodDialogState], userRepo, s10nRepo, dialogEngine
+      s10nsListMessageService,
+      new DefaultMsgService[IO, EditS10nBillingPeriodDialogState],
+      userRepo,
+      s10nRepo,
+      dialogEngine
     )
     val editS10nCurrencyDialogService = new DefaultEditS10nCurrencyDialogService[IO, ConnectionIO](
-      s10nsListMessageService, new DefaultMsgService[IO, EditS10nCurrencyDialogState], userRepo, s10nRepo, dialogEngine
+      s10nsListMessageService,
+      new DefaultMsgService[IO, EditS10nCurrencyDialogState],
+      userRepo,
+      s10nRepo,
+      dialogEngine
     )
     val editS10nOneTimeDialogService = new DefaultEditS10nOneTimeDialogService[IO, ConnectionIO](
-      s10nsListMessageService, new DefaultMsgService[IO, EditS10nOneTimeDialogState], userRepo, s10nRepo, dialogEngine
+      s10nsListMessageService,
+      new DefaultMsgService[IO, EditS10nOneTimeDialogState],
+      userRepo,
+      s10nRepo,
+      dialogEngine
     )
     private val s10nController = S10nController[IO](
       createS10nDialogService,
@@ -249,11 +288,12 @@ class SubscriptionsBotISpec
       editS10nOneTimeDialogService
     ).unsafeRunSync()
     private val calendarController = new CalendarController[IO](calendarService)
-    private val settingsService = new DefaultSettingsService[IO](dialogEngine, new DefaultMsgService[IO, SettingsDialogState])
+    private val settingsService =
+      new DefaultSettingsService[IO](dialogEngine, new DefaultMsgService[IO, SettingsDialogState])
     private val settingsController = SettingsController[IO](settingsService).unsafeRunSync()
-    private val startController = new StartController[IO](dialogEngine)
-    private val cbDataService = new CbDataService[IO]
-    private val botConfig = BotConfig("", 8080, "", "0.0.0.0")
+    private val startController    = new StartController[IO](dialogEngine)
+    private val cbDataService      = new CbDataService[IO]
+    private val botConfig          = BotConfig("", 8080, "", "0.0.0.0")
     protected val bot: SubscriptionsBot[IO, ConnectionIO] = SubscriptionsBot[IO, ConnectionIO](
       botConfig,
       userRepo,

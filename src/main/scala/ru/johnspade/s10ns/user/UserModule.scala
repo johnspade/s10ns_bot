@@ -5,7 +5,7 @@ import cats.effect.Sync
 import doobie.free.connection.ConnectionIO
 
 final class UserModule[D[_]] private (
-  val userRepository: UserRepository[D]
+    val userRepository: UserRepository[D]
 )
 
 object UserModule {

@@ -9,7 +9,7 @@ import ru.johnspade.s10ns.notifications.DoobieNotificationRepository.Notificatio
 import ru.johnspade.s10ns.subscription.tags.SubscriptionId
 
 class DoobieNotificationRepositorySpec extends DoobieRepositorySpec {
-  private val sampleFuuid = FUUID.fromUUID(UUID.randomUUID())
+  private val sampleFuuid        = FUUID.fromUUID(UUID.randomUUID())
   private val sampleNotification = Notification(sampleFuuid, SubscriptionId(0L))
 
   test("create") {

@@ -15,7 +15,7 @@ import ru.johnspade.s10ns.user.tags.UserId
 
 class InMemorySubscriptionRepository extends SubscriptionRepository[Id] {
   val subscriptions: TrieMap[SubscriptionId, Subscription] = TrieMap.empty
-  private var id: Long = 0
+  private var id: Long                                     = 0
 
   override def create(draft: SubscriptionDraft): Subscription = {
     val s10n = Subscription.fromDraft(draft, SubscriptionId(id))
@@ -31,13 +31,10 @@ class InMemorySubscriptionRepository extends SubscriptionRepository[Id] {
   override def getByUserId(userId: UserId): List[Subscription] = subscriptions.values.filter(_.userId == userId).toList
 
   def collectNotifiable(cutoff: Instant): Id[List[Subscription]] =
-    subscriptions
-      .values
-      .filter { s =>
-        s.sendNotifications &&
-          (s.firstPaymentDate.isDefined && s.billingPeriod.isDefined || s.firstPaymentDate.exists(_.isAfter(LocalDate.now)))
-      }
-      .toList
+    subscriptions.values.filter { s =>
+      s.sendNotifications &&
+      (s.firstPaymentDate.isDefined && s.billingPeriod.isDefined || s.firstPaymentDate.exists(_.isAfter(LocalDate.now)))
+    }.toList
 
   override def remove(id: SubscriptionId): Unit = subscriptions.remove(id)
 
@@ -47,8 +44,7 @@ class InMemorySubscriptionRepository extends SubscriptionRepository[Id] {
   }
 
   override def disableNotificationsForUser(userId: UserId): Id[Unit] =
-    subscriptions
-      .values
+    subscriptions.values
       .filter(_.userId == userId)
       .map(_.copy(sendNotifications = false))
       .foreach { s =>

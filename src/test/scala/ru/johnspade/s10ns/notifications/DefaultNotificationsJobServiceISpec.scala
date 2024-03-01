@@ -56,10 +56,11 @@ import ru.johnspade.s10ns.user.tags.UserId
 class DefaultNotificationsJobServiceISpec extends SpecBase with MockFactory with BeforeAndAfterEach with OptionValues {
 
   private val notificationRepo = new DoobieNotificationRepository
-  private val s10nRepo = new DoobieSubscriptionRepository
-  private val moneyService = new MoneyService[IO](new InMemoryExchangeRatesStorage)
-  private val s10nInfoService = new S10nInfoService[IO]
-  private val s10nsListMessageService = new S10nsListMessageService[IO](moneyService, s10nInfoService, new S10nsListReplyMessageService)
+  private val s10nRepo         = new DoobieSubscriptionRepository
+  private val moneyService     = new MoneyService[IO](new InMemoryExchangeRatesStorage)
+  private val s10nInfoService  = new S10nInfoService[IO]
+  private val s10nsListMessageService =
+    new S10nsListMessageService[IO](moneyService, s10nInfoService, new S10nsListReplyMessageService)
   private val notificationService = new NotificationService[IO](48, s10nInfoService)
   protected val notificationsJobService: DefaultNotificationsJobService[IO, ConnectionIO] =
     DefaultNotificationsJobService[IO, ConnectionIO](
@@ -72,20 +73,22 @@ class DefaultNotificationsJobServiceISpec extends SpecBase with MockFactory with
   private implicit val api: Api[IO] = stub[Api[IO]]
 
   private val today: String = DateTimeFormatter.ISO_DATE.format(LocalDate.now(ZoneOffset.UTC))
-  private val userId = UserId(911L)
+  private val userId        = UserId(911L)
 
   behavior of "executeTask"
 
   it should "send a notification if there is a task in the table" in {
     (api.execute[Message] _).when(*).returns(IO.pure(Message(0, date = 0, chat = Chat(0, `type` = ""))))
-    notificationRepo.create(Notification(FUUID.randomFUUID[IO].unsafeRunSync(), s10nId))
-      .transact(xa).unsafeRunSync()
+    notificationRepo
+      .create(Notification(FUUID.randomFUUID[IO].unsafeRunSync(), s10nId))
+      .transact(xa)
+      .unsafeRunSync()
 
     notificationsJobService.executeTask().unsafeRunSync()
-    (api.execute[Message] _).verify(sendMessage(
-      chatId = ChatIntId(0),
-      text =
-        s"""_A payment date is approaching:_
+    (api.execute[Message] _).verify(
+      sendMessage(
+        chatId = ChatIntId(0),
+        text = s"""_A payment date is approaching:_
            |*Netflix*
            |
            |11.36 €
@@ -94,14 +97,19 @@ class DefaultNotificationsJobServiceISpec extends SpecBase with MockFactory with
            |_Next payment:_ $today
            |_First payment:_ $today
            |_Paid in total:_ 0.00 €""".stripMargin,
-      Markdown.some,
-      replyMarkup = InlineKeyboardMarkups.singleColumn(List(
-        inlineKeyboardButton("Edit", EditS10n(s10nId, PageNumber(0))),
-        inlineKeyboardButton("Disable notifications", Notify(s10nId, enable = false, PageNumber(0))),
-        inlineKeyboardButton("Remove", RemoveS10n(s10nId, PageNumber(0))),
-        inlineKeyboardButton("List", S10ns(PageNumber(0)))
-      )).some
-    ))
+        Markdown.some,
+        replyMarkup = InlineKeyboardMarkups
+          .singleColumn(
+            List(
+              inlineKeyboardButton("Edit", EditS10n(s10nId, PageNumber(0))),
+              inlineKeyboardButton("Disable notifications", Notify(s10nId, enable = false, PageNumber(0))),
+              inlineKeyboardButton("Remove", RemoveS10n(s10nId, PageNumber(0))),
+              inlineKeyboardButton("List", S10ns(PageNumber(0)))
+            )
+          )
+          .some
+      )
+    )
   }
 
   it should "do nothing if there is no tasks" in {
@@ -110,22 +118,27 @@ class DefaultNotificationsJobServiceISpec extends SpecBase with MockFactory with
   }
 
   it should "do nothing if the notification already sent" in {
-    val s10n = s10nRepo.create(SubscriptionDraft(
-      userId = userId,
-      name = SubscriptionName("Netflix"),
-      currency = CurrencyUnit.EUR,
-      amount = SubscriptionAmount(1136L),
-      oneTime = OneTimeSubscription(false).some,
-      periodDuration = BillingPeriodDuration(1).some,
-      periodUnit = BillingPeriodUnit.Month.some,
-      firstPaymentDate = FirstPaymentDate(LocalDate.now(ZoneOffset.UTC)).some,
-      sendNotifications = true
-    ))
+    val s10n = s10nRepo
+      .create(
+        SubscriptionDraft(
+          userId = userId,
+          name = SubscriptionName("Netflix"),
+          currency = CurrencyUnit.EUR,
+          amount = SubscriptionAmount(1136L),
+          oneTime = OneTimeSubscription(false).some,
+          periodDuration = BillingPeriodDuration(1).some,
+          periodUnit = BillingPeriodUnit.Month.some,
+          firstPaymentDate = FirstPaymentDate(LocalDate.now(ZoneOffset.UTC)).some,
+          sendNotifications = true
+        )
+      )
       .transact(xa)
       .unsafeRunSync()
     s10nRepo.update(s10n.copy(lastNotification = Instant.now.some)).transact(xa).unsafeRunSync()
-    notificationRepo.create(Notification(FUUID.randomFUUID[IO].unsafeRunSync(), s10n.id))
-      .transact(xa).unsafeRunSync()
+    notificationRepo
+      .create(Notification(FUUID.randomFUUID[IO].unsafeRunSync(), s10n.id))
+      .transact(xa)
+      .unsafeRunSync()
 
     notificationsJobService.executeTask().unsafeRunSync()
     (api.execute[Message] _).verify(*).never()
@@ -135,21 +148,26 @@ class DefaultNotificationsJobServiceISpec extends SpecBase with MockFactory with
     (api.execute[Message] _)
       .when(*)
       .returns(IO.raiseError(FailedRequest(Methods.getMe(), 403.some, "Forbidden: bot was blocked by the user".some)))
-    val s10n = s10nRepo.create(SubscriptionDraft(
-      userId = userId,
-      name = SubscriptionName("Netflix"),
-      currency = CurrencyUnit.EUR,
-      amount = SubscriptionAmount(1136L),
-      oneTime = OneTimeSubscription(false).some,
-      periodDuration = BillingPeriodDuration(1).some,
-      periodUnit = BillingPeriodUnit.Month.some,
-      firstPaymentDate = FirstPaymentDate(LocalDate.now(ZoneOffset.UTC)).some,
-      sendNotifications = true
-    ))
+    val s10n = s10nRepo
+      .create(
+        SubscriptionDraft(
+          userId = userId,
+          name = SubscriptionName("Netflix"),
+          currency = CurrencyUnit.EUR,
+          amount = SubscriptionAmount(1136L),
+          oneTime = OneTimeSubscription(false).some,
+          periodDuration = BillingPeriodDuration(1).some,
+          periodUnit = BillingPeriodUnit.Month.some,
+          firstPaymentDate = FirstPaymentDate(LocalDate.now(ZoneOffset.UTC)).some,
+          sendNotifications = true
+        )
+      )
       .transact(xa)
       .unsafeRunSync()
-    notificationRepo.create(Notification(FUUID.randomFUUID[IO].unsafeRunSync(), s10n.id))
-      .transact(xa).unsafeRunSync()
+    notificationRepo
+      .create(Notification(FUUID.randomFUUID[IO].unsafeRunSync(), s10n.id))
+      .transact(xa)
+      .unsafeRunSync()
 
     notificationsJobService.executeTask().unsafeRunSync()
 
@@ -160,21 +178,26 @@ class DefaultNotificationsJobServiceISpec extends SpecBase with MockFactory with
     (api.execute[Message] _)
       .when(*)
       .returns(IO.raiseError(FailedRequest(Methods.getMe(), 500.some, "Failed".some)))
-    val s10n = s10nRepo.create(SubscriptionDraft(
-      userId = userId,
-      name = SubscriptionName("Netflix"),
-      currency = CurrencyUnit.EUR,
-      amount = SubscriptionAmount(1136L),
-      oneTime = OneTimeSubscription(false).some,
-      periodDuration = BillingPeriodDuration(1).some,
-      periodUnit = BillingPeriodUnit.Month.some,
-      firstPaymentDate = FirstPaymentDate(LocalDate.now(ZoneOffset.UTC)).some,
-      sendNotifications = true
-    ))
+    val s10n = s10nRepo
+      .create(
+        SubscriptionDraft(
+          userId = userId,
+          name = SubscriptionName("Netflix"),
+          currency = CurrencyUnit.EUR,
+          amount = SubscriptionAmount(1136L),
+          oneTime = OneTimeSubscription(false).some,
+          periodDuration = BillingPeriodDuration(1).some,
+          periodUnit = BillingPeriodUnit.Month.some,
+          firstPaymentDate = FirstPaymentDate(LocalDate.now(ZoneOffset.UTC)).some,
+          sendNotifications = true
+        )
+      )
       .transact(xa)
       .unsafeRunSync()
-    notificationRepo.create(Notification(FUUID.randomFUUID[IO].unsafeRunSync(), s10n.id))
-      .transact(xa).unsafeRunSync()
+    notificationRepo
+      .create(Notification(FUUID.randomFUUID[IO].unsafeRunSync(), s10n.id))
+      .transact(xa)
+      .unsafeRunSync()
 
     an[FailedRequest[Boolean]] shouldBe thrownBy(notificationsJobService.executeTask().unsafeRunSync())
 
@@ -187,17 +210,20 @@ class DefaultNotificationsJobServiceISpec extends SpecBase with MockFactory with
 
   override protected def beforeEach(): Unit = {
     userRepo.createOrUpdate(User(UserId(911L), FirstName("John"), ChatId(0L).some)).transact(xa).unsafeRunSync()
-    s10nRepo.create(SubscriptionDraft(
-      userId = userId,
-      name = SubscriptionName("Netflix"),
-      currency = CurrencyUnit.EUR,
-      amount = SubscriptionAmount(1136L),
-      oneTime = OneTimeSubscription(false).some,
-      periodDuration = BillingPeriodDuration(1).some,
-      periodUnit = BillingPeriodUnit.Month.some,
-      firstPaymentDate = FirstPaymentDate(LocalDate.now(ZoneOffset.UTC)).some,
-      sendNotifications = true
-    ))
+    s10nRepo
+      .create(
+        SubscriptionDraft(
+          userId = userId,
+          name = SubscriptionName("Netflix"),
+          currency = CurrencyUnit.EUR,
+          amount = SubscriptionAmount(1136L),
+          oneTime = OneTimeSubscription(false).some,
+          periodDuration = BillingPeriodDuration(1).some,
+          periodUnit = BillingPeriodUnit.Month.some,
+          firstPaymentDate = FirstPaymentDate(LocalDate.now(ZoneOffset.UTC)).some,
+          sendNotifications = true
+        )
+      )
       .transact(xa)
       .unsafeRunSync()
   }

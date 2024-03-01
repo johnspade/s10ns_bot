@@ -49,12 +49,13 @@ import ru.johnspade.s10ns.user.tags.UserId
 
 class S10nsListMessageServiceSpec extends AnyFlatSpec with Matchers with OptionValues with DiffShouldMatcher {
 
-  private val moneyService = new MoneyService[IO](new InMemoryExchangeRatesStorage)
+  private val moneyService    = new MoneyService[IO](new InMemoryExchangeRatesStorage)
   private val s10nInfoService = new S10nInfoService[IO]
-  private val s10nsListMessageService = new S10nsListMessageService[IO](moneyService, s10nInfoService, new S10nsListReplyMessageService)
+  private val s10nsListMessageService =
+    new S10nsListMessageService[IO](moneyService, s10nInfoService, new S10nsListReplyMessageService)
 
-  private val today = LocalDate.now(ZoneOffset.UTC)
-  private val firstPaymentDate = today.minusDays(35)
+  private val today                = LocalDate.now(ZoneOffset.UTC)
+  private val firstPaymentDate     = today.minusDays(35)
   private val daysUntilNextPayment = Period.between(today, firstPaymentDate.plusMonths(2)).getDays
   private val s10n1 = Subscription(
     SubscriptionId(1L),
@@ -78,7 +79,8 @@ class S10nsListMessageServiceSpec extends AnyFlatSpec with Matchers with OptionV
   behavior of "createSubscriptionsPage"
 
   it should "generate a message without nav buttons if an user has less than 10 subscriptions" in {
-    val page = s10nsListMessageService.createSubscriptionsPage(List(s10n1, s10n2), PageNumber(0), CurrencyUnit.EUR)
+    val page = s10nsListMessageService
+      .createSubscriptionsPage(List(s10n1, s10n2), PageNumber(0), CurrencyUnit.EUR)
       .unsafeRunSync()
     page.text shouldBe
       s"""|Monthly: 17.27 €
@@ -86,135 +88,157 @@ class S10nsListMessageServiceSpec extends AnyFlatSpec with Matchers with OptionV
           |1. Spotify – 5.30 €
           |2. Netflix – ≈11.97 € <b>[${daysUntilNextPayment}d]</b>""".stripMargin
     page.markup.value shouldMatchTo {
-      InlineKeyboardMarkup(List(
+      InlineKeyboardMarkup(
         List(
-          inlineKeyboardButton("1", S10n(SubscriptionId(2L), PageNumber(0))),
-          inlineKeyboardButton("2", S10n(SubscriptionId(1L), PageNumber(0)))
-        ),
-        List(),
-        List(
-          inlineKeyboardButton("Yearly", S10nsPeriod(BillingPeriodUnit.Year, PageNumber(0))),
-          InlineKeyboardButtons.url("Buy me a coffee ☕", "https://buymeacoff.ee/johnspade")
+          List(
+            inlineKeyboardButton("1", S10n(SubscriptionId(2L), PageNumber(0))),
+            inlineKeyboardButton("2", S10n(SubscriptionId(1L), PageNumber(0)))
+          ),
+          List(),
+          List(
+            inlineKeyboardButton("Yearly", S10nsPeriod(BillingPeriodUnit.Year, PageNumber(0))),
+            InlineKeyboardButtons.url("Buy me a coffee ☕", "https://buymeacoff.ee/johnspade")
+          )
         )
-      ))
+      )
     }
   }
 
   it should "generate a message with navigation buttons for next and previous pages" in {
-    val page = s10nsListMessageService.createSubscriptionsPage(createS10ns(21), PageNumber(1), CurrencyUnit.EUR)
+    val page = s10nsListMessageService
+      .createSubscriptionsPage(createS10ns(21), PageNumber(1), CurrencyUnit.EUR)
       .unsafeRunSync()
     page.text shouldBe
       s"""|Monthly: 0.00 €
           |
           |${List.tabulate(10)(n => s"${n + 1}. s10n${n + 10} – 1.00 €").mkString("\n")}""".stripMargin
     page.markup.value shouldMatchTo {
-      InlineKeyboardMarkup(List(
-        List.tabulate(5)(n => inlineKeyboardButton((n + 1).toString, S10n(SubscriptionId(n + 10.toLong), PageNumber(1)))),
-        List.tabulate(5)(n => inlineKeyboardButton((n + 6).toString, S10n(SubscriptionId(n + 15.toLong), PageNumber(1)))),
+      InlineKeyboardMarkup(
         List(
-          inlineKeyboardButton("⬅", S10ns(PageNumber(0))),
-          inlineKeyboardButton("➡", S10ns(PageNumber(2)))
-        ),
-        List(
-          inlineKeyboardButton("Yearly", S10nsPeriod(BillingPeriodUnit.Year, PageNumber(1))),
-          InlineKeyboardButtons.url("Buy me a coffee ☕", "https://buymeacoff.ee/johnspade")
+          List.tabulate(5)(n =>
+            inlineKeyboardButton((n + 1).toString, S10n(SubscriptionId(n + 10.toLong), PageNumber(1)))
+          ),
+          List.tabulate(5)(n =>
+            inlineKeyboardButton((n + 6).toString, S10n(SubscriptionId(n + 15.toLong), PageNumber(1)))
+          ),
+          List(
+            inlineKeyboardButton("⬅", S10ns(PageNumber(0))),
+            inlineKeyboardButton("➡", S10ns(PageNumber(2)))
+          ),
+          List(
+            inlineKeyboardButton("Yearly", S10nsPeriod(BillingPeriodUnit.Year, PageNumber(1))),
+            InlineKeyboardButtons.url("Buy me a coffee ☕", "https://buymeacoff.ee/johnspade")
+          )
         )
-      ))
+      )
     }
   }
 
   it should "generate a message with the previous button only if there is no next page" in {
-    val page = s10nsListMessageService.createSubscriptionsPage(createS10ns(11), PageNumber(1), CurrencyUnit.EUR)
+    val page = s10nsListMessageService
+      .createSubscriptionsPage(createS10ns(11), PageNumber(1), CurrencyUnit.EUR)
       .unsafeRunSync()
     page.text shouldBe
       s"""|Monthly: 0.00 €
           |
           |1. s10n10 – 1.00 €""".stripMargin
     page.markup.value shouldMatchTo {
-      InlineKeyboardMarkup(List(
-        List(inlineKeyboardButton("1", S10n(SubscriptionId(10L), PageNumber(1)))),
-        List(inlineKeyboardButton("⬅", S10ns(PageNumber(0)))),
+      InlineKeyboardMarkup(
         List(
-          inlineKeyboardButton("Yearly", S10nsPeriod(BillingPeriodUnit.Year, PageNumber(1))),
-          InlineKeyboardButtons.url("Buy me a coffee ☕", "https://buymeacoff.ee/johnspade")
+          List(inlineKeyboardButton("1", S10n(SubscriptionId(10L), PageNumber(1)))),
+          List(inlineKeyboardButton("⬅", S10ns(PageNumber(0)))),
+          List(
+            inlineKeyboardButton("Yearly", S10nsPeriod(BillingPeriodUnit.Year, PageNumber(1))),
+            InlineKeyboardButtons.url("Buy me a coffee ☕", "https://buymeacoff.ee/johnspade")
+          )
         )
-      ))
+      )
     }
   }
 
   it should "generate a message with the next button only if there is no previous page" in {
-    val page = s10nsListMessageService.createSubscriptionsPage(createS10ns(11), PageNumber(0), CurrencyUnit.EUR)
+    val page = s10nsListMessageService
+      .createSubscriptionsPage(createS10ns(11), PageNumber(0), CurrencyUnit.EUR)
       .unsafeRunSync()
     page.text shouldBe
       s"""|Monthly: 0.00 €
           |
           |${List.tabulate(10)(n => s"${n + 1}. s10n$n – 1.00 €").mkString("\n")}""".stripMargin
     page.markup.value shouldMatchTo {
-      InlineKeyboardMarkup(List(
-        List.tabulate(5)(n => inlineKeyboardButton((n + 1).toString, S10n(SubscriptionId(n.toLong), PageNumber(0)))),
-        List.tabulate(5)(n => inlineKeyboardButton((n + 6).toString, S10n(SubscriptionId(n + 5.toLong), PageNumber(0)))),
-        List(inlineKeyboardButton("➡", S10ns(PageNumber(1)))),
+      InlineKeyboardMarkup(
         List(
-          inlineKeyboardButton("Yearly", S10nsPeriod(BillingPeriodUnit.Year, PageNumber(0))),
-          InlineKeyboardButtons.url("Buy me a coffee ☕", "https://buymeacoff.ee/johnspade")
+          List.tabulate(5)(n => inlineKeyboardButton((n + 1).toString, S10n(SubscriptionId(n.toLong), PageNumber(0)))),
+          List.tabulate(5)(n =>
+            inlineKeyboardButton((n + 6).toString, S10n(SubscriptionId(n + 5.toLong), PageNumber(0)))
+          ),
+          List(inlineKeyboardButton("➡", S10ns(PageNumber(1)))),
+          List(
+            inlineKeyboardButton("Yearly", S10nsPeriod(BillingPeriodUnit.Year, PageNumber(0))),
+            InlineKeyboardButtons.url("Buy me a coffee ☕", "https://buymeacoff.ee/johnspade")
+          )
         )
-      ))
+      )
     }
   }
 
   it should "generate a message with the 'Weekly' button if a 'yearly' period is selected" in {
-    val page = s10nsListMessageService.createSubscriptionsPage(
-      List(s10n1),
-      PageNumber(0),
-      CurrencyUnit.EUR,
-      BillingPeriodUnit.Year
-    )
+    val page = s10nsListMessageService
+      .createSubscriptionsPage(
+        List(s10n1),
+        PageNumber(0),
+        CurrencyUnit.EUR,
+        BillingPeriodUnit.Year
+      )
       .unsafeRunSync()
     page.text shouldBe
       s"""|Yearly: 143.67 €
           |
           |1. Netflix – ≈143.67 € <b>[${daysUntilNextPayment}d]</b>""".stripMargin
     page.markup.value shouldMatchTo {
-      InlineKeyboardMarkup(List(
-        List(inlineKeyboardButton("1", S10n(SubscriptionId(1L), PageNumber(0)))),
-        List(),
+      InlineKeyboardMarkup(
         List(
-          inlineKeyboardButton("Weekly", S10nsPeriod(BillingPeriodUnit.Week, PageNumber(0))),
-          InlineKeyboardButtons.url("Buy me a coffee ☕", "https://buymeacoff.ee/johnspade")
+          List(inlineKeyboardButton("1", S10n(SubscriptionId(1L), PageNumber(0)))),
+          List(),
+          List(
+            inlineKeyboardButton("Weekly", S10nsPeriod(BillingPeriodUnit.Week, PageNumber(0))),
+            InlineKeyboardButtons.url("Buy me a coffee ☕", "https://buymeacoff.ee/johnspade")
+          )
         )
-      ))
+      )
     }
   }
 
   it should "generate a message with the 'Monthly' button if a 'Weekly' period is selected" in {
-    val page = s10nsListMessageService.createSubscriptionsPage(
-      List(s10n1),
-      PageNumber(0),
-      CurrencyUnit.EUR,
-      BillingPeriodUnit.Week
-    )
+    val page = s10nsListMessageService
+      .createSubscriptionsPage(
+        List(s10n1),
+        PageNumber(0),
+        CurrencyUnit.EUR,
+        BillingPeriodUnit.Week
+      )
       .unsafeRunSync()
     page.text shouldBe
       s"""|Weekly: 2.75 €
           |
           |1. Netflix – ≈2.75 € <b>[${daysUntilNextPayment}d]</b>""".stripMargin
     page.markup.value shouldMatchTo {
-      InlineKeyboardMarkup(List(
-        List(inlineKeyboardButton("1", S10n(SubscriptionId(1L), PageNumber(0)))),
-        List(),
+      InlineKeyboardMarkup(
         List(
-          inlineKeyboardButton("Monthly", S10nsPeriod(BillingPeriodUnit.Month, PageNumber(0))),
-          InlineKeyboardButtons.url("Buy me a coffee ☕", "https://buymeacoff.ee/johnspade")
+          List(inlineKeyboardButton("1", S10n(SubscriptionId(1L), PageNumber(0)))),
+          List(),
+          List(
+            inlineKeyboardButton("Monthly", S10nsPeriod(BillingPeriodUnit.Month, PageNumber(0))),
+            InlineKeyboardButtons.url("Buy me a coffee ☕", "https://buymeacoff.ee/johnspade")
+          )
         )
-      ))
+      )
     }
   }
-
 
   behavior of "createSubscriptionMessage"
 
   it should "generate a message with subscription's info" in {
-    val page = PageNumber(0)
+    val page    = PageNumber(0)
     val message = s10nsListMessageService.createSubscriptionMessage(CurrencyUnit.EUR, s10n1, page).unsafeRunSync()
     val expectedNextPayment = firstPaymentDate.plusMonths(2)
     message.text shouldBe
@@ -241,7 +265,8 @@ class S10nsListMessageServiceSpec extends AnyFlatSpec with Matchers with OptionV
       None
     )
     val page = PageNumber(0)
-    val message = s10nsListMessageService.createSubscriptionMessage(CurrencyUnit.EUR, subscription, page).unsafeRunSync()
+    val message =
+      s10nsListMessageService.createSubscriptionMessage(CurrencyUnit.EUR, subscription, page).unsafeRunSync()
     message.text shouldBe
       s"""|*s10n*
           |
@@ -262,7 +287,8 @@ class S10nsListMessageServiceSpec extends AnyFlatSpec with Matchers with OptionV
       firstPaymentDate.some
     )
     val page = PageNumber(0)
-    val message = s10nsListMessageService.createSubscriptionMessage(CurrencyUnit.EUR, subscription, page).unsafeRunSync()
+    val message =
+      s10nsListMessageService.createSubscriptionMessage(CurrencyUnit.EUR, subscription, page).unsafeRunSync()
     message.text shouldBe
       s"""|*s10n*
           |
@@ -279,15 +305,17 @@ class S10nsListMessageServiceSpec extends AnyFlatSpec with Matchers with OptionV
 
     val markup = s10nsListMessageService.createEditS10nMarkup(s10n1, PageNumber(0))
     markup shouldMatchTo {
-      InlineKeyboardMarkups.singleColumn(List(
-        inlineKeyboardButton("Name", EditS10nName(id)),
-        inlineKeyboardButton("Amount", EditS10nAmount(id)),
-        inlineKeyboardButton("Currency/amount", EditS10nCurrency(id)),
-        inlineKeyboardButton("Recurring/one time", EditS10nOneTime(id)),
-        inlineKeyboardButton("Billing period", EditS10nBillingPeriod(id)),
-        inlineKeyboardButton("First payment date", EditS10nFirstPaymentDate(id)),
-        inlineKeyboardButton("Back", S10n(id, PageNumber(0)))
-      ))
+      InlineKeyboardMarkups.singleColumn(
+        List(
+          inlineKeyboardButton("Name", EditS10nName(id)),
+          inlineKeyboardButton("Amount", EditS10nAmount(id)),
+          inlineKeyboardButton("Currency/amount", EditS10nCurrency(id)),
+          inlineKeyboardButton("Recurring/one time", EditS10nOneTime(id)),
+          inlineKeyboardButton("Billing period", EditS10nBillingPeriod(id)),
+          inlineKeyboardButton("First payment date", EditS10nFirstPaymentDate(id)),
+          inlineKeyboardButton("Back", S10n(id, PageNumber(0)))
+        )
+      )
     }
   }
 
@@ -307,15 +335,17 @@ class S10nsListMessageServiceSpec extends AnyFlatSpec with Matchers with OptionV
 
     val markup = s10nsListMessageService.createEditS10nMarkup(subscription, PageNumber(0))
     markup shouldMatchTo {
-      InlineKeyboardMarkup(List(
-        List(inlineKeyboardButton("Name", EditS10nName(id))),
-        List(inlineKeyboardButton("Amount", EditS10nAmount(id))),
-        List(inlineKeyboardButton("Currency/amount", EditS10nCurrency(id))),
-        List(inlineKeyboardButton("Recurring/one time", EditS10nOneTime(id))),
-        List(),
-        List(inlineKeyboardButton("First payment date", EditS10nFirstPaymentDate(id))),
-        List(inlineKeyboardButton("Back", S10n(id, PageNumber(0))))
-      ))
+      InlineKeyboardMarkup(
+        List(
+          List(inlineKeyboardButton("Name", EditS10nName(id))),
+          List(inlineKeyboardButton("Amount", EditS10nAmount(id))),
+          List(inlineKeyboardButton("Currency/amount", EditS10nCurrency(id))),
+          List(inlineKeyboardButton("Recurring/one time", EditS10nOneTime(id))),
+          List(),
+          List(inlineKeyboardButton("First payment date", EditS10nFirstPaymentDate(id))),
+          List(inlineKeyboardButton("Back", S10n(id, PageNumber(0))))
+        )
+      )
     }
   }
 
@@ -334,11 +364,13 @@ class S10nsListMessageServiceSpec extends AnyFlatSpec with Matchers with OptionV
 
   private def checkS10nMessageMarkup(markup: Option[KeyboardMarkup], s10nId: SubscriptionId, page: PageNumber): Unit =
     markup.value shouldMatchTo {
-      InlineKeyboardMarkups.singleColumn(List(
-        inlineKeyboardButton("Edit", EditS10n(s10nId, page)),
-        inlineKeyboardButton("Enable notifications", Notify(s10nId, enable = true, page)),
-        inlineKeyboardButton("Remove", RemoveS10n(s10nId, page)),
-        inlineKeyboardButton("List", S10ns(page))
-      ))
+      InlineKeyboardMarkups.singleColumn(
+        List(
+          inlineKeyboardButton("Edit", EditS10n(s10nId, page)),
+          inlineKeyboardButton("Enable notifications", Notify(s10nId, enable = true, page)),
+          inlineKeyboardButton("Remove", RemoveS10n(s10nId, page)),
+          inlineKeyboardButton("List", S10ns(page))
+        )
+      )
     }
 }

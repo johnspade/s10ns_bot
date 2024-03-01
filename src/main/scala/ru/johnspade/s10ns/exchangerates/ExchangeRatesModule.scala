@@ -14,17 +14,17 @@ import sttp.client3.asynchttpclient.cats.AsyncHttpClientCatsBackend
 import tofu.logging.Logs
 
 class ExchangeRatesModule[F[_], D[_]] private (
-  val fixerApi: FixerApi[F],
-  val exchangeRatesRepository: ExchangeRatesRepository[D],
-  val exchangeRatesRefreshTimestampRepository: ExchangeRatesRefreshTimestampRepository[D],
-  val exchangeRatesCache: ExchangeRatesCache[F],
-  val exchangeRatesService: ExchangeRatesService[F],
-  val exchangeRatesJobService: ExchangeRatesJobService[F]
+    val fixerApi: FixerApi[F],
+    val exchangeRatesRepository: ExchangeRatesRepository[D],
+    val exchangeRatesRefreshTimestampRepository: ExchangeRatesRefreshTimestampRepository[D],
+    val exchangeRatesCache: ExchangeRatesCache[F],
+    val exchangeRatesService: ExchangeRatesService[F],
+    val exchangeRatesJobService: ExchangeRatesJobService[F]
 )
 
 object ExchangeRatesModule {
   def make[F[_]: Concurrent: Temporal: Async](
-    fixerToken: String
+      fixerToken: String
   )(implicit transact: ConnectionIO ~> F, logs: Logs[F, F]): F[ExchangeRatesModule[F, ConnectionIO]] = {
     val exchangeRatesRepo: ExchangeRatesRepository[ConnectionIO] = new DoobieExchangeRatesRepository
     val exchangeRatesRefreshTimestampRepo: ExchangeRatesRefreshTimestampRepository[ConnectionIO] =
@@ -33,7 +33,7 @@ object ExchangeRatesModule {
     for {
       sttpBackend <- AsyncHttpClientCatsBackend[F]()
       fixerApi = new FixerApiInterpreter[F](fixerToken, sttpBackend)
-      exchangeRates <- transact(exchangeRatesRepo.get())
+      exchangeRates      <- transact(exchangeRatesRepo.get())
       exchangeRatesCache <- ExchangeRatesCache.create[F](exchangeRates)
       exchangeRatesService <- DefaultExchangeRatesService(
         fixerApi,

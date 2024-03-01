@@ -16,31 +16,34 @@ import ru.johnspade.s10ns.bot.Errors
 import ru.johnspade.s10ns.user.User
 import ru.johnspade.s10ns.user.UserRepository
 
-class DefaultDialogEngine[F[_] : Sync, D[_] : Applicative](
-  private val userRepo: UserRepository[D]
-)(private implicit val transact: D ~> F) extends TransactionalDialogEngine[F, D] {
+class DefaultDialogEngine[F[_]: Sync, D[_]: Applicative](
+    private val userRepo: UserRepository[D]
+)(private implicit val transact: D ~> F)
+    extends TransactionalDialogEngine[F, D] {
   override def startDialog(user: User, dialog: Dialog, message: ReplyMessage): F[List[ReplyMessage]] = {
     if (user.dialog.isEmpty) {
-      val userWithDialog = user.copy(dialog = dialog.some)
+      val userWithDialog      = user.copy(dialog = dialog.some)
       val replyKeyboardRemove = ReplyKeyboardRemove(removeKeyboard = true).some
       val reply = message.markup match {
-        case Some(replyKeyboard: ReplyKeyboardMarkup) => List(
-          message.copy(markup = replyKeyboard.some)
-        )
-        case Some(inlineKeyboard: InlineKeyboardMarkup) => List(
-          message.copy(markup = replyKeyboardRemove),
-          ReplyMessage(
-            text = "\uD83D\uDD18/☑️",
-            markup = inlineKeyboard.some
+        case Some(replyKeyboard: ReplyKeyboardMarkup) =>
+          List(
+            message.copy(markup = replyKeyboard.some)
           )
-        )
-        case _ => List(
-          message.copy(markup = replyKeyboardRemove)
-        )
+        case Some(inlineKeyboard: InlineKeyboardMarkup) =>
+          List(
+            message.copy(markup = replyKeyboardRemove),
+            ReplyMessage(
+              text = "\uD83D\uDD18/☑️",
+              markup = inlineKeyboard.some
+            )
+          )
+        case _ =>
+          List(
+            message.copy(markup = replyKeyboardRemove)
+          )
       }
       transact(userRepo.createOrUpdate(userWithDialog)).map(_ => reply)
-    }
-    else
+    } else
       Monad[F].pure(List(ReplyMessage(Errors.ActiveDialogNotFinished)))
   }
 

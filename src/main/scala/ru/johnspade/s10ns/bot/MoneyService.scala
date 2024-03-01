@@ -15,7 +15,11 @@ import ru.johnspade.s10ns.subscription.BillingPeriod
 import ru.johnspade.s10ns.subscription.Subscription
 
 class MoneyService[F[_]: Monad](private val exchangeRatesStorage: ExchangeRatesStorage[F]) {
-  def sum(subscriptions: List[Subscription], defaultCurrency: CurrencyUnit, unit: ChronoUnit = ChronoUnit.MONTHS): F[Money] =
+  def sum(
+      subscriptions: List[Subscription],
+      defaultCurrency: CurrencyUnit,
+      unit: ChronoUnit = ChronoUnit.MONTHS
+  ): F[Money] =
     subscriptions
       .traverse { s10n =>
         s10n.billingPeriod.flatTraverse { period =>
@@ -35,7 +39,7 @@ class MoneyService[F[_]: Monad](private val exchangeRatesStorage: ExchangeRatesS
   def convert(amount: Money, currency: CurrencyUnit): F[Option[Money]] = {
     def calcRateAndConvert(moneyRate: BigDecimal, targetRate: BigDecimal) = {
       val scale = max(moneyRate.scale, targetRate.scale)
-      val rate = targetRate.bigDecimal.divide(moneyRate.bigDecimal, scale, RoundingMode.HALF_EVEN)
+      val rate  = targetRate.bigDecimal.divide(moneyRate.bigDecimal, scale, RoundingMode.HALF_EVEN)
       amount.convertedTo(currency, rate, RoundingMode.HALF_EVEN).some
     }
 
@@ -43,7 +47,7 @@ class MoneyService[F[_]: Monad](private val exchangeRatesStorage: ExchangeRatesS
       .map { rates =>
         (rates.get(amount.getCurrencyUnit.getCode), rates.get(currency.getCode)) match {
           case (Some(moneyRate), Some(currencyRate)) => calcRateAndConvert(moneyRate, currencyRate)
-          case _ => Option.empty[Money]
+          case _                                     => Option.empty[Money]
         }
       }
   }

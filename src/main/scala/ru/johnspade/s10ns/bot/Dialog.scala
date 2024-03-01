@@ -28,9 +28,9 @@ sealed abstract class Dialog { self =>
   def state: S
   def finished: S
   def transition(event: E): Dialog {
-      type S = self.S
-      type E = self.E
-    }
+    type S = self.S
+    type E = self.E
+  }
 }
 
 object Dialog {
@@ -40,8 +40,8 @@ object Dialog {
 }
 
 final case class CreateS10nDialog(
-  override val state: CreateS10nDialogState,
-  draft: SubscriptionDraft
+    override val state: CreateS10nDialogState,
+    draft: SubscriptionDraft
 ) extends Dialog {
   type S = CreateS10nDialogState
   type E = CreateS10nDialogEvent
@@ -52,7 +52,7 @@ final case class CreateS10nDialog(
 }
 
 final case class SettingsDialog(
-  override val state: SettingsDialogState
+    override val state: SettingsDialogState
 ) extends Dialog {
   type S = SettingsDialogState
   type E = SettingsDialogEvent
@@ -78,9 +78,10 @@ object EditS10nDialog {
 }
 
 final case class EditS10nNameDialog(
-  override val state: EditS10nNameDialogState,
-  override val draft: Subscription
-) extends Dialog with EditS10nDialog {
+    override val state: EditS10nNameDialogState,
+    override val draft: Subscription
+) extends Dialog
+    with EditS10nDialog {
   type S = EditS10nNameDialogState
   type E = EditS10nNameDialogEvent
 
@@ -90,8 +91,8 @@ final case class EditS10nNameDialog(
 }
 
 final case class EditS10nAmountDialog(
-  override val state: EditS10nAmountDialogState,
-  override val draft: Subscription
+    override val state: EditS10nAmountDialogState,
+    override val draft: Subscription
 ) extends EditS10nDialog {
   override type S = EditS10nAmountDialogState
   override type E = EditS10nAmountDialogEvent
@@ -102,9 +103,10 @@ final case class EditS10nAmountDialog(
 }
 
 final case class EditS10nCurrencyDialog(
-  override val state: EditS10nCurrencyDialogState,
-  override val draft: Subscription
-) extends Dialog with EditS10nDialog {
+    override val state: EditS10nCurrencyDialogState,
+    override val draft: Subscription
+) extends Dialog
+    with EditS10nDialog {
   override type S = EditS10nCurrencyDialogState
   override type E = EditS10nCurrencyDialogEvent
 
@@ -114,9 +116,10 @@ final case class EditS10nCurrencyDialog(
 }
 
 final case class EditS10nOneTimeDialog(
-  override val state: EditS10nOneTimeDialogState,
-  override val draft: Subscription
-) extends Dialog with EditS10nDialog {
+    override val state: EditS10nOneTimeDialogState,
+    override val draft: Subscription
+) extends Dialog
+    with EditS10nDialog {
   type S = EditS10nOneTimeDialogState
   type E = EditS10nOneTimeDialogEvent
 
@@ -126,9 +129,10 @@ final case class EditS10nOneTimeDialog(
 }
 
 final case class EditS10nBillingPeriodDialog(
-  override val state: EditS10nBillingPeriodDialogState,
-  override val draft: Subscription
-) extends Dialog with EditS10nDialog {
+    override val state: EditS10nBillingPeriodDialogState,
+    override val draft: Subscription
+) extends Dialog
+    with EditS10nDialog {
   type S = EditS10nBillingPeriodDialogState
   type E = EditS10nBillingPeriodEvent
 
@@ -138,8 +142,8 @@ final case class EditS10nBillingPeriodDialog(
 }
 
 final case class EditS10nFirstPaymentDateDialog(
-  override val state: EditS10nFirstPaymentDateDialogState,
-  override val draft: Subscription
+    override val state: EditS10nFirstPaymentDateDialogState,
+    override val draft: Subscription
 ) extends EditS10nDialog {
   override type S = EditS10nFirstPaymentDateDialogState
   override type E = EditS10nFirstPaymentDateDialogEvent

@@ -65,74 +65,85 @@ import ru.johnspade.s10ns.subscription.service.EditS10nOneTimeDialogService
 import ru.johnspade.s10ns.user.User
 
 class S10nController[F[_]: Logging: Temporal: Defer](
-  private val createS10nDialogService: CreateS10nDialogService[F],
-  private val editS10n1stPaymentDateDialogService: EditS10n1stPaymentDateDialogService[F],
-  private val editS10nNameDialogService: EditS10nNameDialogService[F],
-  private val editS10nAmountDialogService: EditS10nAmountDialogService[F],
-  private val editS10nBillingPeriodDialogService: EditS10nBillingPeriodDialogService[F],
-  private val editS10nCurrencyDialogService: EditS10nCurrencyDialogService[F],
-  private val editS10nOneTimeDialogService: EditS10nOneTimeDialogService[F]
-)(implicit bot: Api[F]) extends CallbackQueryUserController[F] {
+    private val createS10nDialogService: CreateS10nDialogService[F],
+    private val editS10n1stPaymentDateDialogService: EditS10n1stPaymentDateDialogService[F],
+    private val editS10nNameDialogService: EditS10nNameDialogService[F],
+    private val editS10nAmountDialogService: EditS10nAmountDialogService[F],
+    private val editS10nBillingPeriodDialogService: EditS10nBillingPeriodDialogService[F],
+    private val editS10nCurrencyDialogService: EditS10nCurrencyDialogService[F],
+    private val editS10nOneTimeDialogService: EditS10nOneTimeDialogService[F]
+)(implicit bot: Api[F])
+    extends CallbackQueryUserController[F] {
 
   override val routes: CbDataUserRoutes[F] = CallbackQueryContextRoutes.of {
     case (data: PeriodUnit) in cb as user =>
-      user.dialog.collect {
-        case d: CreateS10nDialog =>
-          clearMarkupAndSave(cb)(_.onBillingPeriodUnitCb(data, user, d)) *> showSelected(cb, data)
-        case d: EditS10nOneTimeDialog =>
-          clearMarkup(cb) *> editS10nOneTimeDialogService.saveBillingPeriodUnit(data, user, d)
-            .flatMap(handleCallback(cb, _))
-        case d: EditS10nBillingPeriodDialog =>
-          clearMarkup(cb) *> editS10nBillingPeriodDialogService.saveBillingPeriodUnit(data, user, d)
-            .flatMap(handleCallback(cb, _))
-      }
+      user.dialog
+        .collect {
+          case d: CreateS10nDialog =>
+            clearMarkupAndSave(cb)(_.onBillingPeriodUnitCb(data, user, d)) *> showSelected(cb, data)
+          case d: EditS10nOneTimeDialog =>
+            clearMarkup(cb) *> editS10nOneTimeDialogService
+              .saveBillingPeriodUnit(data, user, d)
+              .flatMap(handleCallback(cb, _))
+          case d: EditS10nBillingPeriodDialog =>
+            clearMarkup(cb) *> editS10nBillingPeriodDialogService
+              .saveBillingPeriodUnit(data, user, d)
+              .flatMap(handleCallback(cb, _))
+        }
         .getOrElse(ackDefaultError(cb))
 
     case SkipIsOneTime in cb as user =>
-      user.dialog.collect {
-        case d: CreateS10nDialog =>
-          clearMarkupAndSave(cb)(_.onSkipIsOneTimeCb(user, d)) *> showSelected(cb, SkipIsOneTime)
-        case d: EditS10nOneTimeDialog =>
-          clearMarkup(cb) *> editS10nOneTimeDialogService.removeIsOneTime(user, d).flatMap(handleCallback(cb, _))
-      }
+      user.dialog
+        .collect {
+          case d: CreateS10nDialog =>
+            clearMarkupAndSave(cb)(_.onSkipIsOneTimeCb(user, d)) *> showSelected(cb, SkipIsOneTime)
+          case d: EditS10nOneTimeDialog =>
+            clearMarkup(cb) *> editS10nOneTimeDialogService.removeIsOneTime(user, d).flatMap(handleCallback(cb, _))
+        }
         .getOrElse(ackDefaultError(cb))
 
     case (data: OneTime) in cb as user =>
-      user.dialog.collect {
-        case d: CreateS10nDialog =>
-          clearMarkupAndSave(cb)(_.onIsOneTimeCallback(data, user, d)) *> showSelected(cb, data)
-        case d: EditS10nOneTimeDialog =>
-          clearMarkup(cb) *> editS10nOneTimeDialogService.saveIsOneTime(data, user, d).flatMap(handleCallback(cb, _))
-      }
+      user.dialog
+        .collect {
+          case d: CreateS10nDialog =>
+            clearMarkupAndSave(cb)(_.onIsOneTimeCallback(data, user, d)) *> showSelected(cb, data)
+          case d: EditS10nOneTimeDialog =>
+            clearMarkup(cb) *> editS10nOneTimeDialogService.saveIsOneTime(data, user, d).flatMap(handleCallback(cb, _))
+        }
         .getOrElse(ackDefaultError(cb))
 
     case EveryMonth in cb as user =>
-      user.dialog.collect {
-        case d: CreateS10nDialog =>
-          clearMarkupAndSave(cb)(_.onEveryMonthCb(user, d)) *> showSelected(cb, EveryMonth)
-        case d: EditS10nOneTimeDialog =>
-          clearMarkup(cb) *> editS10nOneTimeDialogService.saveEveryMonth(user, d).flatMap(handleCallback(cb, _))
-      }
+      user.dialog
+        .collect {
+          case d: CreateS10nDialog =>
+            clearMarkupAndSave(cb)(_.onEveryMonthCb(user, d)) *> showSelected(cb, EveryMonth)
+          case d: EditS10nOneTimeDialog =>
+            clearMarkup(cb) *> editS10nOneTimeDialogService.saveEveryMonth(user, d).flatMap(handleCallback(cb, _))
+        }
         .getOrElse(ackDefaultError(cb))
 
     case DropFirstPayment in cb as user =>
-      user.dialog.collect {
-        case d: CreateS10nDialog =>
-          clearMarkupAndSave(cb)(_.onSkipFirstPaymentDateCb(user, d)) *> showSelected(cb, DropFirstPayment)
-        case d: EditS10nFirstPaymentDateDialog =>
-          clearMarkup(cb) *> editS10n1stPaymentDateDialogService.removeFirstPaymentDate(user, d)
-            .flatMap(handleCallback(cb, _))
-      }
+      user.dialog
+        .collect {
+          case d: CreateS10nDialog =>
+            clearMarkupAndSave(cb)(_.onSkipFirstPaymentDateCb(user, d)) *> showSelected(cb, DropFirstPayment)
+          case d: EditS10nFirstPaymentDateDialog =>
+            clearMarkup(cb) *> editS10n1stPaymentDateDialogService
+              .removeFirstPaymentDate(user, d)
+              .flatMap(handleCallback(cb, _))
+        }
         .getOrElse(ackDefaultError(cb))
 
     case (data: FirstPayment) in cb as user =>
-      user.dialog.collect {
-        case d: CreateS10nDialog =>
-          clearMarkupAndSave(cb)(_.onFirstPaymentDateCb(data, user, d)) *> showSelected(cb, data)
-        case d: EditS10nFirstPaymentDateDialog =>
-          clearMarkup(cb) *> editS10n1stPaymentDateDialogService.saveFirstPaymentDate(data, user, d)
-            .flatMap(handleCallback(cb, _))
-      }
+      user.dialog
+        .collect {
+          case d: CreateS10nDialog =>
+            clearMarkupAndSave(cb)(_.onFirstPaymentDateCb(data, user, d)) *> showSelected(cb, data)
+          case d: EditS10nFirstPaymentDateDialog =>
+            clearMarkup(cb) *> editS10n1stPaymentDateDialogService
+              .saveFirstPaymentDate(data, user, d)
+              .flatMap(handleCallback(cb, _))
+        }
         .getOrElse(ackDefaultError(cb))
 
     case (data: EditS10nName) in cb as user =>
@@ -160,8 +171,7 @@ class S10nController[F[_]: Logging: Temporal: Defer](
     createS10nDialogService.onCreateWithDefaultCurrencyCommand(user)
 
   def message(user: User, dialog: CreateS10nDialog, message: Message): F[List[ReplyMessage]] =
-    createS10nDialogService.saveDraft
-      .lift
+    createS10nDialogService.saveDraft.lift
       .apply(user, dialog, message.text)
       .map(_.map(toReplyMessages))
       .getOrElse(Monad[F].pure(singleTextMessage(Errors.UseInlineKeyboard)))
@@ -189,14 +199,22 @@ class S10nController[F[_]: Logging: Temporal: Defer](
       case _ => useInlineKeyboardError
     }
 
-  def s10nBillingPeriodDurationMessage(user: User, dialog: EditS10nOneTimeDialog, message: Message): F[List[ReplyMessage]] =
+  def s10nBillingPeriodDurationMessage(
+      user: User,
+      dialog: EditS10nOneTimeDialog,
+      message: Message
+  ): F[List[ReplyMessage]] =
     dialog.state match {
       case EditS10nOneTimeDialogState.BillingPeriodDuration =>
         editS10nOneTimeDialogService.saveBillingPeriodDuration(user, dialog, message.text).map(toReplyMessages)
       case _ => useInlineKeyboardError
     }
 
-  def s10nBillingPeriodDurationMessage(user: User, dialog: EditS10nBillingPeriodDialog, message: Message): F[List[ReplyMessage]] =
+  def s10nBillingPeriodDurationMessage(
+      user: User,
+      dialog: EditS10nBillingPeriodDialog,
+      message: Message
+  ): F[List[ReplyMessage]] =
     dialog.state match {
       case EditS10nBillingPeriodDialogState.BillingPeriodDuration =>
         editS10nBillingPeriodDialogService.saveBillingPeriodDuration(user, dialog, message.text).map(toReplyMessages)
@@ -213,25 +231,28 @@ class S10nController[F[_]: Logging: Temporal: Defer](
     clearMarkup(cb) *> f(createS10nDialogService).flatMap(handleCallback(cb, _))
 
   private def showSelected(cb: CallbackQuery, data: CbData): F[Unit] =
-    Methods.editMessageText(
-      cb.message.map(msg => ChatIntId(msg.chat.id)),
-      cb.message.map(_.messageId),
-      text = cb.message.flatMap(_.text).map(t => s"$t <em>${data.print}</em>").orEmpty,
-      parseMode = Html.some
-    ).exec.void
+    Methods
+      .editMessageText(
+        cb.message.map(msg => ChatIntId(msg.chat.id)),
+        cb.message.map(_.messageId),
+        text = cb.message.flatMap(_.text).map(t => s"$t <em>${data.print}</em>").orEmpty,
+        parseMode = Html.some
+      )
+      .exec
+      .void
 
   private val useInlineKeyboardError = Monad[F].pure(singleTextMessage(Errors.UseInlineKeyboard))
 }
 
 object S10nController {
   def apply[F[_]: Temporal: Defer](
-    createS10nDialogService: CreateS10nDialogService[F],
-    editS10n1stPaymentDateDialogService: EditS10n1stPaymentDateDialogService[F],
-    editS10nNameDialogService: EditS10nNameDialogService[F],
-    editS10nAmountDialogService: EditS10nAmountDialogService[F],
-    editS10nBillingPeriodDialogService: EditS10nBillingPeriodDialogService[F],
-    editS10nCurrencyDialogService: EditS10nCurrencyDialogService[F],
-    editS10nOneTimeDialogService: EditS10nOneTimeDialogService[F]
+      createS10nDialogService: CreateS10nDialogService[F],
+      editS10n1stPaymentDateDialogService: EditS10n1stPaymentDateDialogService[F],
+      editS10nNameDialogService: EditS10nNameDialogService[F],
+      editS10nAmountDialogService: EditS10nAmountDialogService[F],
+      editS10nBillingPeriodDialogService: EditS10nBillingPeriodDialogService[F],
+      editS10nCurrencyDialogService: EditS10nCurrencyDialogService[F],
+      editS10nOneTimeDialogService: EditS10nOneTimeDialogService[F]
   )(implicit bot: Api[F], logs: Logs[F, F]): F[S10nController[F]] =
     logs.forService[S10nController[F]].map { implicit l =>
       new S10nController[F](

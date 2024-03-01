@@ -22,8 +22,8 @@ import ru.johnspade.s10ns.bot.engine.TelegramOps.ackCb
 import ru.johnspade.s10ns.user.User
 
 package object s10ns {
-  def repeat[F[_]: Monad: Temporal: Logging](f: F[Unit], duration: FiniteDuration)(
-    implicit monadError: MonadError[F, Throwable]
+  def repeat[F[_]: Monad: Temporal: Logging](f: F[Unit], duration: FiniteDuration)(implicit
+      monadError: MonadError[F, Throwable]
   ): F[Unit] = {
     val FWithErrorHandling = f.handleErrorWith(e => Logging[F].errorCause(e.getMessage, e))
 
@@ -37,5 +37,6 @@ package object s10ns {
 
   type CbDataUserRoutes[F[_]] = CallbackQueryContextRoutes[CbData, User, Unit, F]
 
-  def ackDefaultError[F[_]](cb: CallbackQuery)(implicit bot: Api[F], F: Functor[F]): F[Unit] = ackCb(cb, Errors.Default.some)
+  def ackDefaultError[F[_]](cb: CallbackQuery)(implicit bot: Api[F], F: Functor[F]): F[Unit] =
+    ackCb(cb, Errors.Default.some)
 }

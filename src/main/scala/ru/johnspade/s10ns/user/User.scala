@@ -6,9 +6,9 @@ import ru.johnspade.s10ns.bot.Dialog
 import ru.johnspade.s10ns.user.tags._
 
 case class User(
-  id: UserId,
-  firstName: FirstName,
-  chatId: Option[ChatId],
-  defaultCurrency: CurrencyUnit = CurrencyUnit.EUR,
-  dialog: Option[Dialog] = None
+    id: UserId,
+    firstName: FirstName,
+    chatId: Option[ChatId],
+    defaultCurrency: CurrencyUnit = CurrencyUnit.EUR,
+    dialog: Option[Dialog] = None
 )

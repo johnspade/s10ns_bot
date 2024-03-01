@@ -11,16 +11,17 @@ import tofu.logging.Logs
 import ru.johnspade.s10ns.bot.BotModule
 import ru.johnspade.s10ns.bot.engine.DefaultMsgService
 
-final class SettingsModule[F[_]] private(
-  val settingsController: SettingsController[F]
+final class SettingsModule[F[_]] private (
+    val settingsController: SettingsController[F]
 )
 
 object SettingsModule {
-  def make[F[_]: Temporal: Defer](botModule: BotModule[F, ConnectionIO])(
-    implicit bot: Api[F], logs: Logs[F, F]
+  def make[F[_]: Temporal: Defer](botModule: BotModule[F, ConnectionIO])(implicit
+      bot: Api[F],
+      logs: Logs[F, F]
   ): F[SettingsModule[F]] = {
     val settingsMsgService = new DefaultMsgService[F, SettingsDialogState]
-    val settingsService = new DefaultSettingsService[F](botModule.dialogEngine, settingsMsgService)
+    val settingsService    = new DefaultSettingsService[F](botModule.dialogEngine, settingsMsgService)
     SettingsController(settingsService).map { settingsController =>
       new SettingsModule[F](
         settingsController = settingsController

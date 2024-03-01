@@ -5,8 +5,8 @@ import cats.effect.Sync
 import telegramium.bots.high.Api
 
 final class CalendarModule[F[_]] private (
-  val calendarService: CalendarService,
-  val calendarController: CalendarController[F]
+    val calendarService: CalendarService,
+    val calendarController: CalendarController[F]
 )
 
 object CalendarModule {

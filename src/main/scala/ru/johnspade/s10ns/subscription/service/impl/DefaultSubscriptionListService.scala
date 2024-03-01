@@ -29,9 +29,10 @@ import ru.johnspade.s10ns.user.User
 import ru.johnspade.s10ns.user.tags._
 
 class DefaultSubscriptionListService[F[_]: Monad, D[_]: Monad](
-  private val s10nRepo: SubscriptionRepository[D],
-  private val s10nsListMessageService: S10nsListMessageService[F]
-)(private implicit val transact: D ~> F) extends SubscriptionListService[F] {
+    private val s10nRepo: SubscriptionRepository[D],
+    private val s10nsListMessageService: S10nsListMessageService[F]
+)(private implicit val transact: D ~> F)
+    extends SubscriptionListService[F] {
   override def onSubscriptionsCb(user: User, cb: CallbackQuery, data: S10ns): F[ReplyMessage] =
     for {
       s10ns <- transact(s10nRepo.getByUserId(user.id))
@@ -46,7 +47,7 @@ class DefaultSubscriptionListService[F[_]: Monad, D[_]: Monad](
 
   override def onRemoveSubscriptionCb(user: User, cb: CallbackQuery, data: RemoveS10n): F[ReplyMessage] = {
     for {
-      _ <- transact(s10nRepo.remove(data.subscriptionId))
+      _     <- transact(s10nRepo.remove(data.subscriptionId))
       s10ns <- transact(s10nRepo.getByUserId(user.id))
       reply <- s10nsListMessageService.createSubscriptionsPage(s10ns, data.page, user.defaultCurrency)
     } yield reply
@@ -54,15 +55,16 @@ class DefaultSubscriptionListService[F[_]: Monad, D[_]: Monad](
 
   override def onSubcriptionCb(user: User, cb: CallbackQuery, data: S10n): F[Either[String, ReplyMessage]] = {
     def checkUserAndGetMessage(subscription: Subscription) =
-      Either.cond(
-        subscription.userId == user.id,
-        s10nsListMessageService.createSubscriptionMessage(user.defaultCurrency, subscription, data.page),
-        Errors.AccessDenied
-      )
+      Either
+        .cond(
+          subscription.userId == user.id,
+          s10nsListMessageService.createSubscriptionMessage(user.defaultCurrency, subscription, data.page),
+          Errors.AccessDenied
+        )
         .sequence
 
     for {
-      s10nOpt <- transact(s10nRepo.getById(data.subscriptionId))
+      s10nOpt  <- transact(s10nRepo.getById(data.subscriptionId))
       replyOpt <- s10nOpt.traverse(checkUserAndGetMessage)
     } yield replyOpt.toRight[String](Errors.NotFound).flatten
   }
@@ -93,15 +95,15 @@ class DefaultSubscriptionListService[F[_]: Monad, D[_]: Monad](
     val updateD = (for {
       s10n <- EitherT.fromOptionF(s10nRepo.getById(data.subscriptionId), Errors.NotFound)
       s10nOpt <- EitherT {
-        Either.cond(
-          s10n.userId == user.id,
-          s10nRepo.update(s10n.copy(sendNotifications = data.enable)),
-          Errors.AccessDenied
-        )
+        Either
+          .cond(
+            s10n.userId == user.id,
+            s10nRepo.update(s10n.copy(sendNotifications = data.enable)),
+            Errors.AccessDenied
+          )
           .sequence
       }
-    } yield s10nOpt)
-      .value
+    } yield s10nOpt).value
 
     (for {
       s10nOpt <- EitherT(transact(updateD))
@@ -109,7 +111,6 @@ class DefaultSubscriptionListService[F[_]: Monad, D[_]: Monad](
         s10nOpt.map(s10nsListMessageService.createS10nMessageMarkup(_, data.page)),
         Errors.NotFound
       )
-    } yield markup)
-      .value
+    } yield markup).value
   }
 }

@@ -30,7 +30,11 @@ import ru.johnspade.s10ns.subscription.service.impl.DefaultEditS10nOneTimeDialog
 import ru.johnspade.s10ns.subscription.tags.BillingPeriodDuration
 import ru.johnspade.s10ns.subscription.tags.OneTimeSubscription
 
-class DefaultEditS10nOneTimeDialogServiceSpec extends AnyFlatSpec with EditS10nDialogServiceSpec with Matchers with DiffShouldMatcher {
+class DefaultEditS10nOneTimeDialogServiceSpec
+    extends AnyFlatSpec
+    with EditS10nDialogServiceSpec
+    with Matchers
+    with DiffShouldMatcher {
   private val editS10nOneTimeDialogService = new DefaultEditS10nOneTimeDialogService(
     s10nsListMessageService,
     new DefaultMsgService[IO, EditS10nOneTimeDialogState],
@@ -67,7 +71,9 @@ class DefaultEditS10nOneTimeDialogServiceSpec extends AnyFlatSpec with EditS10nD
     )
     (mockS10nRepo.update _).expects(updatedS10n).returns(updatedS10n.some)
 
-    editS10nOneTimeDialogService.saveIsOneTime(OneTime(OneTimeSubscription(true)), user, dialog).unsafeRunSync() shouldBe
+    editS10nOneTimeDialogService
+      .saveIsOneTime(OneTime(OneTimeSubscription(true)), user, dialog)
+      .unsafeRunSync() shouldBe
       List(
         defaultSavedMessage,
         ReplyMessage(
@@ -92,7 +98,9 @@ class DefaultEditS10nOneTimeDialogServiceSpec extends AnyFlatSpec with EditS10nD
     )
     (mockS10nRepo.update _).expects(updatedS10n).returns(updatedS10n.some)
 
-    editS10nOneTimeDialogService.saveIsOneTime(OneTime(OneTimeSubscription(false)), user, dialog).unsafeRunSync() shouldBe
+    editS10nOneTimeDialogService
+      .saveIsOneTime(OneTime(OneTimeSubscription(false)), user, dialog)
+      .unsafeRunSync() shouldBe
       List(
         defaultSavedMessage,
         ReplyMessage(
@@ -116,7 +124,9 @@ class DefaultEditS10nOneTimeDialogServiceSpec extends AnyFlatSpec with EditS10nD
     (mockUserRepo.createOrUpdate _).expects(updatedUser).returns(updatedUser)
 
     val dialog = EditS10nOneTimeDialog(EditS10nOneTimeDialogState.IsOneTime, s10n)
-    editS10nOneTimeDialogService.saveIsOneTime(OneTime(OneTimeSubscription(false)), user, dialog).unsafeRunSync() shouldBe
+    editS10nOneTimeDialogService
+      .saveIsOneTime(OneTime(OneTimeSubscription(false)), user, dialog)
+      .unsafeRunSync() shouldBe
       List(ReplyMessage("Billing period unit:", Markup.BillingPeriodUnitReplyMarkup.some))
   }
 
@@ -165,20 +175,24 @@ class DefaultEditS10nOneTimeDialogServiceSpec extends AnyFlatSpec with EditS10nD
   }
 
   "saveBillingPeriodUnit" should "ask for a billing period duration" in {
-    val updatedUser = user.copy(dialog = EditS10nOneTimeDialog(
-      EditS10nOneTimeDialogState.BillingPeriodDuration,
-      s10n.copy(
-        oneTime = OneTimeSubscription(false).some,
-        billingPeriod = BillingPeriod(BillingPeriodDuration(1), BillingPeriodUnit.Day).some
-      )
-    ).some)
+    val updatedUser = user.copy(dialog =
+      EditS10nOneTimeDialog(
+        EditS10nOneTimeDialogState.BillingPeriodDuration,
+        s10n.copy(
+          oneTime = OneTimeSubscription(false).some,
+          billingPeriod = BillingPeriod(BillingPeriodDuration(1), BillingPeriodUnit.Day).some
+        )
+      ).some
+    )
     (mockUserRepo.createOrUpdate _).expects(updatedUser).returns(updatedUser)
 
     val dialog = EditS10nOneTimeDialog(
       EditS10nOneTimeDialogState.BillingPeriodUnit,
       s10n.copy(oneTime = OneTimeSubscription(false).some)
     )
-    editS10nOneTimeDialogService.saveBillingPeriodUnit(PeriodUnit(BillingPeriodUnit.Day), user, dialog).unsafeRunSync() shouldBe
+    editS10nOneTimeDialogService
+      .saveBillingPeriodUnit(PeriodUnit(BillingPeriodUnit.Day), user, dialog)
+      .unsafeRunSync() shouldBe
       List(ReplyMessage("Billing period duration (1, 2...):"))
   }
 

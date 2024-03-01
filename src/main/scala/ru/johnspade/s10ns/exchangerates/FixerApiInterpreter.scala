@@ -9,8 +9,9 @@ import io.circe.generic.auto._
 import sttp.client3._
 import sttp.client3.circe._
 
-class FixerApiInterpreter[F[_]](private val token: String, sttpBackend: SttpBackend[F, Any])(implicit monadError: MonadError[F, Throwable])
-  extends FixerApi[F] {
+class FixerApiInterpreter[F[_]](private val token: String, sttpBackend: SttpBackend[F, Any])(implicit
+    monadError: MonadError[F, Throwable]
+) extends FixerApi[F] {
   override def getLatestRates: F[ExchangeRates] = {
     def handleErrors(response: Response[Either[ResponseException[String, Error], ExchangeRates]]) =
       response.body match {
@@ -19,7 +20,8 @@ class FixerApiInterpreter[F[_]](private val token: String, sttpBackend: SttpBack
         case Right(body) => Monad[F].pure(body)
       }
 
-    basicRequest.get(uri"http://data.fixer.io/api/latest?access_key=$token")
+    basicRequest
+      .get(uri"http://data.fixer.io/api/latest?access_key=$token")
       .response(asJson[ExchangeRates])
       .send(sttpBackend)
       .flatMap(handleErrors)

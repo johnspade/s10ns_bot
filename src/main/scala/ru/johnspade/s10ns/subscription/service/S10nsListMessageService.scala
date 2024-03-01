@@ -25,17 +25,17 @@ import ru.johnspade.s10ns.subscription.tags.FirstPaymentDate
 import ru.johnspade.s10ns.subscription.tags.PageNumber
 
 class S10nsListMessageService[F[_]: Monad](
-  private val moneyService: MoneyService[F],
-  private val s10nInfoService: S10nInfoService[F],
-  private val s10nsListReplyMessageService: S10nsListReplyMessageService
+    private val moneyService: MoneyService[F],
+    private val s10nInfoService: S10nInfoService[F],
+    private val s10nsListReplyMessageService: S10nsListReplyMessageService
 ) {
   private val DefaultPageSize = 10
 
   def createSubscriptionsPage(
-    subscriptions: List[Subscription],
-    page: PageNumber,
-    defaultCurrency: CurrencyUnit,
-    period: BillingPeriodUnit = BillingPeriodUnit.Month
+      subscriptions: List[Subscription],
+      page: PageNumber,
+      defaultCurrency: CurrencyUnit,
+      period: BillingPeriodUnit = BillingPeriodUnit.Month
   ): F[ReplyMessage] = {
     def withNextPaymentDate(s10n: Subscription) =
       s10n.firstPaymentDate
@@ -48,22 +48,22 @@ class S10nsListMessageService[F[_]: Monad](
       }
       for {
         remainingTime <- nextPaymentDate.flatTraverse(s10nInfoService.getRemainingTime)
-        amount <- getAmountInDefaultCurrency(periodAmount, defaultCurrency)
+        amount        <- getAmountInDefaultCurrency(periodAmount, defaultCurrency)
       } yield S10nItem(index + 1, s10n.id, s10n.name, amount, remainingTime)
     }
 
     def createItems() = {
-      val from = page * DefaultPageSize
+      val from  = page * DefaultPageSize
       val until = from + DefaultPageSize
       subscriptions
         .traverse(withNextPaymentDate)
         .flatMap {
-          _.sortBy {
-            case (nextPaymentDate, _) => nextPaymentDate
+          _.sortBy { case (nextPaymentDate, _) =>
+            nextPaymentDate
           }
             .slice(from, until)
-            .mapWithIndex {
-              case ((nextPaymentDate, s10n), i) => createItem(nextPaymentDate, s10n, i)
+            .mapWithIndex { case ((nextPaymentDate, s10n), i) =>
+              createItem(nextPaymentDate, s10n, i)
             }
             .sequence
         }
@@ -71,11 +71,12 @@ class S10nsListMessageService[F[_]: Monad](
 
     val nextPeriod = period match {
       case BillingPeriodUnit.Month => BillingPeriodUnit.Year
-      case BillingPeriodUnit.Year => BillingPeriodUnit.Week
-      case _ => BillingPeriodUnit.Month
+      case BillingPeriodUnit.Year  => BillingPeriodUnit.Week
+      case _                       => BillingPeriodUnit.Month
     }
 
-    moneyService.sum(subscriptions, defaultCurrency, period.chronoUnit)
+    moneyService
+      .sum(subscriptions, defaultCurrency, period.chronoUnit)
       .flatMap { sum =>
         createItems()
           .map { items =>
@@ -85,7 +86,11 @@ class S10nsListMessageService[F[_]: Monad](
       }
   }
 
-  def createSubscriptionMessage(defaultCurrency: CurrencyUnit, s10n: Subscription, page: PageNumber = PageNumber(0)): F[ReplyMessage] = {
+  def createSubscriptionMessage(
+      defaultCurrency: CurrencyUnit,
+      s10n: Subscription,
+      page: PageNumber = PageNumber(0)
+  ): F[ReplyMessage] = {
     val amountInDefaultCurrency = getAmountInDefaultCurrency(s10n.amount, defaultCurrency)
 
     def calcWithPeriod[T](f: (FirstPaymentDate, BillingPeriod) => F[T]): F[Option[T]] =
@@ -102,21 +107,23 @@ class S10nsListMessageService[F[_]: Monad](
 
     for {
       amountDefault <- amountInDefaultCurrency
-      total <- paidInTotal
-      next <- nextPayment
-    } yield s10nsListReplyMessageService.createSubscriptionMessage(S10nInfo(
-      id = s10n.id,
-      name = s10n.name,
-      amount = s10n.amount,
-      amountInDefaultCurrency = amountDefault,
-      billingPeriod = s10n.billingPeriod,
-      nextPaymentDate = next,
-      firstPaymentDate = s10n.firstPaymentDate,
-      paidInTotal = total,
-      oneTime = s10n.oneTime,
-      sendNotifications = s10n.sendNotifications,
-      page = page
-    ))
+      total         <- paidInTotal
+      next          <- nextPayment
+    } yield s10nsListReplyMessageService.createSubscriptionMessage(
+      S10nInfo(
+        id = s10n.id,
+        name = s10n.name,
+        amount = s10n.amount,
+        amountInDefaultCurrency = amountDefault,
+        billingPeriod = s10n.billingPeriod,
+        nextPaymentDate = next,
+        firstPaymentDate = s10n.firstPaymentDate,
+        paidInTotal = total,
+        oneTime = s10n.oneTime,
+        sendNotifications = s10n.sendNotifications,
+        page = page
+      )
+    )
   }
 
   def createS10nMessageMarkup(s10n: Subscription, page: PageNumber): InlineKeyboardMarkup =

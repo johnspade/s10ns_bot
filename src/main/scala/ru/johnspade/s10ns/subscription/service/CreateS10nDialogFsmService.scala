@@ -18,7 +18,11 @@ trait CreateS10nDialogFsmService[F[_]] {
 
   def saveAmount(user: User, dialog: CreateS10nDialog, amount: BigDecimal): F[List[ReplyMessage]]
 
-  def saveBillingPeriodDuration(user: User, dialog: CreateS10nDialog, duration: BillingPeriodDuration): F[List[ReplyMessage]]
+  def saveBillingPeriodDuration(
+      user: User,
+      dialog: CreateS10nDialog,
+      duration: BillingPeriodDuration
+  ): F[List[ReplyMessage]]
 
   def saveBillingPeriodUnit(user: User, dialog: CreateS10nDialog, unit: BillingPeriodUnit): F[List[ReplyMessage]]
 

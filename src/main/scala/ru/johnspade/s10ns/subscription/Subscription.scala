@@ -10,20 +10,20 @@ import ru.johnspade.s10ns.subscription.tags._
 import ru.johnspade.s10ns.user.tags._
 
 final case class BillingPeriod(
-  duration: BillingPeriodDuration,
-  unit: BillingPeriodUnit
+    duration: BillingPeriodDuration,
+    unit: BillingPeriodUnit
 )
 
 case class Subscription(
-  id: SubscriptionId,
-  userId: UserId,
-  name: SubscriptionName,
-  amount: Money,
-  oneTime: Option[OneTimeSubscription],
-  billingPeriod: Option[BillingPeriod],
-  firstPaymentDate: Option[FirstPaymentDate],
-  sendNotifications: Boolean = false,
-  lastNotification: Option[Instant] = None
+    id: SubscriptionId,
+    userId: UserId,
+    name: SubscriptionName,
+    amount: Money,
+    oneTime: Option[OneTimeSubscription],
+    billingPeriod: Option[BillingPeriod],
+    firstPaymentDate: Option[FirstPaymentDate],
+    sendNotifications: Boolean = false,
+    lastNotification: Option[Instant] = None
 )
 
 object Subscription {
@@ -43,15 +43,15 @@ object Subscription {
 }
 
 case class SubscriptionDraft(
-  userId: UserId,
-  name: SubscriptionName,
-  currency: CurrencyUnit,
-  amount: SubscriptionAmount,
-  oneTime: Option[OneTimeSubscription],
-  periodDuration: Option[BillingPeriodDuration],
-  periodUnit: Option[BillingPeriodUnit],
-  firstPaymentDate: Option[FirstPaymentDate],
-  sendNotifications: Boolean = false
+    userId: UserId,
+    name: SubscriptionName,
+    currency: CurrencyUnit,
+    amount: SubscriptionAmount,
+    oneTime: Option[OneTimeSubscription],
+    periodDuration: Option[BillingPeriodDuration],
+    periodUnit: Option[BillingPeriodUnit],
+    firstPaymentDate: Option[FirstPaymentDate],
+    sendNotifications: Boolean = false
 )
 
 object SubscriptionDraft {

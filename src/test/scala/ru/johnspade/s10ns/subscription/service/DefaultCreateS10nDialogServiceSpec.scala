@@ -41,9 +41,13 @@ import ru.johnspade.s10ns.user.tags.FirstName
 import ru.johnspade.s10ns.user.tags.UserId
 
 class DefaultCreateS10nDialogServiceSpec
-  extends AnyFlatSpec with Matchers with DiffShouldMatcher with PartialFunctionValues with MockFactory {
+    extends AnyFlatSpec
+    with Matchers
+    with DiffShouldMatcher
+    with PartialFunctionValues
+    with MockFactory {
 
-  private val userRepo = new InMemoryUserRepository
+  private val userRepo     = new InMemoryUserRepository
   private val mockS10nRepo = mock[SubscriptionRepository[Id]]
   private val dialogEngine = new DefaultDialogEngine[IO, Id](userRepo)
   private val moneyService = new MoneyService[IO](new InMemoryExchangeRatesStorage)
@@ -52,42 +56,50 @@ class DefaultCreateS10nDialogServiceSpec
     new S10nInfoService[IO],
     new S10nsListReplyMessageService
   )
-  private val calendarService = new CalendarService
+  private val calendarService      = new CalendarService
   private val createS10nMsgService = new CreateS10nMsgService[IO](calendarService)
   private val createS10nDialogFsmService = new DefaultCreateS10nDialogFsmService[IO, Id](
-    mockS10nRepo, userRepo, dialogEngine, s10nsListMessageService, createS10nMsgService
+    mockS10nRepo,
+    userRepo,
+    dialogEngine,
+    s10nsListMessageService,
+    createS10nMsgService
   )
   private val createS10nDialogService = new DefaultCreateS10nDialogService[IO, Id](
-    createS10nDialogFsmService, createS10nMsgService, dialogEngine
+    createS10nDialogFsmService,
+    createS10nMsgService,
+    dialogEngine
   )
 
-  private val user = User(UserId(0L), FirstName("John"), None)
+  private val user  = User(UserId(0L), FirstName("John"), None)
   private val draft = SubscriptionDraft.create(UserId(0L))
 
   "onCreateCommand" should "ask for a subscription's currency" in {
     val result = createS10nDialogService.onCreateCommand(user).unsafeRunSync()
     result shouldMatchTo {
-      List(ReplyMessage(
-        "Enter or select the currency code:",
-        markup = ReplyKeyboardMarkup(
-          keyboard = List(
-            CurrencyUnit.EUR,
-            CurrencyUnit.GBP,
-            CurrencyUnit.AUD,
-            CurrencyUnit.of("NZD"),
-            CurrencyUnit.USD,
-            CurrencyUnit.CAD,
-            CurrencyUnit.CHF,
-            CurrencyUnit.JPY,
-            CurrencyUnit.of("RUB")
-          )
-            .map(currency => KeyboardButton(currency.getCode))
-            .grouped(5)
-            .toList,
-          oneTimeKeyboard = Some(true),
-          resizeKeyboard = Some(true)
-        ).some
-      ))
+      List(
+        ReplyMessage(
+          "Enter or select the currency code:",
+          markup = ReplyKeyboardMarkup(
+            keyboard = List(
+              CurrencyUnit.EUR,
+              CurrencyUnit.GBP,
+              CurrencyUnit.AUD,
+              CurrencyUnit.of("NZD"),
+              CurrencyUnit.USD,
+              CurrencyUnit.CAD,
+              CurrencyUnit.CHF,
+              CurrencyUnit.JPY,
+              CurrencyUnit.of("RUB")
+            )
+              .map(currency => KeyboardButton(currency.getCode))
+              .grouped(5)
+              .toList,
+            oneTimeKeyboard = Some(true),
+            resizeKeyboard = Some(true)
+          ).some
+        )
+      )
     }
   }
 
@@ -107,41 +119,41 @@ class DefaultCreateS10nDialogServiceSpec
 
   it should "fail if a name is too long" in {
     val dialog = CreateS10nDialog(CreateS10nDialogState.Name, draft)
-    val name = List.fill(257)("a").mkString
+    val name   = List.fill(257)("a").mkString
     createS10nDialogService.saveDraft.valueAt(user, dialog, name.some).unsafeRunSync() shouldBe
       NameTooLong.invalidNec[String]
   }
 
   it should "fail if a currency's code is unknown" in {
     val dialog = CreateS10nDialog(CreateS10nDialogState.Currency, draft)
-    val code = "AAA"
+    val code   = "AAA"
     createS10nDialogService.saveDraft.valueAt(user, dialog, code.some).unsafeRunSync() shouldBe
       UnknownCurrency.invalidNec[CurrencyUnit]
   }
 
   it should "fail if an amount is not a number" in {
-    val dialog = CreateS10nDialog(CreateS10nDialogState.Amount, draft)
+    val dialog     = CreateS10nDialog(CreateS10nDialogState.Amount, draft)
     val amountText = "NaN"
     createS10nDialogService.saveDraft.valueAt(user, dialog, amountText.some).unsafeRunSync() shouldBe
       NotANumber.invalidNec[String]
   }
 
   it should "fail if an amount is not positive" in {
-    val dialog = CreateS10nDialog(CreateS10nDialogState.Amount, draft)
+    val dialog     = CreateS10nDialog(CreateS10nDialogState.Amount, draft)
     val amountText = "-3"
     createS10nDialogService.saveDraft.valueAt(user, dialog, amountText.some).unsafeRunSync() shouldBe
       NumberMustBePositive.invalidNec[BigDecimal]
   }
 
   it should "fail if a duration is not a number" in {
-    val dialog = CreateS10nDialog(CreateS10nDialogState.BillingPeriodDuration, draft)
+    val dialog       = CreateS10nDialog(CreateS10nDialogState.BillingPeriodDuration, draft)
     val durationText = "NaN"
     createS10nDialogService.saveDraft.valueAt(user, dialog, durationText.some).unsafeRunSync() shouldBe
       NotANumber.invalidNec[String]
   }
 
   it should "fail if a duration is not positive" in {
-    val dialog = CreateS10nDialog(CreateS10nDialogState.BillingPeriodDuration, draft)
+    val dialog       = CreateS10nDialog(CreateS10nDialogState.BillingPeriodDuration, draft)
     val durationText = "-1"
     createS10nDialogService.saveDraft.valueAt(user, dialog, durationText.some).unsafeRunSync() shouldBe
       NumberMustBePositive.invalidNec[BigDecimal]

@@ -21,14 +21,12 @@ object DoobieUserMeta {
   implicit val dialogJsonMeta: Meta[Dialog] =
     Meta.Advanced
       .other[PGobject]("jsonb")
-      .imap[Dialog](jsonStr => decode[Dialog](jsonStr.getValue).leftMap(err => throw err).merge)(
-        dialog => {
-          val o = new PGobject
-          o.setType("jsonb")
-          o.setValue(dialog.asJson.deepDropNullValues.noSpaces)
-          o
-        }
-      )
+      .imap[Dialog](jsonStr => decode[Dialog](jsonStr.getValue).leftMap(err => throw err).merge)(dialog => {
+        val o = new PGobject
+        o.setType("jsonb")
+        o.setValue(dialog.asJson.deepDropNullValues.noSpaces)
+        o
+      })
 
   import io.circe.generic.auto._
   import io.circe.{Decoder, Encoder}

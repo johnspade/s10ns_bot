@@ -24,9 +24,9 @@ import ru.johnspade.s10ns.user.tags.UserId
 
 class MoneyServiceSpec extends AnyFlatSpec with Matchers {
   private val exchangeRatesStorage: ExchangeRatesStorage[IO] = new InMemoryExchangeRatesStorage
-  private val moneyService = new MoneyService[IO](exchangeRatesStorage)
+  private val moneyService                                   = new MoneyService[IO](exchangeRatesStorage)
 
-  private val rub = CurrencyUnit.of("RUB")
+  private val rub      = CurrencyUnit.of("RUB")
   private val oneMonth = BillingPeriod(BillingPeriodDuration(1), BillingPeriodUnit.Month)
 
   behavior of "convert"

@@ -28,11 +28,12 @@ import ru.johnspade.s10ns.subscription.service.CreateS10nDialogService
 import ru.johnspade.s10ns.subscription.tags._
 import ru.johnspade.s10ns.user.User
 
-class DefaultCreateS10nDialogService[F[_] : Monad, D[_] : Monad](
-  private val createS10nDialogFsmService: CreateS10nDialogFsmService[F],
-  private val stateMessageService: StateMessageService[F, CreateS10nDialogState],
-  private val dialogEngine: DialogEngine[F]
-)(private implicit val transact: D ~> F) extends CreateS10nDialogService[F] {
+class DefaultCreateS10nDialogService[F[_]: Monad, D[_]: Monad](
+    private val createS10nDialogFsmService: CreateS10nDialogFsmService[F],
+    private val stateMessageService: StateMessageService[F, CreateS10nDialogState],
+    private val dialogEngine: DialogEngine[F]
+)(private implicit val transact: D ~> F)
+    extends CreateS10nDialogService[F] {
   override def onCreateCommand(user: User): F[List[ReplyMessage]] = {
     val state = CreateS10nDialogState.Currency
     val dialog = CreateS10nDialog(
@@ -51,7 +52,8 @@ class DefaultCreateS10nDialogService[F[_] : Monad, D[_] : Monad](
     stateMessageService.createReplyMessage(state).flatMap(dialogEngine.startDialog(user, dialog, _))
   }
 
-  override val saveDraft: PartialFunction[(User, CreateS10nDialog, Option[String]), F[ValidationResult[List[ReplyMessage]]]] = {
+  override val saveDraft
+      : PartialFunction[(User, CreateS10nDialog, Option[String]), F[ValidationResult[List[ReplyMessage]]]] = {
     case (user, dialog, text) if dialog.state == CreateS10nDialogState.Name =>
       validateText(text)
         .andThen(name => validateNameLength(SubscriptionName(name)))

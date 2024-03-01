@@ -23,7 +23,11 @@ import ru.johnspade.s10ns.subscription.dialog.EditS10nNameDialogState
 import ru.johnspade.s10ns.subscription.service.impl.DefaultEditS10nNameDialogService
 import ru.johnspade.s10ns.subscription.tags.SubscriptionName
 
-class DefaultEditS10nNameDialogServiceSpec extends AnyFlatSpec with Matchers with DiffShouldMatcher with EditS10nDialogServiceSpec {
+class DefaultEditS10nNameDialogServiceSpec
+    extends AnyFlatSpec
+    with Matchers
+    with DiffShouldMatcher
+    with EditS10nDialogServiceSpec {
   private val editS10nNameDialogService = new DefaultEditS10nNameDialogService(
     s10nsListMessageService,
     new DefaultMsgService[IO, EditS10nNameDialogState],
@@ -63,7 +67,6 @@ class DefaultEditS10nNameDialogServiceSpec extends AnyFlatSpec with Matchers wit
         )
       ).validNec
   }
-
 
   it should "fail if a text is missing" in {
     editS10nNameDialogService.saveName(user, dialog, None).unsafeRunSync() shouldBe TextCannotBeEmpty.invalidNec[String]

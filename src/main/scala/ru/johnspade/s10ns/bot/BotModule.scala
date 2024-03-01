@@ -11,22 +11,22 @@ import ru.johnspade.s10ns.bot.engine.TransactionalDialogEngine
 import ru.johnspade.s10ns.exchangerates.ExchangeRatesModule
 import ru.johnspade.s10ns.user.UserModule
 
-final class BotModule[F[_], D[_]] private(
-  val moneyService: MoneyService[F],
-  val dialogEngine: TransactionalDialogEngine[F, D],
-  val startController: StartController[F],
-  val ignoreController: IgnoreController[F],
-  val cbDataService: CbDataService[F],
-  val userMiddleware: UserMiddleware[F, D]
+final class BotModule[F[_], D[_]] private (
+    val moneyService: MoneyService[F],
+    val dialogEngine: TransactionalDialogEngine[F, D],
+    val startController: StartController[F],
+    val ignoreController: IgnoreController[F],
+    val cbDataService: CbDataService[F],
+    val userMiddleware: UserMiddleware[F, D]
 )
 
 object BotModule {
   def make[F[_]: Sync](
-    userModule: UserModule[ConnectionIO],
-    exchangeRatesModule: ExchangeRatesModule[F, ConnectionIO]
+      userModule: UserModule[ConnectionIO],
+      exchangeRatesModule: ExchangeRatesModule[F, ConnectionIO]
   )(implicit bot: Api[F], transact: ConnectionIO ~> F): F[BotModule[F, ConnectionIO]] =
     Sync[F].delay {
-      val moneySrv = new MoneyService[F](exchangeRatesModule.exchangeRatesService)
+      val moneySrv     = new MoneyService[F](exchangeRatesModule.exchangeRatesService)
       val dialogEngine = new DefaultDialogEngine[F, ConnectionIO](userModule.userRepository)
       new BotModule[F, ConnectionIO](
         moneyService = moneySrv,

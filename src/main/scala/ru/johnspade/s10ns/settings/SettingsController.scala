@@ -23,8 +23,9 @@ import ru.johnspade.s10ns.bot.engine.TelegramOps.toReplyMessage
 import ru.johnspade.s10ns.user.User
 
 class SettingsController[F[_]: Logging: Temporal: Defer](
-  private val settingsService: SettingsService[F]
-)(implicit bot: Api[F]) extends CallbackQueryUserController[F] {
+    private val settingsService: SettingsService[F]
+)(implicit bot: Api[F])
+    extends CallbackQueryUserController[F] {
   def message(user: User, dialog: SettingsDialog, message: Message): F[List[ReplyMessage]] =
     (dialog.state match {
       case SettingsDialogState.DefaultCurrency =>
@@ -33,12 +34,14 @@ class SettingsController[F[_]: Logging: Temporal: Defer](
     }).getOrElse(Monad[F].pure(ReplyMessage(Errors.Default)))
       .map(List(_))
 
-  override val routes: CbDataUserRoutes[F] = CallbackQueryContextRoutes.of {
-    case DefCurrency in cb as user =>
-      ackCb(cb) *> cb.message.map { msg =>
-        settingsService.startDefaultCurrencyDialog(user)
+  override val routes: CbDataUserRoutes[F] = CallbackQueryContextRoutes.of { case DefCurrency in cb as user =>
+    ackCb(cb) *> cb.message
+      .map { msg =>
+        settingsService
+          .startDefaultCurrencyDialog(user)
           .flatMap(sendReplyMessages(msg, _).void)
-      }.getOrElse(Monad[F].unit)
+      }
+      .getOrElse(Monad[F].unit)
   }
 
   val settingsCommand: F[ReplyMessage] = settingsService.onSettingsCommand
@@ -46,7 +49,7 @@ class SettingsController[F[_]: Logging: Temporal: Defer](
 
 object SettingsController {
   def apply[F[_]: Temporal: Defer](
-    settingsService: SettingsService[F]
+      settingsService: SettingsService[F]
   )(implicit bot: Api[F], logs: Logs[F, F]): F[SettingsController[F]] =
     logs.forService[SettingsController[F]].map { implicit l =>
       new SettingsController[F](settingsService)

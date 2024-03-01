@@ -40,28 +40,28 @@ import ru.johnspade.s10ns.subscription.service.impl.DefaultSubscriptionListServi
 import ru.johnspade.s10ns.user.UserModule
 
 final class SubscriptionModule[F[_], D[_]](
-  val subscriptionRepository: SubscriptionRepository[D],
-  val editS10nDialogController: S10nController[F],
-  val subscriptionListController: SubscriptionListController[F],
-  val s10nInfoService: S10nInfoService[F],
-  val s10nsListMessageService: S10nsListMessageService[F]
+    val subscriptionRepository: SubscriptionRepository[D],
+    val editS10nDialogController: S10nController[F],
+    val subscriptionListController: SubscriptionListController[F],
+    val s10nInfoService: S10nInfoService[F],
+    val s10nsListMessageService: S10nsListMessageService[F]
 )
 
 object SubscriptionModule {
   def make[F[_]: Clock: Temporal: Defer](
-    userModule: UserModule[ConnectionIO],
-    botModule: BotModule[F, ConnectionIO],
-    calendarModule: CalendarModule[F]
+      userModule: UserModule[ConnectionIO],
+      botModule: BotModule[F, ConnectionIO],
+      calendarModule: CalendarModule[F]
   )(implicit bot: Api[F], transact: ConnectionIO ~> F, logs: Logs[F, F]): F[SubscriptionModule[F, ConnectionIO]] = {
     import botModule.{dialogEngine, moneyService}
     import calendarModule.calendarService
     import userModule.userRepository
 
-    val subscriptionRepo = new DoobieSubscriptionRepository
-    val s10nInfoSrv = new S10nInfoService[F]
+    val subscriptionRepo             = new DoobieSubscriptionRepository
+    val s10nInfoSrv                  = new S10nInfoService[F]
     val s10nsListReplyMessageService = new S10nsListReplyMessageService
     val s10nsListMessageSrv = new S10nsListMessageService(moneyService, s10nInfoSrv, s10nsListReplyMessageService)
-    val createS10nMsgSrv = new CreateS10nMsgService[F](calendarService)
+    val createS10nMsgSrv    = new CreateS10nMsgService[F](calendarService)
     val createS10nDialogFsmSrv = new DefaultCreateS10nDialogFsmService[F, ConnectionIO](
       subscriptionRepo,
       userRepository,
@@ -75,22 +75,46 @@ object SubscriptionModule {
       botModule.dialogEngine
     )
     val editS10n1stPaymentDateDialogService = new DefaultEditS10n1stPaymentDateDialogService[F, ConnectionIO](
-      s10nsListMessageSrv, new EditS10n1stPaymentDateMsgService[F](calendarService), userRepository, subscriptionRepo, dialogEngine
+      s10nsListMessageSrv,
+      new EditS10n1stPaymentDateMsgService[F](calendarService),
+      userRepository,
+      subscriptionRepo,
+      dialogEngine
     )
     val editS10nNameDialogService = new DefaultEditS10nNameDialogService[F, ConnectionIO](
-      s10nsListMessageSrv, new DefaultMsgService[F, EditS10nNameDialogState], userRepository, subscriptionRepo, dialogEngine
+      s10nsListMessageSrv,
+      new DefaultMsgService[F, EditS10nNameDialogState],
+      userRepository,
+      subscriptionRepo,
+      dialogEngine
     )
     val editS10nAmountDialogService = new DefaultEditS10nAmountDialogService[F, ConnectionIO](
-      s10nsListMessageSrv, new DefaultMsgService[F, EditS10nAmountDialogState], userRepository, subscriptionRepo, dialogEngine
+      s10nsListMessageSrv,
+      new DefaultMsgService[F, EditS10nAmountDialogState],
+      userRepository,
+      subscriptionRepo,
+      dialogEngine
     )
     val editS10nBillingPeriodDialogService = new DefaultEditS10nBillingPeriodDialogService[F, ConnectionIO](
-      s10nsListMessageSrv, new DefaultMsgService[F, EditS10nBillingPeriodDialogState], userRepository, subscriptionRepo, dialogEngine
+      s10nsListMessageSrv,
+      new DefaultMsgService[F, EditS10nBillingPeriodDialogState],
+      userRepository,
+      subscriptionRepo,
+      dialogEngine
     )
     val editS10nCurrencyDialogService = new DefaultEditS10nCurrencyDialogService[F, ConnectionIO](
-      s10nsListMessageSrv, new DefaultMsgService[F, EditS10nCurrencyDialogState], userRepository, subscriptionRepo, dialogEngine
+      s10nsListMessageSrv,
+      new DefaultMsgService[F, EditS10nCurrencyDialogState],
+      userRepository,
+      subscriptionRepo,
+      dialogEngine
     )
     val editS10nOneTimeDialogService = new DefaultEditS10nOneTimeDialogService[F, ConnectionIO](
-      s10nsListMessageSrv, new DefaultMsgService[F, EditS10nOneTimeDialogState], userRepository, subscriptionRepo, dialogEngine
+      s10nsListMessageSrv,
+      new DefaultMsgService[F, EditS10nOneTimeDialogState],
+      userRepository,
+      subscriptionRepo,
+      dialogEngine
     )
     val s10nsListSrv = new DefaultSubscriptionListService[F, ConnectionIO](subscriptionRepo, s10nsListMessageSrv)
     val subscriptionListController = new SubscriptionListController[F](s10nsListSrv)
@@ -104,7 +128,7 @@ object SubscriptionModule {
         editS10nCurrencyDialogService,
         editS10nOneTimeDialogService
       )
-    } yield new SubscriptionModule[F, ConnectionIO] (
+    } yield new SubscriptionModule[F, ConnectionIO](
       subscriptionRepository = subscriptionRepo,
       editS10nDialogController = s10nController,
       subscriptionListController = subscriptionListController,

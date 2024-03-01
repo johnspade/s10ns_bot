@@ -21,11 +21,11 @@ import ru.johnspade.s10ns.user.tags.FirstName
 import ru.johnspade.s10ns.user.tags.UserId
 
 class DefaultDialogEngineSpec extends AnyFlatSpec with Matchers {
-  private val userRepo = new InMemoryUserRepository
+  private val userRepo     = new InMemoryUserRepository
   private val dialogEngine = new DefaultDialogEngine[IO, Id](userRepo)
 
-  private val user = User(UserId(1337L), FirstName("John"), ChatId(911L).some)
-  private val dialog = SettingsDialog(SettingsDialogState.DefaultCurrency)
+  private val user           = User(UserId(1337L), FirstName("John"), ChatId(911L).some)
+  private val dialog         = SettingsDialog(SettingsDialogState.DefaultCurrency)
   private val userWithDialog = user.copy(dialog = dialog.some)
 
   "startDialog" should "update an user and remove the default keyboard" in {
@@ -41,7 +41,10 @@ class DefaultDialogEngineSpec extends AnyFlatSpec with Matchers {
   }
 
   "resetAndCommit" should "clear dialogs and enable the default keyboard" in {
-    dialogEngine.resetAndCommit(userWithDialog, "Reset").unsafeRunSync() shouldBe ReplyMessage("Reset", BotStart.markup.some)
+    dialogEngine.resetAndCommit(userWithDialog, "Reset").unsafeRunSync() shouldBe ReplyMessage(
+      "Reset",
+      BotStart.markup.some
+    )
     userRepo.users.get(user.id) shouldBe user.some
   }
 

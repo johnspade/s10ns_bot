@@ -20,7 +20,8 @@ class DoobieExchangeRatesRepository extends ExchangeRatesRepository[ConnectionIO
 
 object DoobieExchangeRatesRepository {
   object ExchangeRatesSql {
-    def get(): Query0[(String, BigDecimal)] = sql"""select currency, rate from exchange_rates""".query[(String, BigDecimal)]
+    def get(): Query0[(String, BigDecimal)] =
+      sql"""select currency, rate from exchange_rates""".query[(String, BigDecimal)]
 
     val save: Update[(String, BigDecimal)] =
       Update[(String, BigDecimal)]("insert into exchange_rates (currency, rate) values (?, ?)")

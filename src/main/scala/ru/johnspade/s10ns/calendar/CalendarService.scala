@@ -20,7 +20,8 @@ import ru.johnspade.s10ns.bot.engine.TelegramOps.inlineKeyboardButton
 import ru.johnspade.s10ns.subscription.tags._
 
 class CalendarService {
-  private val weekRow = DayOfWeek.values()
+  private val weekRow = DayOfWeek
+    .values()
     .map { d =>
       val narrowName = d.getDisplayName(TextStyle.NARROW_STANDALONE, Locale.US)
       createIgnoredButton(narrowName)
@@ -29,7 +30,7 @@ class CalendarService {
   private val LengthOfWeek = 7
 
   // 5 + current year + 4 = 10
-  private val PastYearsCount = 5
+  private val PastYearsCount   = 5
   private val FutureYearsCount = 4
 
   def generateYearsKeyboard(yearMonth: YearMonth): InlineKeyboardMarkup = {
@@ -52,7 +53,8 @@ class CalendarService {
   }
 
   def generateMonthsKeyboard(year: Int): InlineKeyboardMarkup = {
-    val monthRows = Month.values()
+    val monthRows = Month
+      .values()
       .toList
       .map { month =>
         val shortName = month.getDisplayName(TextStyle.SHORT_STANDALONE, Locale.US)
@@ -70,14 +72,17 @@ class CalendarService {
 
     val firstDay = date.withDayOfMonth(1)
     val headerRow = List(
-      inlineKeyboardButton(firstDay.getMonth.getDisplayName(TextStyle.SHORT_STANDALONE, Locale.US), Months(firstDay.getYear)),
+      inlineKeyboardButton(
+        firstDay.getMonth.getDisplayName(TextStyle.SHORT_STANDALONE, Locale.US),
+        Months(firstDay.getYear)
+      ),
       inlineKeyboardButton(firstDay.getYear.toString, Years(YearMonth.from(firstDay)))
     )
 
     val lengthOfMonth = firstDay.lengthOfMonth
 
     val shiftStart = firstDay.getDayOfWeek.getValue - 1
-    val shiftEnd = LengthOfWeek - firstDay.withDayOfMonth(lengthOfMonth).getDayOfWeek.getValue
+    val shiftEnd   = LengthOfWeek - firstDay.withDayOfMonth(lengthOfMonth).getDayOfWeek.getValue
 
     val days = (1 to lengthOfMonth).map { n =>
       val day = firstDay.withDayOfMonth(n)

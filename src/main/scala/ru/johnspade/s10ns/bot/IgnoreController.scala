@@ -9,7 +9,7 @@ import ru.johnspade.s10ns.CbDataRoutes
 import ru.johnspade.s10ns.bot.engine.TelegramOps.ackCb
 
 class IgnoreController[F[_]: Sync](implicit bot: Api[F]) extends CallbackQueryController[F] {
-  override def routes: CbDataRoutes[F] = CallbackQueryRoutes.of {
-    case Ignore in cb => ackCb(cb)
+  override def routes: CbDataRoutes[F] = CallbackQueryRoutes.of { case Ignore in cb =>
+    ackCb(cb)
   }
 }

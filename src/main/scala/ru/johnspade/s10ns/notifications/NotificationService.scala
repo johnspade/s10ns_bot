@@ -11,14 +11,16 @@ import ru.johnspade.s10ns.subscription.Subscription
 import ru.johnspade.s10ns.subscription.service.S10nInfoService
 
 class NotificationService[F[_]: Monad](
-  private val hoursBefore: Int,
-  private val s10nInfoService: S10nInfoService[F]
+    private val hoursBefore: Int,
+    private val s10nInfoService: S10nInfoService[F]
 ) {
   def needNotification(s10n: Subscription, cutoff: Instant): F[Boolean] =
-    s10n.firstPaymentDate.traverse {
-      s10nInfoService.getNextPaymentTimestamp(_, s10n.billingPeriod)
-        .map(lessThanHoursBefore(cutoff, _) && s10n.sendNotifications && !isNotified(s10n, cutoff))
-    }
+    s10n.firstPaymentDate
+      .traverse {
+        s10nInfoService
+          .getNextPaymentTimestamp(_, s10n.billingPeriod)
+          .map(lessThanHoursBefore(cutoff, _) && s10n.sendNotifications && !isNotified(s10n, cutoff))
+      }
       .map(_.getOrElse(false))
 
   def isNotified(s10n: Subscription, cutoff: Instant): Boolean =

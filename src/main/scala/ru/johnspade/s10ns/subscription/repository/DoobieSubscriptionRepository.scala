@@ -36,8 +36,8 @@ class DoobieSubscriptionRepository extends SubscriptionRepository[ConnectionIO] 
 
   def getByIdWithUser(id: SubscriptionId): ConnectionIO[Option[(Subscription, User)]] =
     SubscriptionSql
-    .getWithUser(id)
-    .option
+      .getWithUser(id)
+      .option
 
   override def getByUserId(userId: UserId): ConnectionIO[List[Subscription]] =
     SubscriptionSql
@@ -140,8 +140,8 @@ object DoobieSubscriptionRepository {
   }
 
   private implicit val moneyRead: Read[Money] =
-    Read[(Long, String)].map {
-      case (amountMinor, currencyUnit) => Money.ofMinor(CurrencyUnit.of(currencyUnit), amountMinor)
+    Read[(Long, String)].map { case (amountMinor, currencyUnit) =>
+      Money.ofMinor(CurrencyUnit.of(currencyUnit), amountMinor)
     }
   private implicit val moneyWrite: Write[Money] =
     Write[(Long, String)].contramap(m => (m.getAmountMinorLong, m.getCurrencyUnit.getCode))

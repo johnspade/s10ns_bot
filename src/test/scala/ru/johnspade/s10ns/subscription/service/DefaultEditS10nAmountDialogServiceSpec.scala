@@ -25,7 +25,11 @@ import ru.johnspade.s10ns.bot.engine.ReplyMessage
 import ru.johnspade.s10ns.subscription.dialog.EditS10nAmountDialogState
 import ru.johnspade.s10ns.subscription.service.impl.DefaultEditS10nAmountDialogService
 
-class DefaultEditS10nAmountDialogServiceSpec extends AnyFlatSpec with EditS10nDialogServiceSpec with Matchers with DiffShouldMatcher {
+class DefaultEditS10nAmountDialogServiceSpec
+    extends AnyFlatSpec
+    with EditS10nDialogServiceSpec
+    with Matchers
+    with DiffShouldMatcher {
   private val editS10nAmountDialogService = new DefaultEditS10nAmountDialogService(
     s10nsListMessageService,
     new DefaultMsgService[IO, EditS10nAmountDialogState],
@@ -67,14 +71,17 @@ class DefaultEditS10nAmountDialogServiceSpec extends AnyFlatSpec with EditS10nDi
   }
 
   it should "fail if a text is missing" in {
-    editS10nAmountDialogService.saveAmount(user, dialog, None).unsafeRunSync() shouldBe TextCannotBeEmpty.invalidNec[String]
+    editS10nAmountDialogService.saveAmount(user, dialog, None).unsafeRunSync() shouldBe TextCannotBeEmpty
+      .invalidNec[String]
   }
 
   it should "fail if an amount is not a number" in {
-    editS10nAmountDialogService.saveAmount(user, dialog, "NaN".some).unsafeRunSync() shouldBe NotANumber.invalidNec[String]
+    editS10nAmountDialogService.saveAmount(user, dialog, "NaN".some).unsafeRunSync() shouldBe NotANumber
+      .invalidNec[String]
   }
 
   it should "fail if an amount is not positive" in {
-    editS10nAmountDialogService.saveAmount(user, dialog, "-3".some).unsafeRunSync() shouldBe NumberMustBePositive.invalidNec[BigDecimal]
+    editS10nAmountDialogService.saveAmount(user, dialog, "-3".some).unsafeRunSync() shouldBe NumberMustBePositive
+      .invalidNec[BigDecimal]
   }
 }

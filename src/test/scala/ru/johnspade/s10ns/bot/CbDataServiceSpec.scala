@@ -11,6 +11,9 @@ import ru.johnspade.s10ns.subscription.tags.SubscriptionId
 
 class CbDataServiceSpec extends AnyFlatSpec with Matchers {
   "decode" should "decode CSV as a case class" in {
-    new CbDataService[IO]().decode("S10n\u001D17\u001D2").valueOr(throw _) shouldBe S10n(SubscriptionId(17L), PageNumber(2))
+    new CbDataService[IO]().decode("S10n\u001D17\u001D2").valueOr(throw _) shouldBe S10n(
+      SubscriptionId(17L),
+      PageNumber(2)
+    )
   }
 }

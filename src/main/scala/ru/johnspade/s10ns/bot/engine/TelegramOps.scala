@@ -51,7 +51,7 @@ object TelegramOps {
 
   def toReplyMessage(reply: ValidationResult[ReplyMessage]): ReplyMessage =
     reply match {
-      case Valid(message) => message
+      case Valid(message)  => message
       case Invalid(errors) => ReplyMessage(errors.map(_.errorMessage).mkString_("\n"))
     }
 
@@ -68,13 +68,12 @@ object TelegramOps {
 
   def clearMarkup[F[_]](cb: CallbackQuery)(implicit bot: Api[F], F: Functor[F]): F[Unit] =
     editMessageReplyMarkup(
-      cb.message.map(msg => ChatIntId(msg.chat.id)), cb.message.map(_.messageId)
-    )
-      .exec
-      .void
+      cb.message.map(msg => ChatIntId(msg.chat.id)),
+      cb.message.map(_.messageId)
+    ).exec.void
 
-  def handleCallback[F[_]: Logging: Temporal](query: CallbackQuery, replies: List[ReplyMessage])(
-    implicit bot: Api[F]
+  def handleCallback[F[_]: Logging: Temporal](query: CallbackQuery, replies: List[ReplyMessage])(implicit
+      bot: Api[F]
   ): F[Unit] = {
     def sendReplies() =
       query.message
@@ -86,14 +85,12 @@ object TelegramOps {
     ackCb(query) *> sendReplies()
   }
 
-  def sendReplyMessages[F[_]: Logging: Temporal](msg: Message, replies: List[ReplyMessage])(
-    implicit bot: Api[F]
+  def sendReplyMessages[F[_]: Logging: Temporal](msg: Message, replies: List[ReplyMessage])(implicit
+      bot: Api[F]
   ): F[Unit] =
     replies.map { reply =>
-      sendReplyMessage[F](msg, reply)
-        .void
+      sendReplyMessage[F](msg, reply).void
         .handleErrorWith(e => Logging[F].errorCause(e.getMessage, e)) *>
         Temporal[F].sleep(FiniteDuration(400, MILLISECONDS))
-    }
-      .sequence_
+    }.sequence_
 }

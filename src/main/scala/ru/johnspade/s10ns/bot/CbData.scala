@@ -92,7 +92,8 @@ object CbData {
   implicit def liftedCellDecoder[T, U](implicit cellDecoder: CellDecoder[T]): CellDecoder[T @@ U] =
     lifterF[CellDecoder].lift
 
-  implicit val yearMonthCellCodec: CellCodec[YearMonth] = CellCodec.from(s => DecodeResult(YearMonth.parse(s)))(ym => ym.toString)
+  implicit val yearMonthCellCodec: CellCodec[YearMonth] =
+    CellCodec.from(s => DecodeResult(YearMonth.parse(s)))(ym => ym.toString)
 
   private def caseObjectRowCodec[T <: CbData](data: T): RowCodec[T] = RowCodec.from(_ => Right(data))(_ => Seq.empty)
 

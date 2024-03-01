@@ -50,7 +50,7 @@ class S10nsListReplyMessageService {
 
         val remaining = remainingTime.fold("")(rem => s" <b>[${rem.count}${rem.unit.toString.head.toLower}]</b>")
         val amountPrefix = amount match {
-          case ExactAmount(_) => ""
+          case ExactAmount(_)    => ""
           case NonExactAmount(_) => "≈"
         }
         val formattedAmount = amountPrefix + MoneyFormatter.print(amount.amount)
@@ -63,8 +63,7 @@ class S10nsListReplyMessageService {
       inlineKeyboardButton(nextPeriod.measureUnit.getSubtype.capitalize + "ly", S10nsPeriod(nextPeriod, page))
 
     def createSubscriptionButtons(): List[List[InlineKeyboardButton]] =
-      list
-        .items
+      list.items
         .grouped(5)
         .toList
         .map(_.map { item =>
@@ -73,8 +72,8 @@ class S10nsListReplyMessageService {
 
     def createNavButtons(listSize: Int) = {
       val pageLastElementNumber = defaultPageSize * (page + 1)
-      val leftButton = inlineKeyboardButton("⬅", S10ns(PageNumber(page - 1)))
-      val rightButton = inlineKeyboardButton("➡", S10ns(PageNumber(page + 1)))
+      val leftButton            = inlineKeyboardButton("⬅", S10ns(PageNumber(page - 1)))
+      val rightButton           = inlineKeyboardButton("➡", S10ns(PageNumber(page + 1)))
       List(
         (pageLastElementNumber > defaultPageSize, leftButton),
         (pageLastElementNumber < listSize, rightButton)
@@ -83,14 +82,30 @@ class S10nsListReplyMessageService {
         .map(_._2)
     }
 
-    val periodAndDonateRow = List(createPeriodButton(), InlineKeyboardButtons.url("Buy me a coffee ☕", "https://buymeacoff.ee/johnspade"))
+    val periodAndDonateRow =
+      List(createPeriodButton(), InlineKeyboardButtons.url("Buy me a coffee ☕", "https://buymeacoff.ee/johnspade"))
     val subscriptionButtons = createSubscriptionButtons()
-    val arrowButtons = createNavButtons(totalSize)
-    ReplyMessage(createText(), InlineKeyboardMarkup(subscriptionButtons ++ List(arrowButtons, periodAndDonateRow)).some, Html.some)
+    val arrowButtons        = createNavButtons(totalSize)
+    ReplyMessage(
+      createText(),
+      InlineKeyboardMarkup(subscriptionButtons ++ List(arrowButtons, periodAndDonateRow)).some,
+      Html.some
+    )
   }
 
   def createSubscriptionMessage(s10nInfo: S10nInfo): ReplyMessage = {
-    import s10nInfo.{amount, amountInDefaultCurrency, billingPeriod, firstPaymentDate, id, name, nextPaymentDate, page, paidInTotal, sendNotifications}
+    import s10nInfo.{
+      amount,
+      amountInDefaultCurrency,
+      billingPeriod,
+      firstPaymentDate,
+      id,
+      name,
+      nextPaymentDate,
+      page,
+      paidInTotal,
+      sendNotifications
+    }
 
     val billingPeriodStr = billingPeriod.map { period =>
       val measure = measureFormat.format(new Measure(period.duration, period.unit.measureUnit))
@@ -106,7 +121,7 @@ class S10nsListReplyMessageService {
       s"_Paid in total:_ ${MoneyFormatter.print(total)}"
     }
     val amountInDefaultCurrencyStr = amountInDefaultCurrency match {
-      case ExactAmount(_) => None
+      case ExactAmount(_)         => None
       case NonExactAmount(amount) => s"≈${MoneyFormatter.print(amount)}".some
     }
     val emptyLine = "".some
@@ -120,8 +135,7 @@ class S10nsListReplyMessageService {
       nextPaymentDateStr,
       firstPaymentDateStr,
       paidInTotalStr
-    )
-      .flatten
+    ).flatten
       .mkString("\n")
     val buttons = createS10nMessageMarkup(id, sendNotifications = sendNotifications, page)
     ReplyMessage(
@@ -131,35 +145,46 @@ class S10nsListReplyMessageService {
     )
   }
 
-  def createS10nMessageMarkup(id: SubscriptionId, sendNotifications: Boolean, page: PageNumber): InlineKeyboardMarkup = {
+  def createS10nMessageMarkup(
+      id: SubscriptionId,
+      sendNotifications: Boolean,
+      page: PageNumber
+  ): InlineKeyboardMarkup = {
     val editButton = inlineKeyboardButton("Edit", EditS10n(id, page))
     val notifyButton = inlineKeyboardButton(
       if (sendNotifications) "Disable notifications" else "Enable notifications",
       Notify(id, !sendNotifications, page)
     )
     val removeButton = inlineKeyboardButton("Remove", RemoveS10n(id, page))
-    val backButton = inlineKeyboardButton("List", S10ns(page))
+    val backButton   = inlineKeyboardButton("List", S10ns(page))
     InlineKeyboardMarkups.singleColumn(List(editButton, notifyButton, removeButton, backButton))
   }
 
-  def createEditS10nMarkup(id: SubscriptionId, oneTime: Option[OneTimeSubscription], page: PageNumber): InlineKeyboardMarkup = {
-    val nameButton = inlineKeyboardButton("Name", EditS10nName(id))
-    val amountButton = inlineKeyboardButton("Amount", EditS10nAmount(id))
+  def createEditS10nMarkup(
+      id: SubscriptionId,
+      oneTime: Option[OneTimeSubscription],
+      page: PageNumber
+  ): InlineKeyboardMarkup = {
+    val nameButton     = inlineKeyboardButton("Name", EditS10nName(id))
+    val amountButton   = inlineKeyboardButton("Amount", EditS10nAmount(id))
     val currencyButton = inlineKeyboardButton("Currency/amount", EditS10nCurrency(id))
-    val oneTimeButton = inlineKeyboardButton("Recurring/one time", EditS10nOneTime(id))
-    val billingPeriodButton = if (oneTime.getOrElse(false)) List.empty
-    else List(inlineKeyboardButton("Billing period", EditS10nBillingPeriod(id)))
+    val oneTimeButton  = inlineKeyboardButton("Recurring/one time", EditS10nOneTime(id))
+    val billingPeriodButton =
+      if (oneTime.getOrElse(false)) List.empty
+      else List(inlineKeyboardButton("Billing period", EditS10nBillingPeriod(id)))
     val firstPaymentDateButton = inlineKeyboardButton("First payment date", EditS10nFirstPaymentDate(id))
-    val backButton = inlineKeyboardButton("Back", S10n(id, page))
-    InlineKeyboardMarkup(List(
-      List(nameButton),
-      List(amountButton),
-      List(currencyButton),
-      List(oneTimeButton),
-      billingPeriodButton,
-      List(firstPaymentDateButton),
-      List(backButton)
-    ))
+    val backButton             = inlineKeyboardButton("Back", S10n(id, page))
+    InlineKeyboardMarkup(
+      List(
+        List(nameButton),
+        List(amountButton),
+        List(currencyButton),
+        List(oneTimeButton),
+        billingPeriodButton,
+        List(firstPaymentDateButton),
+        List(backButton)
+      )
+    )
   }
 
   private val measureFormat = MeasureFormat.getInstance(ULocale.US, FormatWidth.WIDE)

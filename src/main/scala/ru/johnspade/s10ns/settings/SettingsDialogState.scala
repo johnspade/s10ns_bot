@@ -13,13 +13,12 @@ import ru.johnspade.s10ns.bot.engine.DialogState
 import ru.johnspade.s10ns.bot.engine.StateEvent
 
 sealed abstract class SettingsDialogState(override val message: String, override val markup: Option[KeyboardMarkup])
-  extends EnumEntry with DialogState
+    extends EnumEntry
+    with DialogState
 
-object SettingsDialogState
-  extends Enum[SettingsDialogState]
-    with CirceEnum[SettingsDialogState] {
+object SettingsDialogState extends Enum[SettingsDialogState] with CirceEnum[SettingsDialogState] {
   case object DefaultCurrency extends SettingsDialogState(Messages.Currency, Markup.CurrencyReplyMarkup.some)
-  case object Finished extends SettingsDialogState("Default currency set.", None)
+  case object Finished        extends SettingsDialogState("Default currency set.", None)
 
   override val values: IndexedSeq[SettingsDialogState] = findValues
 
@@ -31,7 +30,7 @@ object SettingsDialogState
       case DefaultCurrency =>
         e match {
           case ChosenDefaultCurrency => Finished
-          case _ => state
+          case _                     => state
         }
       case _ => state
     }

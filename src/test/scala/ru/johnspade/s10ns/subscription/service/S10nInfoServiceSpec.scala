@@ -23,9 +23,9 @@ import ru.johnspade.s10ns.subscription.tags.FirstPaymentDate
 class S10nInfoServiceSpec extends AnyFlatSpec with Matchers with OptionValues {
   private val s10nInfoService = new S10nInfoService[IO]
 
-  private val amount = Money.of(CurrencyUnit.USD, 13.37)
-  private val periodDuration = 2
-  private val billingPeriod = BillingPeriod(BillingPeriodDuration(periodDuration), BillingPeriodUnit.Day)
+  private val amount           = Money.of(CurrencyUnit.USD, 13.37)
+  private val periodDuration   = 2
+  private val billingPeriod    = BillingPeriod(BillingPeriodDuration(periodDuration), BillingPeriodUnit.Day)
   private val firstPaymentDate = FirstPaymentDate(LocalDate.now(ZoneOffset.UTC).minusDays(1))
 
   "getNextPaymentDate" should "calculate a next payment date" in {
@@ -40,12 +40,14 @@ class S10nInfoServiceSpec extends AnyFlatSpec with Matchers with OptionValues {
 
   "getPaidInTotal" should "calculate paid in total" in {
     val firstPaymentDate = FirstPaymentDate(LocalDate.now(ZoneOffset.UTC).minusDays(periodDuration + 1))
-    s10nInfoService.getPaidInTotal(amount, firstPaymentDate, billingPeriod)
+    s10nInfoService
+      .getPaidInTotal(amount, firstPaymentDate, billingPeriod)
       .unsafeRunSync() shouldBe Money.of(CurrencyUnit.USD, 26.74)
   }
 
   it should "not calculate paid in total for future subscriptions" in {
-    s10nInfoService.getPaidInTotal(amount, FirstPaymentDate(LocalDate.now(ZoneOffset.UTC).plusMonths(1)), billingPeriod)
+    s10nInfoService
+      .getPaidInTotal(amount, FirstPaymentDate(LocalDate.now(ZoneOffset.UTC).plusMonths(1)), billingPeriod)
       .unsafeRunSync() shouldBe Money.of(CurrencyUnit.USD, 0)
   }
 
@@ -56,13 +58,13 @@ class S10nInfoServiceSpec extends AnyFlatSpec with Matchers with OptionValues {
 
   it should "calculate time left in years" in {
     val firstPaymentDate = FirstPaymentDate(LocalDate.now(ZoneOffset.UTC).plusYears(1))
-    val result = s10nInfoService.getRemainingTime(firstPaymentDate).unsafeRunSync()
+    val result           = s10nInfoService.getRemainingTime(firstPaymentDate).unsafeRunSync()
     result.value shouldBe RemainingTime(ChronoUnit.YEARS, 1)
   }
 
   it should "calculate time left in months" in {
     val firstPaymentDate = FirstPaymentDate(LocalDate.now(ZoneOffset.UTC).plusDays(32))
-    val result = s10nInfoService.getRemainingTime(firstPaymentDate).unsafeRunSync()
+    val result           = s10nInfoService.getRemainingTime(firstPaymentDate).unsafeRunSync()
     result.value shouldBe RemainingTime(ChronoUnit.MONTHS, 1)
   }
 }

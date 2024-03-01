@@ -9,7 +9,8 @@ import ru.johnspade.tgbot.callbackdata.named.MagnoliaRowDecoder._
 
 class CbDataService[F[_]: Sync] {
   def decode(csv: String): ReadResult[CbData] =
-    csv.readCsv[List, CbData](CbData.csvConfig)
+    csv
+      .readCsv[List, CbData](CbData.csvConfig)
       .headOption
       .getOrElse(Left(TypeError("Callback data is missing")))
 }

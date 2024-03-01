@@ -26,7 +26,11 @@ import ru.johnspade.s10ns.bot.engine.ReplyMessage
 import ru.johnspade.s10ns.subscription.dialog.EditS10nCurrencyDialogState
 import ru.johnspade.s10ns.subscription.service.impl.DefaultEditS10nCurrencyDialogService
 
-class DefaultEditS10nCurrencyDialogServiceSpec extends AnyFlatSpec with EditS10nDialogServiceSpec with Matchers with DiffShouldMatcher {
+class DefaultEditS10nCurrencyDialogServiceSpec
+    extends AnyFlatSpec
+    with EditS10nDialogServiceSpec
+    with Matchers
+    with DiffShouldMatcher {
   private val editS10nCurrencyDialogService = new DefaultEditS10nCurrencyDialogService(
     s10nsListMessageService,
     new DefaultMsgService[IO, EditS10nCurrencyDialogState],
@@ -37,7 +41,7 @@ class DefaultEditS10nCurrencyDialogServiceSpec extends AnyFlatSpec with EditS10n
 
   "onEditS10nCurrencyCb" should "ask for a new subscription's currency" in {
     (mockS10nRepo.getById _).expects(s10nId).returns(s10n.some)
-    val dialog = EditS10nCurrencyDialog(EditS10nCurrencyDialogState.Currency, s10n)
+    val dialog      = EditS10nCurrencyDialog(EditS10nCurrencyDialogState.Currency, s10n)
     val updatedUser = user.copy(dialog = dialog.some)
     (mockUserRepo.createOrUpdate _).expects(updatedUser).returns(updatedUser)
 

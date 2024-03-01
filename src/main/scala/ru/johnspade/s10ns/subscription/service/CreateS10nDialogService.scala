@@ -13,7 +13,9 @@ trait CreateS10nDialogService[F[_]] {
 
   def onCreateWithDefaultCurrencyCommand(user: User): F[List[ReplyMessage]]
 
-  val saveDraft: PartialFunction[(User, CreateS10nDialog, Option[String]), F[ValidatorNec.ValidationResult[List[ReplyMessage]]]]
+  val saveDraft: PartialFunction[(User, CreateS10nDialog, Option[String]), F[
+    ValidatorNec.ValidationResult[List[ReplyMessage]]
+  ]]
 
   def onBillingPeriodUnitCb(data: PeriodUnit, user: User, dialog: CreateS10nDialog): F[List[ReplyMessage]]
 

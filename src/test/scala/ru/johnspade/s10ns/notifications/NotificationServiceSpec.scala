@@ -25,8 +25,8 @@ import ru.johnspade.s10ns.subscription.tags.SubscriptionName
 import ru.johnspade.s10ns.user.tags.UserId
 
 class NotificationServiceSpec extends SpecBase {
-  private val s10nInfoService = new S10nInfoService[IO]
-  private val hoursBefore = 48
+  private val s10nInfoService     = new S10nInfoService[IO]
+  private val hoursBefore         = 48
   private val notificationService = new NotificationService[IO](hoursBefore, s10nInfoService)
 
   private val sampleS10n = Subscription(
@@ -49,24 +49,30 @@ class NotificationServiceSpec extends SpecBase {
   }
 
   it should "return false if more than hoursBefore left" in {
-    notificationService.needNotification(
-      sampleS10n.copy(firstPaymentDate = FirstPaymentDate(LocalDate.now.plusMonths(1)).some),
-      now
-    ).unsafeRunSync() shouldBe false
+    notificationService
+      .needNotification(
+        sampleS10n.copy(firstPaymentDate = FirstPaymentDate(LocalDate.now.plusMonths(1)).some),
+        now
+      )
+      .unsafeRunSync() shouldBe false
   }
 
   it should "return false if sendNotifications is false" in {
-    notificationService.needNotification(
-      sampleS10n.copy(sendNotifications = false),
-      now
-    ).unsafeRunSync() shouldBe false
+    notificationService
+      .needNotification(
+        sampleS10n.copy(sendNotifications = false),
+        now
+      )
+      .unsafeRunSync() shouldBe false
   }
 
   it should "return false if a notification is sent" in {
-    notificationService.needNotification(
-      sampleS10n.copy(lastNotification = now.some),
-      now
-    ).unsafeRunSync() shouldBe false
+    notificationService
+      .needNotification(
+        sampleS10n.copy(lastNotification = now.some),
+        now
+      )
+      .unsafeRunSync() shouldBe false
   }
 
   it should "return false if a notification was sent hoursBefore ago" in {

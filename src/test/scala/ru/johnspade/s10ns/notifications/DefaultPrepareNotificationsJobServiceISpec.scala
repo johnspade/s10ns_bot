@@ -70,10 +70,10 @@ class DefaultPrepareNotificationsJobServiceISpec extends SpecBase with BeforeAnd
   }
 
   private trait Wiring {
-    protected val s10nRepo = new DoobieSubscriptionRepository
-    protected val notificationRepo = new DoobieNotificationRepository
-    private val s10nInfoService = new S10nInfoService[IO]
-    private val hoursBefore = 48
+    protected val s10nRepo          = new DoobieSubscriptionRepository
+    protected val notificationRepo  = new DoobieNotificationRepository
+    private val s10nInfoService     = new S10nInfoService[IO]
+    private val hoursBefore         = 48
     private val notificationService = new NotificationService[IO](hoursBefore, s10nInfoService)
 
     protected val prepareNotificationsJobService: DefaultPrepareNotificationsJobService[IO, ConnectionIO] =
@@ -92,7 +92,8 @@ class DefaultPrepareNotificationsJobServiceISpec extends SpecBase with BeforeAnd
         sendNotifications = true
       )
 
-    protected def createS10n(draft: SubscriptionDraft): Subscription = s10nRepo.create(draft).transact(xa).unsafeRunSync()
+    protected def createS10n(draft: SubscriptionDraft): Subscription =
+      s10nRepo.create(draft).transact(xa).unsafeRunSync()
 
     protected def prepareAndGetNotifications: List[Notification] = {
       prepareNotificationsJobService.prepareNotifications().unsafeRunSync()

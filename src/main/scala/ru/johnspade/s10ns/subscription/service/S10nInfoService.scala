@@ -21,10 +21,11 @@ class S10nInfoService[F[_]: Monad: Clock] {
   def getNextPaymentDate(start: FirstPaymentDate, billingPeriod: Option[BillingPeriod]): F[LocalDate] =
     currentTimestamp.map { now =>
       val today = now.atZone(ZoneOffset.UTC).toLocalDate
-      billingPeriod.map { period =>
-        val periodsPassed = calcPeriodsPassed(today, start, period)
-        start.plus(periodsPassed * period.duration, period.unit.chronoUnit)
-      }
+      billingPeriod
+        .map { period =>
+          val periodsPassed = calcPeriodsPassed(today, start, period)
+          start.plus(periodsPassed * period.duration, period.unit.chronoUnit)
+        }
         .getOrElse(start)
     }
 
@@ -34,14 +35,13 @@ class S10nInfoService[F[_]: Monad: Clock] {
 
   def getRemainingTime(nextPaymentDate: LocalDate): F[Option[RemainingTime]] =
     currentTimestamp.map { now =>
-      val today = now.atZone(ZoneOffset.UTC).toLocalDate
+      val today   = now.atZone(ZoneOffset.UTC).toLocalDate
       val between = Period.between(today, nextPaymentDate)
-      between.getUnits
-        .asScala
+      between.getUnits.asScala
         .map(unit => (unit, between.get(unit)))
         .find(_._2 != 0)
-        .map {
-          case (unit, count) => RemainingTime(unit, count)
+        .map { case (unit, count) =>
+          RemainingTime(unit, count)
         }
     }
 

@@ -12,8 +12,8 @@ object DbConfig {
       obj <- config.asObjectCursor
       fluent = obj.fluent
       driver <- fluent.at("driver").asString
-      url <- fluent.at("url").asString
-      dbUri = new URI(url)
+      url    <- fluent.at("url").asString
+      dbUri    = new URI(url)
       userInfo = dbUri.getUserInfo.split(":")
     } yield DbConfig(
       driver,

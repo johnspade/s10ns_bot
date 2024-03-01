@@ -24,7 +24,7 @@ class CallbackQueryHandlerSpec extends AnyFlatSpec with Matchers with MockFactor
   private implicit val api: Api[IO] = stub[Api[IO]]
   private val routes = CallbackQueryRoutes.of[String, Unit, IO] {
     case "test1" in cb => api.execute(Methods.answerCallbackQuery(cb.id)).void
-    case "test2" in _ => api.execute(Methods.getMe()).void
+    case "test2" in _  => api.execute(Methods.getMe()).void
   }
   private val testCallbackDataDecoder: CallbackDataDecoder[IO, String] = DecodeResult.success[IO, String](_)
 
@@ -41,13 +41,19 @@ class CallbackQueryHandlerSpec extends AnyFlatSpec with Matchers with MockFactor
       .when(where((_: Method[Boolean]).payload.name == "leaveChat"))
       .returns(IO.pure(true))
 
-    CallbackQueryHandler.handle[IO, String, Unit](createCb("1", "test1"), routes, testCallbackDataDecoder, ifNotFound).unsafeRunSync()
+    CallbackQueryHandler
+      .handle[IO, String, Unit](createCb("1", "test1"), routes, testCallbackDataDecoder, ifNotFound)
+      .unsafeRunSync()
     verifyMethodCall(api, Methods.answerCallbackQuery("1"))
 
-    CallbackQueryHandler.handle[IO, String, Unit](createCb("2", "test2"), routes, testCallbackDataDecoder, ifNotFound).unsafeRunSync()
+    CallbackQueryHandler
+      .handle[IO, String, Unit](createCb("2", "test2"), routes, testCallbackDataDecoder, ifNotFound)
+      .unsafeRunSync()
     verifyMethodCall(api, Methods.getMe())
 
-    CallbackQueryHandler.handle[IO, String, Unit](createCb("3", "test3"), routes, testCallbackDataDecoder, ifNotFound).unsafeRunSync()
+    CallbackQueryHandler
+      .handle[IO, String, Unit](createCb("3", "test3"), routes, testCallbackDataDecoder, ifNotFound)
+      .unsafeRunSync()
     verifyMethodCall(api, Methods.leaveChat(ChatIntId(911)))
   }
 

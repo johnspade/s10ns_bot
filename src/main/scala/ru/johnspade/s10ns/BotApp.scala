@@ -49,22 +49,22 @@ object BotApp extends IOApp {
 
     def init[F[_]: Temporal: Parallel: Async](conf: Config, transact: D ~> F) = {
       implicit val logs: Logs[F, F] = Logs.sync[F, F]
-      implicit val xa: D ~> F = transact
+      implicit val xa: D ~> F       = transact
 
       BlazeClientBuilder[F].resource.use { httpClient =>
         implicit val api: Api[F] =
           BotApi(httpClient, s"https://api.telegram.org/bot${conf.bot.token}")
         for {
-          calendarModule <- CalendarModule.make[F]
-          userModule <- UserModule.make[F]()
+          calendarModule      <- CalendarModule.make[F]
+          userModule          <- UserModule.make[F]()
           exchangeRatesModule <- ExchangeRatesModule.make[F](conf.fixer.token)
-          botModule <- BotModule.make[F](userModule, exchangeRatesModule)
-          settingsModule <- SettingsModule.make[F](botModule)
-          subscriptionModule <- SubscriptionModule.make[F](userModule, botModule, calendarModule)
+          botModule           <- BotModule.make[F](userModule, exchangeRatesModule)
+          settingsModule      <- SettingsModule.make[F](botModule)
+          subscriptionModule  <- SubscriptionModule.make[F](userModule, botModule, calendarModule)
           notificationsModule <- NotificationsModule.make[F](subscriptionModule)
-          _ <- exchangeRatesModule.exchangeRatesJobService.startExchangeRatesJob()
-          _ <- notificationsModule.prepareNotificationsJobService.startPrepareNotificationsJob()
-          _ <- notificationsModule.notificationsJobService.startNotificationsJob()
+          _                   <- exchangeRatesModule.exchangeRatesJobService.startExchangeRatesJob()
+          _                   <- notificationsModule.prepareNotificationsJobService.startPrepareNotificationsJob()
+          _                   <- notificationsModule.notificationsJobService.startNotificationsJob()
           bot <- SubscriptionsBot[F, D](
             conf.bot,
             userModule.userRepository,
@@ -77,10 +77,12 @@ object BotApp extends IOApp {
             botModule.cbDataService,
             botModule.userMiddleware
           )
-          _ <- bot.start(
-            port = conf.bot.port,
-            host = "0.0.0.0"
-          ).use(_ => Async[F].async_[Unit](_ => ()))
+          _ <- bot
+            .start(
+              port = conf.bot.port,
+              host = "0.0.0.0"
+            )
+            .use(_ => Async[F].async_[Unit](_ => ()))
         } yield ()
       }
     }

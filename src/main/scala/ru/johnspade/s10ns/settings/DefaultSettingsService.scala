@@ -15,11 +15,11 @@ import ru.johnspade.s10ns.bot.engine.TelegramOps.inlineKeyboardButton
 import ru.johnspade.s10ns.user.User
 
 class DefaultSettingsService[F[_]: Monad](
-  private val dialogEngine: DialogEngine[F],
-  private val stateMessageService: StateMessageService[F, SettingsDialogState]
+    private val dialogEngine: DialogEngine[F],
+    private val stateMessageService: StateMessageService[F, SettingsDialogState]
 ) extends SettingsService[F] {
   override def startDefaultCurrencyDialog(user: User): F[List[ReplyMessage]] = {
-    val start = SettingsDialogState.DefaultCurrency
+    val start  = SettingsDialogState.DefaultCurrency
     val dialog = SettingsDialog(state = start)
     stateMessageService.createReplyMessage(start).flatMap(dialogEngine.startDialog(user, dialog, _))
   }

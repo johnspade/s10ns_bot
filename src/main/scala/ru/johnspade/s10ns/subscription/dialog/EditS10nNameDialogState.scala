@@ -10,12 +10,11 @@ import ru.johnspade.s10ns.bot.engine.DialogState
 import ru.johnspade.s10ns.bot.engine.StateEvent
 
 sealed abstract class EditS10nNameDialogState(override val message: String, override val markup: Option[KeyboardMarkup])
-  extends EnumEntry with DialogState
+    extends EnumEntry
+    with DialogState
 
-object EditS10nNameDialogState
-  extends Enum[EditS10nNameDialogState]
-    with CirceEnum[EditS10nNameDialogState] {
-  case object Name extends EditS10nNameDialogState(Messages.Name, None)
+object EditS10nNameDialogState extends Enum[EditS10nNameDialogState] with CirceEnum[EditS10nNameDialogState] {
+  case object Name     extends EditS10nNameDialogState(Messages.Name, None)
   case object Finished extends EditS10nNameDialogState(Messages.S10nSaved, None)
 
   override def values: IndexedSeq[EditS10nNameDialogState] = findValues
@@ -28,7 +27,7 @@ object EditS10nNameDialogState
       case Name =>
         e match {
           case EnteredName => Finished
-          case _ => state
+          case _           => state
         }
       case _ => state
     }

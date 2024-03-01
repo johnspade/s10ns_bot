@@ -4,10 +4,12 @@ package object calendar {
   implicit class RangeHasShift(val range: Range) extends AnyVal {
     def shift(n: Int): Range = {
       val shiftedStart = range.start + n
-      val shiftedEnd = range.end + n
+      val shiftedEnd   = range.end + n
 
-      if ((n > 0 && (shiftedStart < range.start || shiftedEnd < range.end)) ||
-        (n < 0 && (shiftedStart > range.start || shiftedEnd > range.end)))
+      if (
+        (n > 0 && (shiftedStart < range.start || shiftedEnd < range.end)) ||
+        (n < 0 && (shiftedStart > range.start || shiftedEnd > range.end))
+      )
         throw new IllegalArgumentException(s"$range.shift($n) causes number overflow")
 
       if (range.isInclusive)
@@ -16,7 +18,7 @@ package object calendar {
         Range(shiftedStart, shiftedEnd, range.step)
     }
 
-    def nextRange: Range = shift(range.size)
+    def nextRange: Range     = shift(range.size)
     def previousRange: Range = shift(-range.size)
   }
 }

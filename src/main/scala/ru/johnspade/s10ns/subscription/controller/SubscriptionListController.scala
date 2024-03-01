@@ -27,37 +27,43 @@ import ru.johnspade.s10ns.subscription.tags.PageNumber
 import ru.johnspade.s10ns.user.User
 
 class SubscriptionListController[F[_]: Monad: Defer](
-  private val s10nListService: SubscriptionListService[F]
-)(implicit bot: Api[F]) extends CallbackQueryUserController[F] {
+    private val s10nListService: SubscriptionListService[F]
+)(implicit bot: Api[F])
+    extends CallbackQueryUserController[F] {
   def listCommand(from: User): F[ReplyMessage] = s10nListService.onListCommand(from, PageNumber(0))
 
   override val routes: CbDataUserRoutes[F] = CallbackQueryContextRoutes.of {
     case (data: S10ns) in cb as user =>
-      s10nListService.onSubscriptionsCb(user, cb, data)
+      s10nListService
+        .onSubscriptionsCb(user, cb, data)
         .flatMap(ackCb(cb) *> editMessage(cb, _))
 
     case (data: S10nsPeriod) in cb as user =>
-      s10nListService.onS10nsPeriodCb(user, cb, data)
+      s10nListService
+        .onS10nsPeriodCb(user, cb, data)
         .flatMap(ackCb(cb) *> editMessage(cb, _))
 
     case (data: RemoveS10n) in cb as user =>
-      s10nListService.onRemoveSubscriptionCb(user, cb, data)
+      s10nListService
+        .onRemoveSubscriptionCb(user, cb, data)
         .flatMap(ackCb(cb) *> editMessage(cb, _))
 
     case (data: S10n) in cb as user =>
       ackAndEditMsg(cb, s10nListService.onSubcriptionCb(user, cb, data))
 
     case (data: EditS10n) in cb as _ =>
-      s10nListService.onEditS10nCb(cb, data)
+      s10nListService
+        .onEditS10nCb(cb, data)
         .flatMap {
-          case Left(error) => ackCb(cb, error.some)
+          case Left(error)   => ackCb(cb, error.some)
           case Right(markup) => ackCb(cb) *> editMarkup(cb, markup)
         }
 
     case (data: Notify) in cb as user =>
-      s10nListService.onNotifyCb(user, cb, data)
+      s10nListService
+        .onNotifyCb(user, cb, data)
         .flatMap {
-          case Left(error) => ackCb(cb, error.some)
+          case Left(error)   => ackCb(cb, error.some)
           case Right(markup) => ackCb(cb) *> editMarkup(cb, markup)
         }
   }
@@ -65,7 +71,7 @@ class SubscriptionListController[F[_]: Monad: Defer](
   private def editMessage(cb: CallbackQuery, reply: ReplyMessage)(implicit bot: Api[F]) = {
     val markup = reply.markup match {
       case Some(inlineKeyboard @ InlineKeyboardMarkup(_)) => inlineKeyboard.some
-      case _ => Option.empty[InlineKeyboardMarkup]
+      case _                                              => Option.empty[InlineKeyboardMarkup]
     }
     editMessageText(
       cb.message.map(msg => ChatIntId(msg.chat.id)),
@@ -78,7 +84,7 @@ class SubscriptionListController[F[_]: Monad: Defer](
 
   private def ackAndEditMsg(cb: CallbackQuery, replyF: F[Either[String, ReplyMessage]])(implicit bot: Api[F]) =
     replyF.flatMap {
-      case Left(error) => ackCb(cb, error.some)
+      case Left(error)  => ackCb(cb, error.some)
       case Right(reply) => ackCb(cb) *> editMessage(cb, reply)
     }
 

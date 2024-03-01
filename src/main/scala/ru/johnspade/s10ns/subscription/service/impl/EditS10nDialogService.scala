@@ -22,11 +22,11 @@ import ru.johnspade.s10ns.user.User
 import ru.johnspade.s10ns.user.UserRepository
 
 abstract class EditS10nDialogService[F[_]: Monad, D[_]: Monad, S <: DialogState](
-  private val s10nsListMessageService: S10nsListMessageService[F],
-  private val stateMessageService: StateMessageService[F, S],
-  private val userRepo: UserRepository[D],
-  private val s10nRepo: SubscriptionRepository[D],
-  private val dialogEngine: TransactionalDialogEngine[F, D]
+    private val s10nsListMessageService: S10nsListMessageService[F],
+    private val stateMessageService: StateMessageService[F, S],
+    private val userRepo: UserRepository[D],
+    private val s10nRepo: SubscriptionRepository[D],
+    private val dialogEngine: TransactionalDialogEngine[F, D]
 )(private implicit val transact: D ~> F) {
   def transition(user: User, dialog: EditS10nDialog.Aux[S])(event: dialog.E): F[List[ReplyMessage]] = {
     def createReply(dialog: EditS10nDialog.Aux[S]) =
@@ -43,9 +43,11 @@ abstract class EditS10nDialogService[F[_]: Monad, D[_]: Monad, S <: DialogState]
 
   private def onFinish(user: User, draft: Subscription, message: String) = {
     val replyOpt = transact {
-      s10nRepo.update(draft)
+      s10nRepo
+        .update(draft)
         .flatMap(_.traverse { s10n =>
-          dialogEngine.reset(user, message)
+          dialogEngine
+            .reset(user, message)
             .map((_, s10n))
         })
     }
@@ -58,10 +60,10 @@ abstract class EditS10nDialogService[F[_]: Monad, D[_]: Monad, S <: DialogState]
   }
 
   protected def onEditS10nDialogCb(
-    user: User,
-    s10nId: SubscriptionId,
-    state: S,
-    createDialog: Subscription => EditS10nDialog
+      user: User,
+      s10nId: SubscriptionId,
+      state: S,
+      createDialog: Subscription => EditS10nDialog
   ): F[List[ReplyMessage]] = {
     def saveAndReply(s10n: Subscription) = {
       val checkUserAndGetState = Either.cond(
@@ -78,7 +80,7 @@ abstract class EditS10nDialogService[F[_]: Monad, D[_]: Monad, S <: DialogState]
     }
 
     for {
-      s10nOpt <- transact(s10nRepo.getById(s10nId))
+      s10nOpt  <- transact(s10nRepo.getById(s10nId))
       replyOpt <- s10nOpt.traverse(saveAndReply)
     } yield replyOpt.getOrElse(List(ReplyMessage(Errors.NotFound)))
   }

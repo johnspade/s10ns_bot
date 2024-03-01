@@ -12,5 +12,9 @@ trait EditS10nBillingPeriodDialogService[F[_]] {
 
   def saveBillingPeriodUnit(data: PeriodUnit, user: User, dialog: EditS10nBillingPeriodDialog): F[List[ReplyMessage]]
 
-  def saveBillingPeriodDuration(user: User, dialog: EditS10nBillingPeriodDialog, text: Option[String]): F[RepliesValidated]
+  def saveBillingPeriodDuration(
+      user: User,
+      dialog: EditS10nBillingPeriodDialog,
+      text: Option[String]
+  ): F[RepliesValidated]
 }

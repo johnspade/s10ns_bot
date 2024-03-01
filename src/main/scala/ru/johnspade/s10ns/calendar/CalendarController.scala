@@ -20,8 +20,9 @@ import ru.johnspade.s10ns.bot.Years
 import ru.johnspade.s10ns.bot.engine.TelegramOps.ackCb
 
 class CalendarController[F[_]: Sync](
-  private val calendarService: CalendarService
-)(implicit bot: Api[F]) extends CallbackQueryController[F] {
+    private val calendarService: CalendarService
+)(implicit bot: Api[F])
+    extends CallbackQueryController[F] {
   override val routes: CbDataRoutes[F] = CallbackQueryRoutes.of {
     case (data: Calendar) in cb =>
       editMarkup(cb, calendarService.generateDaysKeyboard(data.date))

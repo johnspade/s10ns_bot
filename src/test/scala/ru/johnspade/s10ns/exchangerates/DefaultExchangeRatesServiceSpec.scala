@@ -16,12 +16,17 @@ import tofu.logging.Logs
 
 import ru.johnspade.s10ns.TestTransactor.transact
 
-class DefaultExchangeRatesServiceSpec extends AnyFlatSpec with Matchers with OptionValues with DiffShouldMatcher with MockFactory {
+class DefaultExchangeRatesServiceSpec
+    extends AnyFlatSpec
+    with Matchers
+    with OptionValues
+    with DiffShouldMatcher
+    with MockFactory {
   private implicit val logs: Logs[IO, IO] = Logs.sync[IO, IO]
 
-  private val timestamp = Instant.now.getEpochSecond
-  private val fixerApi = new InMemoryFixerApi(timestamp)
-  private val exchangeRatesRepo = new InMemoryExchangeRatesRepository
+  private val timestamp                         = Instant.now.getEpochSecond
+  private val fixerApi                          = new InMemoryFixerApi(timestamp)
+  private val exchangeRatesRepo                 = new InMemoryExchangeRatesRepository
   private val exchangeRatesRefreshTimestampRepo = new InMemoryExchangeRatesRefreshTimestampRepository
 
   private val sampleRates = Map("RUB" -> BigDecimal(30))

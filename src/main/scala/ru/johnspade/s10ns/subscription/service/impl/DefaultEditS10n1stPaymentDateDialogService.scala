@@ -20,16 +20,21 @@ import ru.johnspade.s10ns.subscription.service.S10nsListMessageService
 import ru.johnspade.s10ns.user.User
 import ru.johnspade.s10ns.user.UserRepository
 
-class DefaultEditS10n1stPaymentDateDialogService[F[_] : Monad, D[_] : Monad](
-  s10nsListMessageService: S10nsListMessageService[F],
-  stateMessageService: StateMessageService[F, EditS10nFirstPaymentDateDialogState],
-  userRepo: UserRepository[D],
-  s10nRepo: SubscriptionRepository[D],
-  dialogEngine: TransactionalDialogEngine[F, D]
+class DefaultEditS10n1stPaymentDateDialogService[F[_]: Monad, D[_]: Monad](
+    s10nsListMessageService: S10nsListMessageService[F],
+    stateMessageService: StateMessageService[F, EditS10nFirstPaymentDateDialogState],
+    userRepo: UserRepository[D],
+    s10nRepo: SubscriptionRepository[D],
+    dialogEngine: TransactionalDialogEngine[F, D]
 )(implicit transact: D ~> F)
-  extends EditS10nDialogService[F, D, EditS10nFirstPaymentDateDialogState](
-    s10nsListMessageService, stateMessageService, userRepo, s10nRepo, dialogEngine
-  ) with EditS10n1stPaymentDateDialogService[F] {
+    extends EditS10nDialogService[F, D, EditS10nFirstPaymentDateDialogState](
+      s10nsListMessageService,
+      stateMessageService,
+      userRepo,
+      s10nRepo,
+      dialogEngine
+    )
+    with EditS10n1stPaymentDateDialogService[F] {
   override def onEditS10nFirstPaymentDateCb(user: User, data: EditS10nFirstPaymentDate): F[List[ReplyMessage]] = {
     val start = EditS10nFirstPaymentDateDialogState.FirstPaymentDate
     onEditS10nDialogCb(
@@ -40,7 +45,11 @@ class DefaultEditS10n1stPaymentDateDialogService[F[_] : Monad, D[_] : Monad](
     )
   }
 
-  override def saveFirstPaymentDate(data: FirstPayment, user: User, dialog: EditS10nFirstPaymentDateDialog): F[List[ReplyMessage]] = {
+  override def saveFirstPaymentDate(
+      data: FirstPayment,
+      user: User,
+      dialog: EditS10nFirstPaymentDateDialog
+  ): F[List[ReplyMessage]] = {
     val updatedDialog = dialog.modify(_.draft.firstPaymentDate).setTo(data.date.some)
     transition(user, updatedDialog)(EditS10nFirstPaymentDateDialogEvent.ChosenFirstPaymentDate)
   }
