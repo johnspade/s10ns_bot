@@ -1,3 +1,14 @@
 target/
 *.iml
 .idea/
+
+# Bloop
+.bsp
+
+# VS Code
+.vscode/
+
+# Metals
+.bloop/
+.metals/
+metals.sbt
