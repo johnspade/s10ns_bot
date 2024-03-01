@@ -7,6 +7,7 @@ import cats.Monad
 import cats.instances.option._
 import cats.syntax.functor._
 import cats.syntax.traverse._
+
 import ru.johnspade.s10ns.subscription.Subscription
 import ru.johnspade.s10ns.subscription.service.S10nInfoService
 

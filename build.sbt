@@ -17,7 +17,6 @@ scalacOptions ++= Seq(
 val TelegramiumVersion         = "7.54.0"
 val TgbotUtilsVersion          = "0.5.0"
 val DoobieVersion              = "1.0.0-RC1"
-val FuuidVersion               = "0.8.0-M2"
 val CirceVersion               = "0.14.1"
 val SttpVersion                = "3.3.17"
 val PureconfigVersion          = "0.17.1"
@@ -62,8 +61,6 @@ libraryDependencies ++= Seq(
   "org.flywaydb"                   % "flyway-core"                     % "8.0.5",
   "com.softwaremill.quicklens"    %% "quicklens"                       % "1.7.5",
   "com.ibm.icu"                    % "icu4j"                           % "70.1",
-  "io.chrisdavenport"             %% "fuuid"                           % FuuidVersion,
-  "io.chrisdavenport"             %% "fuuid-doobie"                    % FuuidVersion,
   "org.scalatest"                 %% "scalatest"                       % "3.2.10"                   % Test,
   "com.dimafeng"                  %% "testcontainers-scala-scalatest"  % TestcontainersScalaVersion % Test,
   "com.dimafeng"                  %% "testcontainers-scala-postgresql" % TestcontainersScalaVersion % Test,

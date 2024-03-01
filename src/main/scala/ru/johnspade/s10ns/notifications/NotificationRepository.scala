@@ -1,6 +1,6 @@
 package ru.johnspade.s10ns.notifications
 
-import io.chrisdavenport.fuuid.FUUID
+import java.util.UUID
 
 trait NotificationRepository[D[_]] {
   def create(notification: Notification): D[Unit]
@@ -9,7 +9,7 @@ trait NotificationRepository[D[_]] {
 
   def retrieveForSending(): D[Option[Notification]]
 
-  def delete(id: FUUID): D[Unit]
+  def delete(id: UUID): D[Unit]
 
   def getAll: D[List[Notification]]
 }

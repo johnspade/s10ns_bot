@@ -4,6 +4,7 @@ import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
+import java.util.UUID
 
 import cats.effect.IO
 import cats.effect.unsafe.implicits.global
@@ -11,7 +12,6 @@ import cats.syntax.option._
 
 import doobie.ConnectionIO
 import doobie.implicits._
-import io.chrisdavenport.fuuid.FUUID
 import org.joda.money.CurrencyUnit
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.BeforeAndAfterEach
@@ -80,7 +80,7 @@ class DefaultNotificationsJobServiceISpec extends SpecBase with MockFactory with
   it should "send a notification if there is a task in the table" in {
     (api.execute[Message] _).when(*).returns(IO.pure(Message(0, date = 0, chat = Chat(0, `type` = ""))))
     notificationRepo
-      .create(Notification(FUUID.randomFUUID[IO].unsafeRunSync(), s10nId))
+      .create(Notification(UUID.randomUUID(), s10nId))
       .transact(xa)
       .unsafeRunSync()
 
@@ -136,7 +136,7 @@ class DefaultNotificationsJobServiceISpec extends SpecBase with MockFactory with
       .unsafeRunSync()
     s10nRepo.update(s10n.copy(lastNotification = Instant.now.some)).transact(xa).unsafeRunSync()
     notificationRepo
-      .create(Notification(FUUID.randomFUUID[IO].unsafeRunSync(), s10n.id))
+      .create(Notification(UUID.randomUUID(), s10n.id))
       .transact(xa)
       .unsafeRunSync()
 
@@ -165,7 +165,7 @@ class DefaultNotificationsJobServiceISpec extends SpecBase with MockFactory with
       .transact(xa)
       .unsafeRunSync()
     notificationRepo
-      .create(Notification(FUUID.randomFUUID[IO].unsafeRunSync(), s10n.id))
+      .create(Notification(UUID.randomUUID(), s10n.id))
       .transact(xa)
       .unsafeRunSync()
 
@@ -195,7 +195,7 @@ class DefaultNotificationsJobServiceISpec extends SpecBase with MockFactory with
       .transact(xa)
       .unsafeRunSync()
     notificationRepo
-      .create(Notification(FUUID.randomFUUID[IO].unsafeRunSync(), s10n.id))
+      .create(Notification(UUID.randomUUID(), s10n.id))
       .transact(xa)
       .unsafeRunSync()
 

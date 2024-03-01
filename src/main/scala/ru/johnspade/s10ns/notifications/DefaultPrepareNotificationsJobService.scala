@@ -1,15 +1,16 @@
 package ru.johnspade.s10ns.notifications
 
 import java.time.Instant
+import java.util.UUID
 import scala.concurrent.duration._
 
 import cats.Monad
 import cats.effect.Async
 import cats.effect.Concurrent
+import cats.effect.Sync
 import cats.implicits._
 import cats.~>
 
-import io.chrisdavenport.fuuid.FUUID
 import tofu.logging._
 import tofu.syntax.logging._
 
@@ -31,7 +32,9 @@ class DefaultPrepareNotificationsJobService[F[_]: Concurrent: Async: Logging, D[
           notificationsService.needNotification(s10n, cutoff).flatMap {
             Option
               .when(_) {
-                FUUID.randomFUUID[F].map(Notification(_, s10n.id))
+                Sync[F]
+                  .delay(UUID.randomUUID)
+                  .map(Notification(_, s10n.id))
               }
               .sequence
           }

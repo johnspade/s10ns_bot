@@ -1,5 +1,7 @@
 package ru.johnspade.s10ns.notifications
 
+import java.util.UUID
+
 import cats.instances.list.catsStdInstancesForList
 import cats.syntax.functor._
 
@@ -10,8 +12,6 @@ import doobie.implicits._
 import doobie.implicits.legacy.instant._
 import doobie.postgres.implicits._
 import doobie.util.update.Update
-import io.chrisdavenport.fuuid.FUUID
-import io.chrisdavenport.fuuid.doobie.implicits._
 
 import ru.johnspade.s10ns.notifications.DoobieNotificationRepository.NotificationSql
 import ru.johnspade.s10ns.subscription.tags.SubscriptionId
@@ -26,7 +26,7 @@ class DoobieNotificationRepository extends NotificationRepository[ConnectionIO] 
   def retrieveForSending(): ConnectionIO[Option[Notification]] =
     NotificationSql.retrieveForSending().option
 
-  def delete(id: FUUID): ConnectionIO[Unit] =
+  def delete(id: UUID): ConnectionIO[Unit] =
     NotificationSql.delete(id).run.void
 
   def getAll: ConnectionIO[List[Notification]] = NotificationSql.getAll.to[List]
@@ -34,7 +34,7 @@ class DoobieNotificationRepository extends NotificationRepository[ConnectionIO] 
 
 object DoobieNotificationRepository {
   object NotificationSql {
-    type NotificationInfo = (FUUID, SubscriptionId, Int)
+    type NotificationInfo = (UUID, SubscriptionId, Int)
 
     def create(notification: Notification): Update0 = {
       import notification._
@@ -63,7 +63,7 @@ object DoobieNotificationRepository {
         returning n1.id, n1.subscription_id, n1.retries_remaining
       """.query[Notification]
 
-    def delete(id: FUUID): Update0 =
+    def delete(id: UUID): Update0 =
       sql"""
         delete from notifications where id = $id
       """.update

@@ -2,15 +2,13 @@ package ru.johnspade.s10ns.notifications
 
 import java.util.UUID
 
-import io.chrisdavenport.fuuid.FUUID
-
 import ru.johnspade.s10ns.DoobieRepositorySpec
 import ru.johnspade.s10ns.notifications.DoobieNotificationRepository.NotificationSql._
 import ru.johnspade.s10ns.subscription.tags.SubscriptionId
 
 class DoobieNotificationRepositorySpec extends DoobieRepositorySpec {
-  private val sampleFuuid        = FUUID.fromUUID(UUID.randomUUID())
-  private val sampleNotification = Notification(sampleFuuid, SubscriptionId(0L))
+  private val sampleUuid         = UUID.randomUUID()
+  private val sampleNotification = Notification(sampleUuid, SubscriptionId(0L))
 
   test("create") {
     check(create(sampleNotification))
@@ -25,6 +23,6 @@ class DoobieNotificationRepositorySpec extends DoobieRepositorySpec {
   }
 
   test("delete") {
-    check(delete(sampleFuuid))
+    check(delete(sampleUuid))
   }
 }
