@@ -2,11 +2,14 @@ package ru.johnspade.s10ns.bot
 
 import cats.effect.Sync
 import cats.~>
+
 import doobie.free.connection.ConnectionIO
-import ru.johnspade.s10ns.bot.engine.{DefaultDialogEngine, TransactionalDialogEngine}
+import telegramium.bots.high.Api
+
+import ru.johnspade.s10ns.bot.engine.DefaultDialogEngine
+import ru.johnspade.s10ns.bot.engine.TransactionalDialogEngine
 import ru.johnspade.s10ns.exchangerates.ExchangeRatesModule
 import ru.johnspade.s10ns.user.UserModule
-import telegramium.bots.high.Api
 
 final class BotModule[F[_], D[_]] private(
   val moneyService: MoneyService[F],

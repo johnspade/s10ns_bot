@@ -1,15 +1,25 @@
 package ru.johnspade.s10ns.subscription.service.impl
 
-import cats.{Monad, ~>}
+import cats.Monad
+import cats.~>
+
 import com.softwaremill.quicklens._
+
+import ru.johnspade.s10ns.bot.EditS10nName
+import ru.johnspade.s10ns.bot.EditS10nNameDialog
 import ru.johnspade.s10ns.bot.ValidatorNec._
-import ru.johnspade.s10ns.bot.engine.{ReplyMessage, StateMessageService, TransactionalDialogEngine}
-import ru.johnspade.s10ns.bot.{EditS10nName, EditS10nNameDialog}
-import ru.johnspade.s10ns.subscription.dialog.{EditS10nNameDialogEvent, EditS10nNameDialogState}
+import ru.johnspade.s10ns.bot.engine.ReplyMessage
+import ru.johnspade.s10ns.bot.engine.StateMessageService
+import ru.johnspade.s10ns.bot.engine.TransactionalDialogEngine
+import ru.johnspade.s10ns.subscription.dialog.EditS10nNameDialogEvent
+import ru.johnspade.s10ns.subscription.dialog.EditS10nNameDialogState
 import ru.johnspade.s10ns.subscription.repository.SubscriptionRepository
-import ru.johnspade.s10ns.subscription.service.{EditS10nNameDialogService, RepliesValidated, S10nsListMessageService}
+import ru.johnspade.s10ns.subscription.service.EditS10nNameDialogService
+import ru.johnspade.s10ns.subscription.service.RepliesValidated
+import ru.johnspade.s10ns.subscription.service.S10nsListMessageService
 import ru.johnspade.s10ns.subscription.tags.SubscriptionName
-import ru.johnspade.s10ns.user.{User, UserRepository}
+import ru.johnspade.s10ns.user.User
+import ru.johnspade.s10ns.user.UserRepository
 
 class DefaultEditS10nNameDialogService[F[_]: Monad, D[_]: Monad](
   s10nsListMessageService: S10nsListMessageService[F],

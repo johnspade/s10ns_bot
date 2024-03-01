@@ -1,15 +1,23 @@
 package ru.johnspade.s10ns.exchangerates
 
+import java.time.Instant
+import java.time.OffsetDateTime
+import java.time.ZoneId
 import java.time.temporal.ChronoUnit
-import java.time.{Instant, OffsetDateTime, ZoneId}
-import cats.effect.{Clock, Concurrent}
-import cats.implicits._
-import cats.{Apply, Monad, ~>}
-import ru.johnspade.s10ns.repeat
-import tofu.logging.{Logging, Logs}
-
 import scala.concurrent.duration._
+
+import cats.Apply
+import cats.Monad
+import cats.effect.Clock
+import cats.effect.Concurrent
 import cats.effect.Temporal
+import cats.implicits._
+import cats.~>
+
+import tofu.logging.Logging
+import tofu.logging.Logs
+
+import ru.johnspade.s10ns.repeat
 
 class DefaultExchangeRatesJobService[F[_]: Concurrent: Clock: Temporal: Logging, D[_]: Apply](
   private val exchangeRatesService: ExchangeRatesService[F],

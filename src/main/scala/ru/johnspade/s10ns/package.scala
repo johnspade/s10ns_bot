@@ -1,20 +1,25 @@
 package ru.johnspade
 
 import java.time.Instant
+import scala.concurrent.duration._
 
+import cats.Functor
+import cats.Monad
+import cats.MonadError
 import cats.effect.Clock
+import cats.effect.Temporal
 import cats.implicits._
-import cats.{Functor, Monad, MonadError}
-import ru.johnspade.s10ns.bot.engine.TelegramOps.ackCb
-import ru.johnspade.s10ns.bot.{CbData, Errors}
-import ru.johnspade.tgbot.callbackqueries.{CallbackQueryContextRoutes, CallbackQueryRoutes}
-import ru.johnspade.s10ns.user.User
+
+import ru.johnspade.tgbot.callbackqueries.CallbackQueryContextRoutes
+import ru.johnspade.tgbot.callbackqueries.CallbackQueryRoutes
 import telegramium.bots.CallbackQuery
 import telegramium.bots.high.Api
 import tofu.logging.Logging
 
-import scala.concurrent.duration._
-import cats.effect.Temporal
+import ru.johnspade.s10ns.bot.CbData
+import ru.johnspade.s10ns.bot.Errors
+import ru.johnspade.s10ns.bot.engine.TelegramOps.ackCb
+import ru.johnspade.s10ns.user.User
 
 package object s10ns {
   def repeat[F[_]: Monad: Temporal: Logging](f: F[Unit], duration: FiniteDuration)(

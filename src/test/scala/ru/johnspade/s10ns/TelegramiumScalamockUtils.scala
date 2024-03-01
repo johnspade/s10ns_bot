@@ -1,6 +1,7 @@
 package ru.johnspade.s10ns
 
-import org.scalamock.handlers.{CallHandler1, Verify}
+import org.scalamock.handlers.CallHandler1
+import org.scalamock.handlers.Verify
 import org.scalamock.scalatest.MockFactory
 import telegramium.bots.client.Method
 import telegramium.bots.high.Api

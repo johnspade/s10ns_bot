@@ -1,13 +1,17 @@
 package ru.johnspade.s10ns.exchangerates
 
 import java.time.Instant
+
+import cats.Monad
+import cats.effect.Temporal
 import cats.syntax.all._
-import cats.{Monad, ~>}
-import retry.RetryDetails.{GivingUp, WillDelayAndRetry}
+import cats.~>
+
+import retry.RetryDetails.GivingUp
+import retry.RetryDetails.WillDelayAndRetry
 import retry._
 import tofu.logging._
 import tofu.syntax.logging._
-import cats.effect.Temporal
 
 class DefaultExchangeRatesService[F[_]: Logging: Temporal, D[_]: Monad](
   private val fixerApi: FixerApi[F],

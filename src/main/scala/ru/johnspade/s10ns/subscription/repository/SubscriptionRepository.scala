@@ -2,8 +2,9 @@ package ru.johnspade.s10ns.subscription.repository
 
 import java.time.Instant
 
+import ru.johnspade.s10ns.subscription.Subscription
+import ru.johnspade.s10ns.subscription.SubscriptionDraft
 import ru.johnspade.s10ns.subscription.tags._
-import ru.johnspade.s10ns.subscription.{Subscription, SubscriptionDraft}
 import ru.johnspade.s10ns.user.User
 import ru.johnspade.s10ns.user.tags._
 

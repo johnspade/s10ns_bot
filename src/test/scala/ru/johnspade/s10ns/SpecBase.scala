@@ -1,6 +1,7 @@
 package ru.johnspade.s10ns
 
 import cats.effect.IO
+
 import org.scalatest.OptionValues
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers

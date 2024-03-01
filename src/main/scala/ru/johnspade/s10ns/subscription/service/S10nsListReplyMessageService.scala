@@ -1,18 +1,42 @@
 package ru.johnspade.s10ns.subscription.service
 
 import java.time.format.DateTimeFormatter
+
 import cats.syntax.option._
+
 import com.ibm.icu.text.MeasureFormat
 import com.ibm.icu.text.MeasureFormat.FormatWidth
-import com.ibm.icu.util.{Measure, ULocale}
+import com.ibm.icu.util.Measure
+import com.ibm.icu.util.ULocale
+import telegramium.bots.Html
+import telegramium.bots.InlineKeyboardButton
+import telegramium.bots.InlineKeyboardMarkup
+import telegramium.bots.Markdown
+import telegramium.bots.high.keyboards.InlineKeyboardButtons
+import telegramium.bots.high.keyboards.InlineKeyboardMarkups
+
+import ru.johnspade.s10ns.bot.EditS10n
+import ru.johnspade.s10ns.bot.EditS10nAmount
+import ru.johnspade.s10ns.bot.EditS10nBillingPeriod
+import ru.johnspade.s10ns.bot.EditS10nCurrency
+import ru.johnspade.s10ns.bot.EditS10nFirstPaymentDate
+import ru.johnspade.s10ns.bot.EditS10nName
+import ru.johnspade.s10ns.bot.EditS10nOneTime
 import ru.johnspade.s10ns.bot.Formatters.MoneyFormatter
+import ru.johnspade.s10ns.bot.Notify
+import ru.johnspade.s10ns.bot.RemoveS10n
+import ru.johnspade.s10ns.bot.S10n
+import ru.johnspade.s10ns.bot.S10ns
+import ru.johnspade.s10ns.bot.S10nsPeriod
 import ru.johnspade.s10ns.bot.engine.ReplyMessage
 import ru.johnspade.s10ns.bot.engine.TelegramOps.inlineKeyboardButton
-import ru.johnspade.s10ns.bot.{EditS10n, EditS10nAmount, EditS10nBillingPeriod, EditS10nCurrency, EditS10nFirstPaymentDate, EditS10nName, EditS10nOneTime, Notify, RemoveS10n, S10n, S10ns, S10nsPeriod}
-import ru.johnspade.s10ns.subscription.tags.{OneTimeSubscription, PageNumber, SubscriptionId}
-import ru.johnspade.s10ns.subscription.{ExactAmount, NonExactAmount, S10nInfo, S10nList}
-import telegramium.bots.high.keyboards.{InlineKeyboardButtons, InlineKeyboardMarkups}
-import telegramium.bots.{Html, InlineKeyboardButton, InlineKeyboardMarkup, Markdown}
+import ru.johnspade.s10ns.subscription.ExactAmount
+import ru.johnspade.s10ns.subscription.NonExactAmount
+import ru.johnspade.s10ns.subscription.S10nInfo
+import ru.johnspade.s10ns.subscription.S10nList
+import ru.johnspade.s10ns.subscription.tags.OneTimeSubscription
+import ru.johnspade.s10ns.subscription.tags.PageNumber
+import ru.johnspade.s10ns.subscription.tags.SubscriptionId
 
 // todo write unit tests
 class S10nsListReplyMessageService {

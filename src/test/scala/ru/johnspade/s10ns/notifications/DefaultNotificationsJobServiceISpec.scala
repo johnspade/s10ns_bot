@@ -1,31 +1,57 @@
 package ru.johnspade.s10ns.notifications
 
+import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
-import java.time.{Instant, LocalDate, ZoneOffset}
+
 import cats.effect.IO
+import cats.effect.unsafe.implicits.global
 import cats.syntax.option._
+
 import doobie.ConnectionIO
 import doobie.implicits._
 import io.chrisdavenport.fuuid.FUUID
 import org.joda.money.CurrencyUnit
 import org.scalamock.scalatest.MockFactory
-import org.scalatest.{BeforeAndAfterEach, OptionValues}
-import ru.johnspade.s10ns.PostgresContainer.{transact, xa}
-import ru.johnspade.s10ns.SpecBase
-import ru.johnspade.s10ns.bot.engine.TelegramOps.inlineKeyboardButton
-import ru.johnspade.s10ns.bot.{EditS10n, MoneyService, Notify, RemoveS10n, S10ns}
-import ru.johnspade.s10ns.exchangerates.InMemoryExchangeRatesStorage
-import ru.johnspade.s10ns.subscription.repository.DoobieSubscriptionRepository
-import ru.johnspade.s10ns.subscription.service.{S10nInfoService, S10nsListMessageService, S10nsListReplyMessageService}
-import ru.johnspade.s10ns.subscription.tags.{BillingPeriodDuration, FirstPaymentDate, OneTimeSubscription, PageNumber, SubscriptionAmount, SubscriptionName}
-import ru.johnspade.s10ns.subscription.{BillingPeriodUnit, SubscriptionDraft}
-import ru.johnspade.s10ns.user.tags.{ChatId, FirstName, UserId}
-import ru.johnspade.s10ns.user.{DoobieUserRepository, User}
+import org.scalatest.BeforeAndAfterEach
+import org.scalatest.OptionValues
+import telegramium.bots.Chat
+import telegramium.bots.ChatIntId
+import telegramium.bots.Markdown
+import telegramium.bots.Message
+import telegramium.bots.high.Api
 import telegramium.bots.high.Methods.sendMessage
+import telegramium.bots.high._
 import telegramium.bots.high.keyboards.InlineKeyboardMarkups
-import telegramium.bots.high.{Api, _}
-import telegramium.bots.{Chat, ChatIntId, Markdown, Message}
-import cats.effect.unsafe.implicits.global
+
+import ru.johnspade.s10ns.PostgresContainer.transact
+import ru.johnspade.s10ns.PostgresContainer.xa
+import ru.johnspade.s10ns.SpecBase
+import ru.johnspade.s10ns.bot.EditS10n
+import ru.johnspade.s10ns.bot.MoneyService
+import ru.johnspade.s10ns.bot.Notify
+import ru.johnspade.s10ns.bot.RemoveS10n
+import ru.johnspade.s10ns.bot.S10ns
+import ru.johnspade.s10ns.bot.engine.TelegramOps.inlineKeyboardButton
+import ru.johnspade.s10ns.exchangerates.InMemoryExchangeRatesStorage
+import ru.johnspade.s10ns.subscription.BillingPeriodUnit
+import ru.johnspade.s10ns.subscription.SubscriptionDraft
+import ru.johnspade.s10ns.subscription.repository.DoobieSubscriptionRepository
+import ru.johnspade.s10ns.subscription.service.S10nInfoService
+import ru.johnspade.s10ns.subscription.service.S10nsListMessageService
+import ru.johnspade.s10ns.subscription.service.S10nsListReplyMessageService
+import ru.johnspade.s10ns.subscription.tags.BillingPeriodDuration
+import ru.johnspade.s10ns.subscription.tags.FirstPaymentDate
+import ru.johnspade.s10ns.subscription.tags.OneTimeSubscription
+import ru.johnspade.s10ns.subscription.tags.PageNumber
+import ru.johnspade.s10ns.subscription.tags.SubscriptionAmount
+import ru.johnspade.s10ns.subscription.tags.SubscriptionName
+import ru.johnspade.s10ns.user.DoobieUserRepository
+import ru.johnspade.s10ns.user.User
+import ru.johnspade.s10ns.user.tags.ChatId
+import ru.johnspade.s10ns.user.tags.FirstName
+import ru.johnspade.s10ns.user.tags.UserId
 
 class DefaultNotificationsJobServiceISpec extends SpecBase with MockFactory with BeforeAndAfterEach with OptionValues {
 

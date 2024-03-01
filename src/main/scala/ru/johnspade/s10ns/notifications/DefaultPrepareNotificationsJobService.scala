@@ -1,17 +1,22 @@
 package ru.johnspade.s10ns.notifications
 
-import cats.effect.{Async, Concurrent}
+import java.time.Instant
+import scala.concurrent.duration._
+
+import cats.Monad
+import cats.effect.Async
+import cats.effect.Concurrent
 import cats.implicits._
-import cats.{Monad, ~>}
+import cats.~>
+
 import io.chrisdavenport.fuuid.FUUID
-import ru.johnspade.s10ns.subscription.Subscription
-import ru.johnspade.s10ns.subscription.repository.SubscriptionRepository
-import ru.johnspade.s10ns.{currentTimestamp, repeat}
 import tofu.logging._
 import tofu.syntax.logging._
 
-import java.time.Instant
-import scala.concurrent.duration._
+import ru.johnspade.s10ns.currentTimestamp
+import ru.johnspade.s10ns.repeat
+import ru.johnspade.s10ns.subscription.Subscription
+import ru.johnspade.s10ns.subscription.repository.SubscriptionRepository
 
 class DefaultPrepareNotificationsJobService[F[_]: Concurrent: Async: Logging, D[_]: Monad](
   private val s10nRepo: SubscriptionRepository[D],

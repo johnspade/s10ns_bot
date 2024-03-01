@@ -2,14 +2,17 @@ package ru.johnspade.s10ns.bot
 
 import java.math.RoundingMode
 import java.time.temporal.ChronoUnit
+import scala.math.max
 
 import cats.Monad
 import cats.implicits._
-import org.joda.money.{CurrencyUnit, Money}
-import ru.johnspade.s10ns.exchangerates.ExchangeRatesStorage
-import ru.johnspade.s10ns.subscription.{BillingPeriod, Subscription}
 
-import scala.math.max
+import org.joda.money.CurrencyUnit
+import org.joda.money.Money
+
+import ru.johnspade.s10ns.exchangerates.ExchangeRatesStorage
+import ru.johnspade.s10ns.subscription.BillingPeriod
+import ru.johnspade.s10ns.subscription.Subscription
 
 class MoneyService[F[_]: Monad](private val exchangeRatesStorage: ExchangeRatesStorage[F]) {
   def sum(subscriptions: List[Subscription], defaultCurrency: CurrencyUnit, unit: ChronoUnit = ChronoUnit.MONTHS): F[Money] =

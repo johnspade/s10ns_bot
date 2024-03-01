@@ -1,21 +1,32 @@
 package ru.johnspade.s10ns.subscription.service.impl
 
+import cats.Monad
 import cats.data.EitherT
 import cats.instances.either._
 import cats.instances.option._
 import cats.syntax.flatMap._
 import cats.syntax.functor._
 import cats.syntax.traverse._
-import cats.{Monad, ~>}
+import cats.~>
+
+import telegramium.bots.CallbackQuery
+import telegramium.bots.InlineKeyboardMarkup
+
+import ru.johnspade.s10ns.bot.EditS10n
+import ru.johnspade.s10ns.bot.Errors
+import ru.johnspade.s10ns.bot.Notify
+import ru.johnspade.s10ns.bot.RemoveS10n
+import ru.johnspade.s10ns.bot.S10n
+import ru.johnspade.s10ns.bot.S10ns
+import ru.johnspade.s10ns.bot.S10nsPeriod
 import ru.johnspade.s10ns.bot.engine.ReplyMessage
-import ru.johnspade.s10ns.bot.{EditS10n, Errors, Notify, RemoveS10n, S10n, S10ns, S10nsPeriod}
 import ru.johnspade.s10ns.subscription.Subscription
 import ru.johnspade.s10ns.subscription.repository.SubscriptionRepository
-import ru.johnspade.s10ns.subscription.service.{S10nsListMessageService, SubscriptionListService}
+import ru.johnspade.s10ns.subscription.service.S10nsListMessageService
+import ru.johnspade.s10ns.subscription.service.SubscriptionListService
 import ru.johnspade.s10ns.subscription.tags.PageNumber
 import ru.johnspade.s10ns.user.User
 import ru.johnspade.s10ns.user.tags._
-import telegramium.bots.{CallbackQuery, InlineKeyboardMarkup}
 
 class DefaultSubscriptionListService[F[_]: Monad, D[_]: Monad](
   private val s10nRepo: SubscriptionRepository[D],

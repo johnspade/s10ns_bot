@@ -1,16 +1,21 @@
 package ru.johnspade.s10ns.subscription.service
 
-import java.time.{Instant, LocalDate, Period, ZoneOffset}
+import java.time.Instant
+import java.time.LocalDate
+import java.time.Period
+import java.time.ZoneOffset
+import scala.jdk.CollectionConverters._
 
 import cats.Monad
 import cats.effect.Clock
 import cats.implicits._
-import org.joda.money.Money
-import ru.johnspade.s10ns.currentTimestamp
-import ru.johnspade.s10ns.subscription.tags.FirstPaymentDate
-import ru.johnspade.s10ns.subscription.{BillingPeriod, RemainingTime}
 
-import scala.jdk.CollectionConverters._
+import org.joda.money.Money
+
+import ru.johnspade.s10ns.currentTimestamp
+import ru.johnspade.s10ns.subscription.BillingPeriod
+import ru.johnspade.s10ns.subscription.RemainingTime
+import ru.johnspade.s10ns.subscription.tags.FirstPaymentDate
 
 class S10nInfoService[F[_]: Monad: Clock] {
   def getNextPaymentDate(start: FirstPaymentDate, billingPeriod: Option[BillingPeriod]): F[LocalDate] =

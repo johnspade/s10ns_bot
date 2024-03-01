@@ -1,15 +1,17 @@
 package ru.johnspade.s10ns.subscription.repository
 
-import java.time.{Instant, LocalDate}
+import java.time.Instant
+import java.time.LocalDate
+import scala.collection.concurrent.TrieMap
 
 import cats.Id
 import cats.syntax.option._
-import ru.johnspade.s10ns.subscription.{Subscription, SubscriptionDraft}
+
+import ru.johnspade.s10ns.subscription.Subscription
+import ru.johnspade.s10ns.subscription.SubscriptionDraft
 import ru.johnspade.s10ns.subscription.tags.SubscriptionId
 import ru.johnspade.s10ns.user.User
 import ru.johnspade.s10ns.user.tags.UserId
-
-import scala.collection.concurrent.TrieMap
 
 class InMemorySubscriptionRepository extends SubscriptionRepository[Id] {
   val subscriptions: TrieMap[SubscriptionId, Subscription] = TrieMap.empty

@@ -1,8 +1,14 @@
 package ru.johnspade.s10ns
 
-import cats.effect.{Async, ExitCode, IO, IOApp, Temporal}
+import cats.Parallel
+import cats.effect.Async
+import cats.effect.ExitCode
+import cats.effect.IO
+import cats.effect.IOApp
+import cats.effect.Temporal
 import cats.implicits._
-import cats.{Parallel, ~>}
+import cats.~>
+
 import doobie.free.connection.ConnectionIO
 import doobie.hikari.HikariTransactor
 import doobie.implicits._
@@ -11,15 +17,18 @@ import org.flywaydb.core.Flyway
 import org.http4s.blaze.client.BlazeClientBuilder
 import pureconfig.ConfigSource
 import pureconfig.generic.auto._
-import ru.johnspade.s10ns.bot.{BotModule, Config, DbConfig}
+import telegramium.bots.high._
+import tofu.logging._
+
+import ru.johnspade.s10ns.bot.BotModule
+import ru.johnspade.s10ns.bot.Config
+import ru.johnspade.s10ns.bot.DbConfig
 import ru.johnspade.s10ns.calendar.CalendarModule
 import ru.johnspade.s10ns.exchangerates.ExchangeRatesModule
 import ru.johnspade.s10ns.notifications.NotificationsModule
 import ru.johnspade.s10ns.settings.SettingsModule
 import ru.johnspade.s10ns.subscription.SubscriptionModule
 import ru.johnspade.s10ns.user.UserModule
-import telegramium.bots.high._
-import tofu.logging._
 
 object BotApp extends IOApp {
   private type F[A] = IO[A]

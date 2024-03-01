@@ -1,9 +1,13 @@
 package ru.johnspade.s10ns.bot
 
 import cats.syntax.option._
+
+import telegramium.bots.Html
+import telegramium.bots.ReplyKeyboardMarkup
+import telegramium.bots.high.keyboards.KeyboardButtons
+import telegramium.bots.high.keyboards.ReplyKeyboardMarkups
+
 import ru.johnspade.s10ns.bot.engine.ReplyMessage
-import telegramium.bots.high.keyboards.{KeyboardButtons, ReplyKeyboardMarkups}
-import telegramium.bots.{Html, ReplyKeyboardMarkup}
 
 object BotStart {
   val markup: ReplyKeyboardMarkup = ReplyKeyboardMarkups.singleColumn(

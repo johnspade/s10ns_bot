@@ -1,23 +1,68 @@
 package ru.johnspade.s10ns.subscription.controller
 
-import cats.{Defer, Monad}
+import cats.Defer
+import cats.Monad
 import cats.effect.Temporal
 import cats.syntax.apply._
 import cats.syntax.flatMap._
 import cats.syntax.functor._
 import cats.syntax.option._
-import ru.johnspade.s10ns.bot.engine.ReplyMessage
-import ru.johnspade.s10ns.bot.engine.TelegramOps.{ackCb, clearMarkup, handleCallback, sendReplyMessages, singleTextMessage, toReplyMessages}
-import ru.johnspade.s10ns.bot.{CallbackQueryUserController, CbData, CreateS10nDialog, DropFirstPayment, EditS10nAmount, EditS10nAmountDialog, EditS10nBillingPeriod, EditS10nBillingPeriodDialog, EditS10nCurrency, EditS10nCurrencyDialog, EditS10nFirstPaymentDate, EditS10nFirstPaymentDateDialog, EditS10nName, EditS10nNameDialog, EditS10nOneTime, EditS10nOneTimeDialog, Errors, EveryMonth, FirstPayment, OneTime, PeriodUnit, SkipIsOneTime}
-import ru.johnspade.s10ns.subscription.dialog.{EditS10nAmountDialogState, EditS10nBillingPeriodDialogState, EditS10nCurrencyDialogState, EditS10nNameDialogState, EditS10nOneTimeDialogState}
-import ru.johnspade.s10ns.subscription.service.{CreateS10nDialogService, EditS10n1stPaymentDateDialogService, EditS10nAmountDialogService, EditS10nBillingPeriodDialogService, EditS10nCurrencyDialogService, EditS10nNameDialogService, EditS10nOneTimeDialogService}
-import ru.johnspade.s10ns.user.User
-import ru.johnspade.s10ns.{CbDataUserRoutes, ackDefaultError}
+
 import ru.johnspade.tgbot.callbackqueries.CallbackQueryContextRoutes
+import telegramium.bots.CallbackQuery
+import telegramium.bots.ChatIntId
+import telegramium.bots.Html
+import telegramium.bots.Message
+import telegramium.bots.high.Api
+import telegramium.bots.high.Methods
 import telegramium.bots.high.implicits._
-import telegramium.bots.high.{Api, Methods}
-import telegramium.bots.{CallbackQuery, ChatIntId, Html, Message}
-import tofu.logging.{Logging, Logs}
+import tofu.logging.Logging
+import tofu.logging.Logs
+
+import ru.johnspade.s10ns.CbDataUserRoutes
+import ru.johnspade.s10ns.ackDefaultError
+import ru.johnspade.s10ns.bot.CallbackQueryUserController
+import ru.johnspade.s10ns.bot.CbData
+import ru.johnspade.s10ns.bot.CreateS10nDialog
+import ru.johnspade.s10ns.bot.DropFirstPayment
+import ru.johnspade.s10ns.bot.EditS10nAmount
+import ru.johnspade.s10ns.bot.EditS10nAmountDialog
+import ru.johnspade.s10ns.bot.EditS10nBillingPeriod
+import ru.johnspade.s10ns.bot.EditS10nBillingPeriodDialog
+import ru.johnspade.s10ns.bot.EditS10nCurrency
+import ru.johnspade.s10ns.bot.EditS10nCurrencyDialog
+import ru.johnspade.s10ns.bot.EditS10nFirstPaymentDate
+import ru.johnspade.s10ns.bot.EditS10nFirstPaymentDateDialog
+import ru.johnspade.s10ns.bot.EditS10nName
+import ru.johnspade.s10ns.bot.EditS10nNameDialog
+import ru.johnspade.s10ns.bot.EditS10nOneTime
+import ru.johnspade.s10ns.bot.EditS10nOneTimeDialog
+import ru.johnspade.s10ns.bot.Errors
+import ru.johnspade.s10ns.bot.EveryMonth
+import ru.johnspade.s10ns.bot.FirstPayment
+import ru.johnspade.s10ns.bot.OneTime
+import ru.johnspade.s10ns.bot.PeriodUnit
+import ru.johnspade.s10ns.bot.SkipIsOneTime
+import ru.johnspade.s10ns.bot.engine.ReplyMessage
+import ru.johnspade.s10ns.bot.engine.TelegramOps.ackCb
+import ru.johnspade.s10ns.bot.engine.TelegramOps.clearMarkup
+import ru.johnspade.s10ns.bot.engine.TelegramOps.handleCallback
+import ru.johnspade.s10ns.bot.engine.TelegramOps.sendReplyMessages
+import ru.johnspade.s10ns.bot.engine.TelegramOps.singleTextMessage
+import ru.johnspade.s10ns.bot.engine.TelegramOps.toReplyMessages
+import ru.johnspade.s10ns.subscription.dialog.EditS10nAmountDialogState
+import ru.johnspade.s10ns.subscription.dialog.EditS10nBillingPeriodDialogState
+import ru.johnspade.s10ns.subscription.dialog.EditS10nCurrencyDialogState
+import ru.johnspade.s10ns.subscription.dialog.EditS10nNameDialogState
+import ru.johnspade.s10ns.subscription.dialog.EditS10nOneTimeDialogState
+import ru.johnspade.s10ns.subscription.service.CreateS10nDialogService
+import ru.johnspade.s10ns.subscription.service.EditS10n1stPaymentDateDialogService
+import ru.johnspade.s10ns.subscription.service.EditS10nAmountDialogService
+import ru.johnspade.s10ns.subscription.service.EditS10nBillingPeriodDialogService
+import ru.johnspade.s10ns.subscription.service.EditS10nCurrencyDialogService
+import ru.johnspade.s10ns.subscription.service.EditS10nNameDialogService
+import ru.johnspade.s10ns.subscription.service.EditS10nOneTimeDialogService
+import ru.johnspade.s10ns.user.User
 
 class S10nController[F[_]: Logging: Temporal: Defer](
   private val createS10nDialogService: CreateS10nDialogService[F],

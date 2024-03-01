@@ -2,16 +2,23 @@ package ru.johnspade.s10ns.bot.engine
 
 import cats.Id
 import cats.effect.IO
+import cats.effect.unsafe.implicits.global
 import cats.implicits._
+
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
+import telegramium.bots.Html
+import telegramium.bots.ReplyKeyboardRemove
+
 import ru.johnspade.s10ns.TestTransactor.transact
-import ru.johnspade.s10ns.bot.{BotStart, SettingsDialog}
+import ru.johnspade.s10ns.bot.BotStart
+import ru.johnspade.s10ns.bot.SettingsDialog
 import ru.johnspade.s10ns.settings.SettingsDialogState
-import ru.johnspade.s10ns.user.tags.{ChatId, FirstName, UserId}
-import ru.johnspade.s10ns.user.{InMemoryUserRepository, User}
-import telegramium.bots.{Html, ReplyKeyboardRemove}
-import cats.effect.unsafe.implicits.global
+import ru.johnspade.s10ns.user.InMemoryUserRepository
+import ru.johnspade.s10ns.user.User
+import ru.johnspade.s10ns.user.tags.ChatId
+import ru.johnspade.s10ns.user.tags.FirstName
+import ru.johnspade.s10ns.user.tags.UserId
 
 class DefaultDialogEngineSpec extends AnyFlatSpec with Matchers {
   private val userRepo = new InMemoryUserRepository

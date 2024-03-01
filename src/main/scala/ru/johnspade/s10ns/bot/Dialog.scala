@@ -1,9 +1,25 @@
 package ru.johnspade.s10ns.bot
 
-import ru.johnspade.s10ns.bot.engine.{DialogState, StateEvent}
-import ru.johnspade.s10ns.settings.{SettingsDialogEvent, SettingsDialogState}
-import ru.johnspade.s10ns.subscription.{Subscription, SubscriptionDraft}
-import ru.johnspade.s10ns.subscription.dialog.{CreateS10nDialogEvent, CreateS10nDialogState, EditS10nAmountDialogEvent, EditS10nAmountDialogState, EditS10nBillingPeriodDialogState, EditS10nBillingPeriodEvent, EditS10nCurrencyDialogEvent, EditS10nCurrencyDialogState, EditS10nFirstPaymentDateDialogEvent, EditS10nFirstPaymentDateDialogState, EditS10nNameDialogEvent, EditS10nNameDialogState, EditS10nOneTimeDialogEvent, EditS10nOneTimeDialogState}
+import ru.johnspade.s10ns.bot.engine.DialogState
+import ru.johnspade.s10ns.bot.engine.StateEvent
+import ru.johnspade.s10ns.settings.SettingsDialogEvent
+import ru.johnspade.s10ns.settings.SettingsDialogState
+import ru.johnspade.s10ns.subscription.Subscription
+import ru.johnspade.s10ns.subscription.SubscriptionDraft
+import ru.johnspade.s10ns.subscription.dialog.CreateS10nDialogEvent
+import ru.johnspade.s10ns.subscription.dialog.CreateS10nDialogState
+import ru.johnspade.s10ns.subscription.dialog.EditS10nAmountDialogEvent
+import ru.johnspade.s10ns.subscription.dialog.EditS10nAmountDialogState
+import ru.johnspade.s10ns.subscription.dialog.EditS10nBillingPeriodDialogState
+import ru.johnspade.s10ns.subscription.dialog.EditS10nBillingPeriodEvent
+import ru.johnspade.s10ns.subscription.dialog.EditS10nCurrencyDialogEvent
+import ru.johnspade.s10ns.subscription.dialog.EditS10nCurrencyDialogState
+import ru.johnspade.s10ns.subscription.dialog.EditS10nFirstPaymentDateDialogEvent
+import ru.johnspade.s10ns.subscription.dialog.EditS10nFirstPaymentDateDialogState
+import ru.johnspade.s10ns.subscription.dialog.EditS10nNameDialogEvent
+import ru.johnspade.s10ns.subscription.dialog.EditS10nNameDialogState
+import ru.johnspade.s10ns.subscription.dialog.EditS10nOneTimeDialogEvent
+import ru.johnspade.s10ns.subscription.dialog.EditS10nOneTimeDialogState
 
 sealed abstract class Dialog { self =>
   type S <: DialogState

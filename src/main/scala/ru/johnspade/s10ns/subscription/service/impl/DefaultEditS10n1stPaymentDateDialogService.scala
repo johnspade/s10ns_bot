@@ -1,14 +1,24 @@
 package ru.johnspade.s10ns.subscription.service.impl
 
+import cats.Monad
 import cats.syntax.option._
-import cats.{Monad, ~>}
+import cats.~>
+
 import com.softwaremill.quicklens._
-import ru.johnspade.s10ns.bot.engine.{ReplyMessage, StateMessageService, TransactionalDialogEngine}
-import ru.johnspade.s10ns.bot.{EditS10nFirstPaymentDate, EditS10nFirstPaymentDateDialog, FirstPayment}
-import ru.johnspade.s10ns.subscription.dialog.{EditS10nFirstPaymentDateDialogEvent, EditS10nFirstPaymentDateDialogState}
+
+import ru.johnspade.s10ns.bot.EditS10nFirstPaymentDate
+import ru.johnspade.s10ns.bot.EditS10nFirstPaymentDateDialog
+import ru.johnspade.s10ns.bot.FirstPayment
+import ru.johnspade.s10ns.bot.engine.ReplyMessage
+import ru.johnspade.s10ns.bot.engine.StateMessageService
+import ru.johnspade.s10ns.bot.engine.TransactionalDialogEngine
+import ru.johnspade.s10ns.subscription.dialog.EditS10nFirstPaymentDateDialogEvent
+import ru.johnspade.s10ns.subscription.dialog.EditS10nFirstPaymentDateDialogState
 import ru.johnspade.s10ns.subscription.repository.SubscriptionRepository
-import ru.johnspade.s10ns.subscription.service.{EditS10n1stPaymentDateDialogService, S10nsListMessageService}
-import ru.johnspade.s10ns.user.{User, UserRepository}
+import ru.johnspade.s10ns.subscription.service.EditS10n1stPaymentDateDialogService
+import ru.johnspade.s10ns.subscription.service.S10nsListMessageService
+import ru.johnspade.s10ns.user.User
+import ru.johnspade.s10ns.user.UserRepository
 
 class DefaultEditS10n1stPaymentDateDialogService[F[_] : Monad, D[_] : Monad](
   s10nsListMessageService: S10nsListMessageService[F],

@@ -1,23 +1,38 @@
 package ru.johnspade.s10ns.subscription.service
 
-import cats.Id
-import cats.effect.{Clock, IO}
-import cats.syntax.option._
-import org.scalamock.scalatest.MockFactory
-import ru.johnspade.s10ns.TestTransactor.transact
-import ru.johnspade.s10ns.bot.engine.TelegramOps.inlineKeyboardButton
-import ru.johnspade.s10ns.bot.engine.{DefaultDialogEngine, ReplyMessage}
-import ru.johnspade.s10ns.bot.{BotStart, EditS10n, Messages, MoneyService, Notify, RemoveS10n, S10ns}
-import ru.johnspade.s10ns.exchangerates.InMemoryExchangeRatesStorage
-import ru.johnspade.s10ns.subscription.repository.SubscriptionRepository
-import ru.johnspade.s10ns.subscription.tags.{PageNumber, SubscriptionId, SubscriptionName}
-import ru.johnspade.s10ns.subscription.{Subscription, SubscriptionDraft}
-import ru.johnspade.s10ns.user.tags.{FirstName, UserId}
-import ru.johnspade.s10ns.user.{User, UserRepository}
-import telegramium.bots.high.keyboards.InlineKeyboardMarkups
-import telegramium.bots.InlineKeyboardMarkup
-
 import scala.concurrent.ExecutionContext
+
+import cats.Id
+import cats.effect.Clock
+import cats.effect.IO
+import cats.syntax.option._
+
+import org.scalamock.scalatest.MockFactory
+import telegramium.bots.InlineKeyboardMarkup
+import telegramium.bots.high.keyboards.InlineKeyboardMarkups
+
+import ru.johnspade.s10ns.TestTransactor.transact
+import ru.johnspade.s10ns.bot.BotStart
+import ru.johnspade.s10ns.bot.EditS10n
+import ru.johnspade.s10ns.bot.Messages
+import ru.johnspade.s10ns.bot.MoneyService
+import ru.johnspade.s10ns.bot.Notify
+import ru.johnspade.s10ns.bot.RemoveS10n
+import ru.johnspade.s10ns.bot.S10ns
+import ru.johnspade.s10ns.bot.engine.DefaultDialogEngine
+import ru.johnspade.s10ns.bot.engine.ReplyMessage
+import ru.johnspade.s10ns.bot.engine.TelegramOps.inlineKeyboardButton
+import ru.johnspade.s10ns.exchangerates.InMemoryExchangeRatesStorage
+import ru.johnspade.s10ns.subscription.Subscription
+import ru.johnspade.s10ns.subscription.SubscriptionDraft
+import ru.johnspade.s10ns.subscription.repository.SubscriptionRepository
+import ru.johnspade.s10ns.subscription.tags.PageNumber
+import ru.johnspade.s10ns.subscription.tags.SubscriptionId
+import ru.johnspade.s10ns.subscription.tags.SubscriptionName
+import ru.johnspade.s10ns.user.User
+import ru.johnspade.s10ns.user.UserRepository
+import ru.johnspade.s10ns.user.tags.FirstName
+import ru.johnspade.s10ns.user.tags.UserId
 
 trait EditS10nDialogServiceSpec extends MockFactory {
 

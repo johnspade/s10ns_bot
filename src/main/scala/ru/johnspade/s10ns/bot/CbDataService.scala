@@ -1,6 +1,7 @@
 package ru.johnspade.s10ns.bot
 
 import cats.effect.Sync
+
 import kantan.csv.DecodeError.TypeError
 import kantan.csv.ReadResult
 import kantan.csv.ops._

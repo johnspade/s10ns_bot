@@ -1,8 +1,8 @@
 package ru.johnspade.s10ns.exchangerates
 
+import cats.effect.Ref
 import cats.effect.Sync
 import cats.implicits._
-import cats.effect.Ref
 
 trait ExchangeRatesCache[F[_]] {
   def get: F[Map[String, BigDecimal]]

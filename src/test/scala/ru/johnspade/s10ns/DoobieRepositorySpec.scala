@@ -1,9 +1,11 @@
 package ru.johnspade.s10ns
 
 import cats.effect.IO
+
 import doobie.Transactor
 import doobie.scalatest.IOChecker
 import org.scalatest.funsuite.AnyFunSuite
+
 import ru.johnspade.s10ns.PostgresContainer.container
 
 abstract class DoobieRepositorySpec extends AnyFunSuite with IOChecker {

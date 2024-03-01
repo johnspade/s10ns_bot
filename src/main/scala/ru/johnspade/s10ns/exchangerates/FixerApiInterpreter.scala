@@ -1,7 +1,9 @@
 package ru.johnspade.s10ns.exchangerates
 
+import cats.Monad
+import cats.MonadError
 import cats.implicits._
-import cats.{Monad, MonadError}
+
 import io.circe.Error
 import io.circe.generic.auto._
 import sttp.client3._

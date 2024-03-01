@@ -1,15 +1,16 @@
 package ru.johnspade.s10ns
 
+import scala.concurrent.ExecutionContext
+
 import cats.effect.IO
 import cats.~>
+
 import com.dimafeng.testcontainers.PostgreSQLContainer
 import doobie.free.connection.ConnectionIO
 import doobie.implicits._
 import doobie.util.transactor.Transactor
 import org.flywaydb.core.Flyway
 import org.testcontainers.utility.DockerImageName
-
-import scala.concurrent.ExecutionContext
 
 object PostgresContainer {
   lazy val container: PostgreSQLContainer = {

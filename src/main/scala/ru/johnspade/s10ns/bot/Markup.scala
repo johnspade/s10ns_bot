@@ -1,11 +1,14 @@
 package ru.johnspade.s10ns.bot
 
 import org.joda.money.CurrencyUnit
+import telegramium.bots.InlineKeyboardMarkup
+import telegramium.bots.KeyboardButton
+import telegramium.bots.ReplyKeyboardMarkup
+import telegramium.bots.high.keyboards.InlineKeyboardMarkups
+
 import ru.johnspade.s10ns.bot.engine.TelegramOps.inlineKeyboardButton
 import ru.johnspade.s10ns.subscription.BillingPeriodUnit
 import ru.johnspade.s10ns.subscription.tags.OneTimeSubscription
-import telegramium.bots.high.keyboards.InlineKeyboardMarkups
-import telegramium.bots.{InlineKeyboardMarkup, KeyboardButton, ReplyKeyboardMarkup}
 
 object Markup {
   val CurrencyReplyMarkup: ReplyKeyboardMarkup = ReplyKeyboardMarkup(

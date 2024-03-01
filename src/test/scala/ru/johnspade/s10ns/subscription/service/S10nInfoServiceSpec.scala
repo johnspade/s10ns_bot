@@ -1,17 +1,24 @@
 package ru.johnspade.s10ns.subscription.service
 
+import java.time.LocalDate
+import java.time.ZoneOffset
 import java.time.temporal.ChronoUnit
-import java.time.{LocalDate, ZoneOffset}
 
-import cats.effect.{Clock, IO}
-import org.joda.money.{CurrencyUnit, Money}
+import cats.effect.Clock
+import cats.effect.IO
+import cats.effect.unsafe.implicits.global
+
+import org.joda.money.CurrencyUnit
+import org.joda.money.Money
 import org.scalatest.OptionValues
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import ru.johnspade.s10ns.subscription.tags.{BillingPeriodDuration, FirstPaymentDate}
-import ru.johnspade.s10ns.subscription.{BillingPeriod, BillingPeriodUnit, RemainingTime}
 
-import cats.effect.unsafe.implicits.global
+import ru.johnspade.s10ns.subscription.BillingPeriod
+import ru.johnspade.s10ns.subscription.BillingPeriodUnit
+import ru.johnspade.s10ns.subscription.RemainingTime
+import ru.johnspade.s10ns.subscription.tags.BillingPeriodDuration
+import ru.johnspade.s10ns.subscription.tags.FirstPaymentDate
 
 class S10nInfoServiceSpec extends AnyFlatSpec with Matchers with OptionValues {
   private val s10nInfoService = new S10nInfoService[IO]

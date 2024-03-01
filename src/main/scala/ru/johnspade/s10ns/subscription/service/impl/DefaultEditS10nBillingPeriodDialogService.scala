@@ -1,17 +1,30 @@
 package ru.johnspade.s10ns.subscription.service.impl
 
+import cats.Monad
 import cats.syntax.option._
-import cats.{Monad, ~>}
+import cats.~>
+
 import com.softwaremill.quicklens._
+
+import ru.johnspade.s10ns.bot.EditS10nBillingPeriod
+import ru.johnspade.s10ns.bot.EditS10nBillingPeriodDialog
+import ru.johnspade.s10ns.bot.PeriodUnit
 import ru.johnspade.s10ns.bot.ValidatorNec._
-import ru.johnspade.s10ns.bot.engine.{ReplyMessage, StateMessageService, TransactionalDialogEngine}
-import ru.johnspade.s10ns.bot.{EditS10nBillingPeriod, EditS10nBillingPeriodDialog, PeriodUnit}
-import ru.johnspade.s10ns.subscription.dialog.{EditS10nBillingPeriodDialogState, EditS10nBillingPeriodEvent}
+import ru.johnspade.s10ns.bot.engine.ReplyMessage
+import ru.johnspade.s10ns.bot.engine.StateMessageService
+import ru.johnspade.s10ns.bot.engine.TransactionalDialogEngine
+import ru.johnspade.s10ns.subscription.BillingPeriod
+import ru.johnspade.s10ns.subscription.BillingPeriodUnit
+import ru.johnspade.s10ns.subscription.dialog.EditS10nBillingPeriodDialogState
+import ru.johnspade.s10ns.subscription.dialog.EditS10nBillingPeriodEvent
 import ru.johnspade.s10ns.subscription.repository.SubscriptionRepository
-import ru.johnspade.s10ns.subscription.service.{EditS10nBillingPeriodDialogService, RepliesValidated, S10nsListMessageService}
-import ru.johnspade.s10ns.subscription.tags.{BillingPeriodDuration, OneTimeSubscription}
-import ru.johnspade.s10ns.subscription.{BillingPeriod, BillingPeriodUnit}
-import ru.johnspade.s10ns.user.{User, UserRepository}
+import ru.johnspade.s10ns.subscription.service.EditS10nBillingPeriodDialogService
+import ru.johnspade.s10ns.subscription.service.RepliesValidated
+import ru.johnspade.s10ns.subscription.service.S10nsListMessageService
+import ru.johnspade.s10ns.subscription.tags.BillingPeriodDuration
+import ru.johnspade.s10ns.subscription.tags.OneTimeSubscription
+import ru.johnspade.s10ns.user.User
+import ru.johnspade.s10ns.user.UserRepository
 
 class DefaultEditS10nBillingPeriodDialogService[F[_] : Monad, D[_] : Monad](
   s10nsListMessageService: S10nsListMessageService[F],

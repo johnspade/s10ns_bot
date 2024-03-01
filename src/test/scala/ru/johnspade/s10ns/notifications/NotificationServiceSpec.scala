@@ -1,17 +1,28 @@
 package ru.johnspade.s10ns.notifications
 
+import java.time.Instant
+import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
-import java.time.{Instant, LocalDate, LocalDateTime}
 
 import cats.effect.IO
-import cats.syntax.option._
-import org.joda.money.{CurrencyUnit, Money}
-import ru.johnspade.s10ns.SpecBase
-import ru.johnspade.s10ns.subscription.service.S10nInfoService
-import ru.johnspade.s10ns.subscription.tags.{BillingPeriodDuration, FirstPaymentDate, OneTimeSubscription, SubscriptionId, SubscriptionName}
-import ru.johnspade.s10ns.subscription.{BillingPeriod, BillingPeriodUnit, Subscription}
-import ru.johnspade.s10ns.user.tags.UserId
 import cats.effect.unsafe.implicits.global
+import cats.syntax.option._
+
+import org.joda.money.CurrencyUnit
+import org.joda.money.Money
+
+import ru.johnspade.s10ns.SpecBase
+import ru.johnspade.s10ns.subscription.BillingPeriod
+import ru.johnspade.s10ns.subscription.BillingPeriodUnit
+import ru.johnspade.s10ns.subscription.Subscription
+import ru.johnspade.s10ns.subscription.service.S10nInfoService
+import ru.johnspade.s10ns.subscription.tags.BillingPeriodDuration
+import ru.johnspade.s10ns.subscription.tags.FirstPaymentDate
+import ru.johnspade.s10ns.subscription.tags.OneTimeSubscription
+import ru.johnspade.s10ns.subscription.tags.SubscriptionId
+import ru.johnspade.s10ns.subscription.tags.SubscriptionName
+import ru.johnspade.s10ns.user.tags.UserId
 
 class NotificationServiceSpec extends SpecBase {
   private val s10nInfoService = new S10nInfoService[IO]

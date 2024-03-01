@@ -1,22 +1,29 @@
 package ru.johnspade.s10ns.subscription.service
 
-import java.time.{LocalDate, ZoneOffset}
+import java.time.LocalDate
+import java.time.ZoneOffset
 
 import cats.effect.IO
+import cats.effect.unsafe.implicits.global
 import cats.syntax.option._
+
+import com.softwaremill.diffx.generic.auto._
 import com.softwaremill.diffx.scalatest.DiffShouldMatcher
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
+import telegramium.bots.Markdown
+import telegramium.bots.ReplyKeyboardRemove
+
 import ru.johnspade.s10ns.TestTransactor.transact
+import ru.johnspade.s10ns.bot.EditS10nFirstPaymentDate
+import ru.johnspade.s10ns.bot.EditS10nFirstPaymentDateDialog
+import ru.johnspade.s10ns.bot.FirstPayment
 import ru.johnspade.s10ns.bot.engine.ReplyMessage
-import ru.johnspade.s10ns.bot.{EditS10nFirstPaymentDate, EditS10nFirstPaymentDateDialog, FirstPayment}
 import ru.johnspade.s10ns.calendar.CalendarService
-import ru.johnspade.s10ns.subscription.dialog.{EditS10n1stPaymentDateMsgService, EditS10nFirstPaymentDateDialogState}
+import ru.johnspade.s10ns.subscription.dialog.EditS10n1stPaymentDateMsgService
+import ru.johnspade.s10ns.subscription.dialog.EditS10nFirstPaymentDateDialogState
 import ru.johnspade.s10ns.subscription.service.impl.DefaultEditS10n1stPaymentDateDialogService
 import ru.johnspade.s10ns.subscription.tags.FirstPaymentDate
-import telegramium.bots.{Markdown, ReplyKeyboardRemove}
-import com.softwaremill.diffx.generic.auto._
-import cats.effect.unsafe.implicits.global
 
 class DefaultEditS10n1stPaymentDateDialogServiceSpec extends AnyFlatSpec with EditS10nDialogServiceSpec with Matchers with DiffShouldMatcher {
   private val calendarService = new CalendarService

@@ -1,6 +1,7 @@
 package ru.johnspade.s10ns.exchangerates
 
-import java.time.{LocalDate, ZoneOffset}
+import java.time.LocalDate
+import java.time.ZoneOffset
 
 import cats.effect.IO
 

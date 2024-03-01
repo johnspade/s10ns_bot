@@ -1,6 +1,7 @@
 package ru.johnspade.s10ns.user
 
 import org.joda.money.CurrencyUnit
+
 import ru.johnspade.s10ns.bot.Dialog
 import ru.johnspade.s10ns.user.tags._
 

@@ -1,39 +1,86 @@
 package ru.johnspade.s10ns
 
+import java.time.LocalDate
+import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
-import java.time.{LocalDate, ZoneOffset}
+
 import cats.effect.IO
+import cats.effect.unsafe.implicits.global
 import cats.syntax.option._
 import cats.~>
+
 import doobie.free.connection.ConnectionIO
 import doobie.implicits._
 import doobie.util.transactor.Transactor
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.freespec.AnyFreeSpec
+import telegramium.bots.CallbackQuery
+import telegramium.bots.Chat
+import telegramium.bots.ChatIntId
+import telegramium.bots.Html
+import telegramium.bots.KeyboardMarkup
+import telegramium.bots.Markdown
+import telegramium.bots.Message
+import telegramium.bots.ParseMode
+import telegramium.bots.ReplyKeyboardRemove
+import telegramium.bots.User
+import telegramium.bots.client.Method
+import telegramium.bots.high.Api
+import telegramium.bots.high.Methods._
+import telegramium.bots.high._
+import telegramium.bots.high.keyboards.InlineKeyboardMarkups
+import tofu.logging.Logs
+
 import ru.johnspade.s10ns.PostgresContainer.container
 import ru.johnspade.s10ns.TelegramiumScalamockUtils.verifyMethodCall
+import ru.johnspade.s10ns.bot.BotConfig
+import ru.johnspade.s10ns.bot.BotStart
+import ru.johnspade.s10ns.bot.CbDataService
+import ru.johnspade.s10ns.bot.EditS10n
+import ru.johnspade.s10ns.bot.IgnoreController
+import ru.johnspade.s10ns.bot.Markup
+import ru.johnspade.s10ns.bot.Messages
+import ru.johnspade.s10ns.bot.MoneyService
+import ru.johnspade.s10ns.bot.Notify
+import ru.johnspade.s10ns.bot.RemoveS10n
+import ru.johnspade.s10ns.bot.S10ns
+import ru.johnspade.s10ns.bot.StartController
+import ru.johnspade.s10ns.bot.UserMiddleware
+import ru.johnspade.s10ns.bot.engine.DefaultDialogEngine
+import ru.johnspade.s10ns.bot.engine.DefaultMsgService
 import ru.johnspade.s10ns.bot.engine.TelegramOps.inlineKeyboardButton
-import ru.johnspade.s10ns.bot.engine.{DefaultDialogEngine, DefaultMsgService}
-import ru.johnspade.s10ns.bot.{BotConfig, BotStart, CbDataService, EditS10n, IgnoreController, Markup, Messages, MoneyService, Notify, RemoveS10n, S10ns, StartController, UserMiddleware}
-import ru.johnspade.s10ns.calendar.{CalendarController, CalendarService}
+import ru.johnspade.s10ns.calendar.CalendarController
+import ru.johnspade.s10ns.calendar.CalendarService
 import ru.johnspade.s10ns.exchangerates.InMemoryExchangeRatesStorage
-import ru.johnspade.s10ns.settings.{DefaultSettingsService, SettingsController, SettingsDialogState}
-import ru.johnspade.s10ns.subscription.controller.{S10nController, SubscriptionListController}
-import ru.johnspade.s10ns.subscription.dialog.{CreateS10nMsgService, EditS10n1stPaymentDateMsgService, EditS10nAmountDialogState, EditS10nBillingPeriodDialogState, EditS10nCurrencyDialogState, EditS10nNameDialogState, EditS10nOneTimeDialogState}
+import ru.johnspade.s10ns.settings.DefaultSettingsService
+import ru.johnspade.s10ns.settings.SettingsController
+import ru.johnspade.s10ns.settings.SettingsDialogState
+import ru.johnspade.s10ns.subscription.controller.S10nController
+import ru.johnspade.s10ns.subscription.controller.SubscriptionListController
+import ru.johnspade.s10ns.subscription.dialog.CreateS10nMsgService
+import ru.johnspade.s10ns.subscription.dialog.EditS10n1stPaymentDateMsgService
+import ru.johnspade.s10ns.subscription.dialog.EditS10nAmountDialogState
+import ru.johnspade.s10ns.subscription.dialog.EditS10nBillingPeriodDialogState
+import ru.johnspade.s10ns.subscription.dialog.EditS10nCurrencyDialogState
+import ru.johnspade.s10ns.subscription.dialog.EditS10nNameDialogState
+import ru.johnspade.s10ns.subscription.dialog.EditS10nOneTimeDialogState
 import ru.johnspade.s10ns.subscription.repository.DoobieSubscriptionRepository
-import ru.johnspade.s10ns.subscription.service.impl.{DefaultCreateS10nDialogFsmService, DefaultCreateS10nDialogService, DefaultEditS10n1stPaymentDateDialogService, DefaultEditS10nAmountDialogService, DefaultEditS10nBillingPeriodDialogService, DefaultEditS10nCurrencyDialogService, DefaultEditS10nNameDialogService, DefaultEditS10nOneTimeDialogService, DefaultSubscriptionListService}
-import ru.johnspade.s10ns.subscription.service.{S10nInfoService, S10nsListMessageService, S10nsListReplyMessageService}
+import ru.johnspade.s10ns.subscription.service.S10nInfoService
+import ru.johnspade.s10ns.subscription.service.S10nsListMessageService
+import ru.johnspade.s10ns.subscription.service.S10nsListReplyMessageService
+import ru.johnspade.s10ns.subscription.service.impl.DefaultCreateS10nDialogFsmService
+import ru.johnspade.s10ns.subscription.service.impl.DefaultCreateS10nDialogService
+import ru.johnspade.s10ns.subscription.service.impl.DefaultEditS10n1stPaymentDateDialogService
+import ru.johnspade.s10ns.subscription.service.impl.DefaultEditS10nAmountDialogService
+import ru.johnspade.s10ns.subscription.service.impl.DefaultEditS10nBillingPeriodDialogService
+import ru.johnspade.s10ns.subscription.service.impl.DefaultEditS10nCurrencyDialogService
+import ru.johnspade.s10ns.subscription.service.impl.DefaultEditS10nNameDialogService
+import ru.johnspade.s10ns.subscription.service.impl.DefaultEditS10nOneTimeDialogService
+import ru.johnspade.s10ns.subscription.service.impl.DefaultSubscriptionListService
 import ru.johnspade.s10ns.subscription.tags.PageNumber
 import ru.johnspade.s10ns.user.DoobieUserRepository
 import ru.johnspade.s10ns.user.tags.UserId
-import telegramium.bots.client.Method
-import telegramium.bots.high.Methods._
-import telegramium.bots.high.keyboards.InlineKeyboardMarkups
-import telegramium.bots.high.{Api, _}
-import telegramium.bots.{CallbackQuery, Chat, ChatIntId, Html, KeyboardMarkup, Markdown, Message, ParseMode, ReplyKeyboardRemove, User}
-import tofu.logging.Logs
-import cats.effect.unsafe.implicits.global
 
 class SubscriptionsBotISpec
   extends AnyFreeSpec

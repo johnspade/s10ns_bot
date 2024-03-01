@@ -1,9 +1,16 @@
 package ru.johnspade.s10ns.subscription.service
-import ru.johnspade.s10ns.bot.{EditS10n, Notify, RemoveS10n, S10n, S10ns, S10nsPeriod}
+import telegramium.bots.CallbackQuery
+import telegramium.bots.InlineKeyboardMarkup
+
+import ru.johnspade.s10ns.bot.EditS10n
+import ru.johnspade.s10ns.bot.Notify
+import ru.johnspade.s10ns.bot.RemoveS10n
+import ru.johnspade.s10ns.bot.S10n
+import ru.johnspade.s10ns.bot.S10ns
+import ru.johnspade.s10ns.bot.S10nsPeriod
 import ru.johnspade.s10ns.bot.engine.ReplyMessage
 import ru.johnspade.s10ns.subscription.tags.PageNumber
 import ru.johnspade.s10ns.user.User
-import telegramium.bots.{CallbackQuery, InlineKeyboardMarkup}
 
 trait SubscriptionListService[F[_]] {
   def onSubscriptionsCb(user: User, cb: CallbackQuery, data: S10ns): F[ReplyMessage]

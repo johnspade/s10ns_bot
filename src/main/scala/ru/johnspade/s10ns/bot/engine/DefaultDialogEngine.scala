@@ -1,11 +1,20 @@
 package ru.johnspade.s10ns.bot.engine
 
+import cats.Applicative
+import cats.Monad
 import cats.effect.Sync
 import cats.implicits._
-import cats.{Applicative, Monad, ~>}
-import ru.johnspade.s10ns.bot.{BotStart, Dialog, Errors}
-import ru.johnspade.s10ns.user.{User, UserRepository}
-import telegramium.bots.{InlineKeyboardMarkup, ReplyKeyboardMarkup, ReplyKeyboardRemove}
+import cats.~>
+
+import telegramium.bots.InlineKeyboardMarkup
+import telegramium.bots.ReplyKeyboardMarkup
+import telegramium.bots.ReplyKeyboardRemove
+
+import ru.johnspade.s10ns.bot.BotStart
+import ru.johnspade.s10ns.bot.Dialog
+import ru.johnspade.s10ns.bot.Errors
+import ru.johnspade.s10ns.user.User
+import ru.johnspade.s10ns.user.UserRepository
 
 class DefaultDialogEngine[F[_] : Sync, D[_] : Applicative](
   private val userRepo: UserRepository[D]

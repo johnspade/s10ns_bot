@@ -3,8 +3,10 @@ package ru.johnspade.s10ns.user
 import java.time.temporal.ChronoUnit
 
 import doobie.util.meta.Meta
-import org.joda.money.{CurrencyUnit, Money}
+import org.joda.money.CurrencyUnit
+import org.joda.money.Money
 import org.postgresql.util.PGobject
+
 import ru.johnspade.s10ns.bot.Dialog
 
 object DoobieUserMeta {

@@ -1,10 +1,11 @@
 package ru.johnspade.s10ns.user
 
+import scala.collection.concurrent.TrieMap
+
 import cats.Id
-import ru.johnspade.s10ns.user.tags.UserId
 import cats.syntax.option._
 
-import scala.collection.concurrent.TrieMap
+import ru.johnspade.s10ns.user.tags.UserId
 
 class InMemoryUserRepository extends UserRepository[Id] {
   val users: TrieMap[UserId, User] = TrieMap.empty

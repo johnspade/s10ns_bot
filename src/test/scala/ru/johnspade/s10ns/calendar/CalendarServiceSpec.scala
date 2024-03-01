@@ -1,15 +1,23 @@
 package ru.johnspade.s10ns.calendar
 
-import java.time.{LocalDate, YearMonth}
+import java.time.LocalDate
+import java.time.YearMonth
 
+import com.softwaremill.diffx.generic.auto._
 import com.softwaremill.diffx.scalatest.DiffShouldMatcher
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
+import telegramium.bots.InlineKeyboardButton
+import telegramium.bots.InlineKeyboardMarkup
+
+import ru.johnspade.s10ns.bot.Calendar
+import ru.johnspade.s10ns.bot.DropFirstPayment
+import ru.johnspade.s10ns.bot.FirstPayment
+import ru.johnspade.s10ns.bot.Ignore
+import ru.johnspade.s10ns.bot.Months
+import ru.johnspade.s10ns.bot.Years
 import ru.johnspade.s10ns.bot.engine.TelegramOps.inlineKeyboardButton
-import ru.johnspade.s10ns.bot.{Calendar, DropFirstPayment, FirstPayment, Ignore, Months, Years}
 import ru.johnspade.s10ns.subscription.tags.FirstPaymentDate
-import telegramium.bots.{InlineKeyboardButton, InlineKeyboardMarkup}
-import com.softwaremill.diffx.generic.auto._
 
 class CalendarServiceSpec extends AnyFlatSpec with Matchers with DiffShouldMatcher {
   private val calendarService = new CalendarService

@@ -1,6 +1,7 @@
 package ru.johnspade.s10ns.bot
 
-import org.joda.money.format.{MoneyFormatter, MoneyFormatterBuilder}
+import org.joda.money.format.MoneyFormatter
+import org.joda.money.format.MoneyFormatterBuilder
 
 object Formatters {
   val MoneyFormatter: MoneyFormatter =

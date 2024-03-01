@@ -1,12 +1,16 @@
 package ru.johnspade.s10ns.subscription.dialog
 
+import scala.collection.immutable.IndexedSeq
+
 import cats.syntax.option._
+
 import enumeratum._
-import ru.johnspade.s10ns.bot.engine.{DialogState, StateEvent}
-import ru.johnspade.s10ns.bot.{Markup, Messages}
 import telegramium.bots.KeyboardMarkup
 
-import scala.collection.immutable.IndexedSeq
+import ru.johnspade.s10ns.bot.Markup
+import ru.johnspade.s10ns.bot.Messages
+import ru.johnspade.s10ns.bot.engine.DialogState
+import ru.johnspade.s10ns.bot.engine.StateEvent
 
 
 sealed abstract class EditS10nBillingPeriodDialogState(

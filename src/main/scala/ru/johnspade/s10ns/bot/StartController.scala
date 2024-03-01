@@ -1,7 +1,9 @@
 package ru.johnspade.s10ns.bot
 
 import cats.Applicative
-import ru.johnspade.s10ns.bot.engine.{DialogEngine, ReplyMessage}
+
+import ru.johnspade.s10ns.bot.engine.DialogEngine
+import ru.johnspade.s10ns.bot.engine.ReplyMessage
 import ru.johnspade.s10ns.user.User
 
 class StartController[F[_] : Applicative](

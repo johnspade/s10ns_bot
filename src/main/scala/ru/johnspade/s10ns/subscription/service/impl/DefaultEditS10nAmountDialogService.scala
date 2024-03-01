@@ -1,15 +1,25 @@
 package ru.johnspade.s10ns.subscription.service.impl
 
-import cats.{Monad, ~>}
+import cats.Monad
+import cats.~>
+
 import com.softwaremill.quicklens._
 import org.joda.money.Money
+
+import ru.johnspade.s10ns.bot.EditS10nAmount
+import ru.johnspade.s10ns.bot.EditS10nAmountDialog
 import ru.johnspade.s10ns.bot.ValidatorNec._
-import ru.johnspade.s10ns.bot.engine.{ReplyMessage, StateMessageService, TransactionalDialogEngine}
-import ru.johnspade.s10ns.bot.{EditS10nAmount, EditS10nAmountDialog}
-import ru.johnspade.s10ns.subscription.dialog.{EditS10nAmountDialogEvent, EditS10nAmountDialogState}
+import ru.johnspade.s10ns.bot.engine.ReplyMessage
+import ru.johnspade.s10ns.bot.engine.StateMessageService
+import ru.johnspade.s10ns.bot.engine.TransactionalDialogEngine
+import ru.johnspade.s10ns.subscription.dialog.EditS10nAmountDialogEvent
+import ru.johnspade.s10ns.subscription.dialog.EditS10nAmountDialogState
 import ru.johnspade.s10ns.subscription.repository.SubscriptionRepository
-import ru.johnspade.s10ns.subscription.service.{EditS10nAmountDialogService, RepliesValidated, S10nsListMessageService}
-import ru.johnspade.s10ns.user.{User, UserRepository}
+import ru.johnspade.s10ns.subscription.service.EditS10nAmountDialogService
+import ru.johnspade.s10ns.subscription.service.RepliesValidated
+import ru.johnspade.s10ns.subscription.service.S10nsListMessageService
+import ru.johnspade.s10ns.user.User
+import ru.johnspade.s10ns.user.UserRepository
 
 class DefaultEditS10nAmountDialogService[F[_] : Monad, D[_] : Monad](
   s10nsListMessageService: S10nsListMessageService[F],

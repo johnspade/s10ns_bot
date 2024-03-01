@@ -1,29 +1,44 @@
 package ru.johnspade.s10ns.subscription.service
 
 import cats.Id
-import cats.effect.{Clock, IO}
+import cats.effect.Clock
+import cats.effect.IO
+import cats.effect.unsafe.implicits.global
 import cats.implicits._
+
+import com.softwaremill.diffx.generic.auto._
 import com.softwaremill.diffx.scalatest.DiffShouldMatcher
 import org.joda.money.CurrencyUnit
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.PartialFunctionValues
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
+import telegramium.bots.KeyboardButton
+import telegramium.bots.ReplyKeyboardMarkup
+import telegramium.bots.ReplyKeyboardRemove
+
 import ru.johnspade.s10ns.TestTransactor.transact
-import ru.johnspade.s10ns.bot.engine.{DefaultDialogEngine, ReplyMessage}
-import ru.johnspade.s10ns.bot.{CreateS10nDialog, MoneyService, NameTooLong, NotANumber, NumberMustBePositive, TextCannotBeEmpty, UnknownCurrency}
+import ru.johnspade.s10ns.bot.CreateS10nDialog
+import ru.johnspade.s10ns.bot.MoneyService
+import ru.johnspade.s10ns.bot.NameTooLong
+import ru.johnspade.s10ns.bot.NotANumber
+import ru.johnspade.s10ns.bot.NumberMustBePositive
+import ru.johnspade.s10ns.bot.TextCannotBeEmpty
+import ru.johnspade.s10ns.bot.UnknownCurrency
+import ru.johnspade.s10ns.bot.engine.DefaultDialogEngine
+import ru.johnspade.s10ns.bot.engine.ReplyMessage
 import ru.johnspade.s10ns.calendar.CalendarService
 import ru.johnspade.s10ns.exchangerates.InMemoryExchangeRatesStorage
 import ru.johnspade.s10ns.subscription.SubscriptionDraft
-import ru.johnspade.s10ns.subscription.dialog.{CreateS10nDialogState, CreateS10nMsgService}
+import ru.johnspade.s10ns.subscription.dialog.CreateS10nDialogState
+import ru.johnspade.s10ns.subscription.dialog.CreateS10nMsgService
 import ru.johnspade.s10ns.subscription.repository.SubscriptionRepository
-import ru.johnspade.s10ns.subscription.service.impl.{DefaultCreateS10nDialogFsmService, DefaultCreateS10nDialogService}
-import ru.johnspade.s10ns.user.tags.{FirstName, UserId}
-import ru.johnspade.s10ns.user.{InMemoryUserRepository, User}
-import telegramium.bots.{KeyboardButton, ReplyKeyboardMarkup, ReplyKeyboardRemove}
-import com.softwaremill.diffx.generic.auto._
-
-import cats.effect.unsafe.implicits.global
+import ru.johnspade.s10ns.subscription.service.impl.DefaultCreateS10nDialogFsmService
+import ru.johnspade.s10ns.subscription.service.impl.DefaultCreateS10nDialogService
+import ru.johnspade.s10ns.user.InMemoryUserRepository
+import ru.johnspade.s10ns.user.User
+import ru.johnspade.s10ns.user.tags.FirstName
+import ru.johnspade.s10ns.user.tags.UserId
 
 class DefaultCreateS10nDialogServiceSpec
   extends AnyFlatSpec with Matchers with DiffShouldMatcher with PartialFunctionValues with MockFactory {

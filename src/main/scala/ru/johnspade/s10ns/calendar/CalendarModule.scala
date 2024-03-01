@@ -1,6 +1,7 @@
 package ru.johnspade.s10ns.calendar
 
 import cats.effect.Sync
+
 import telegramium.bots.high.Api
 
 final class CalendarModule[F[_]] private (

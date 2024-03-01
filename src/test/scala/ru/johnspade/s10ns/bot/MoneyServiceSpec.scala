@@ -3,16 +3,24 @@ package ru.johnspade.s10ns.bot
 import java.time.temporal.ChronoUnit
 
 import cats.effect.IO
+import cats.effect.unsafe.implicits.global
 import cats.implicits._
+
 import com.softwaremill.quicklens._
-import org.joda.money.{CurrencyUnit, Money}
+import org.joda.money.CurrencyUnit
+import org.joda.money.Money
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import ru.johnspade.s10ns.exchangerates.{ExchangeRatesStorage, InMemoryExchangeRatesStorage}
-import ru.johnspade.s10ns.subscription.tags.{BillingPeriodDuration, SubscriptionId, SubscriptionName}
-import ru.johnspade.s10ns.subscription.{BillingPeriod, BillingPeriodUnit, Subscription}
+
+import ru.johnspade.s10ns.exchangerates.ExchangeRatesStorage
+import ru.johnspade.s10ns.exchangerates.InMemoryExchangeRatesStorage
+import ru.johnspade.s10ns.subscription.BillingPeriod
+import ru.johnspade.s10ns.subscription.BillingPeriodUnit
+import ru.johnspade.s10ns.subscription.Subscription
+import ru.johnspade.s10ns.subscription.tags.BillingPeriodDuration
+import ru.johnspade.s10ns.subscription.tags.SubscriptionId
+import ru.johnspade.s10ns.subscription.tags.SubscriptionName
 import ru.johnspade.s10ns.user.tags.UserId
-import cats.effect.unsafe.implicits.global
 
 class MoneyServiceSpec extends AnyFlatSpec with Matchers {
   private val exchangeRatesStorage: ExchangeRatesStorage[IO] = new InMemoryExchangeRatesStorage

@@ -1,16 +1,25 @@
 package ru.johnspade.s10ns.subscription.service.impl
 
+import cats.Monad
 import cats.implicits._
-import cats.{Monad, ~>}
+import cats.~>
+
+import telegramium.bots.CallbackQuery
+
+import ru.johnspade.s10ns.bot.EditS10nDialog
+import ru.johnspade.s10ns.bot.Errors
+import ru.johnspade.s10ns.bot.engine.DialogState
+import ru.johnspade.s10ns.bot.engine.ReplyMessage
+import ru.johnspade.s10ns.bot.engine.StateEvent
+import ru.johnspade.s10ns.bot.engine.StateMessageService
 import ru.johnspade.s10ns.bot.engine.TelegramOps.singleTextMessage
-import ru.johnspade.s10ns.bot.engine.{DialogState, ReplyMessage, StateEvent, StateMessageService, TransactionalDialogEngine}
-import ru.johnspade.s10ns.bot.{EditS10nDialog, Errors}
+import ru.johnspade.s10ns.bot.engine.TransactionalDialogEngine
 import ru.johnspade.s10ns.subscription.Subscription
 import ru.johnspade.s10ns.subscription.repository.SubscriptionRepository
 import ru.johnspade.s10ns.subscription.service.S10nsListMessageService
 import ru.johnspade.s10ns.subscription.tags._
-import ru.johnspade.s10ns.user.{User, UserRepository}
-import telegramium.bots.CallbackQuery
+import ru.johnspade.s10ns.user.User
+import ru.johnspade.s10ns.user.UserRepository
 
 abstract class EditS10nDialogService[F[_]: Monad, D[_]: Monad, S <: DialogState](
   private val s10nsListMessageService: S10nsListMessageService[F],

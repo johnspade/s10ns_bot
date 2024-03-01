@@ -1,20 +1,27 @@
 package ru.johnspade.s10ns.subscription.service
 
 import cats.effect.IO
+import cats.effect.unsafe.implicits.global
 import cats.syntax.option._
 import cats.syntax.validated._
+
+import com.softwaremill.diffx.generic.auto._
 import com.softwaremill.diffx.scalatest.DiffShouldMatcher
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
+import telegramium.bots.Markdown
+import telegramium.bots.ReplyKeyboardRemove
+
 import ru.johnspade.s10ns.TestTransactor.transact
-import ru.johnspade.s10ns.bot.engine.{DefaultMsgService, ReplyMessage}
-import ru.johnspade.s10ns.bot.{EditS10nName, EditS10nNameDialog, NameTooLong, TextCannotBeEmpty}
+import ru.johnspade.s10ns.bot.EditS10nName
+import ru.johnspade.s10ns.bot.EditS10nNameDialog
+import ru.johnspade.s10ns.bot.NameTooLong
+import ru.johnspade.s10ns.bot.TextCannotBeEmpty
+import ru.johnspade.s10ns.bot.engine.DefaultMsgService
+import ru.johnspade.s10ns.bot.engine.ReplyMessage
 import ru.johnspade.s10ns.subscription.dialog.EditS10nNameDialogState
 import ru.johnspade.s10ns.subscription.service.impl.DefaultEditS10nNameDialogService
 import ru.johnspade.s10ns.subscription.tags.SubscriptionName
-import telegramium.bots.{Markdown, ReplyKeyboardRemove}
-import com.softwaremill.diffx.generic.auto._
-import cats.effect.unsafe.implicits.global
 
 class DefaultEditS10nNameDialogServiceSpec extends AnyFlatSpec with Matchers with DiffShouldMatcher with EditS10nDialogServiceSpec {
   private val editS10nNameDialogService = new DefaultEditS10nNameDialogService(

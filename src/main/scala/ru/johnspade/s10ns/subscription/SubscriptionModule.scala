@@ -1,21 +1,43 @@
 package ru.johnspade.s10ns.subscription
 
-import cats.effect.{Clock, Sync}
+import cats.Defer
+import cats.effect.Clock
+import cats.effect.Sync
+import cats.effect.Temporal
 import cats.implicits._
-import cats.{Defer, ~>}
+import cats.~>
+
 import doobie.free.connection.ConnectionIO
+import telegramium.bots.high.Api
+import tofu.logging.Logs
+
 import ru.johnspade.s10ns.bot.BotModule
 import ru.johnspade.s10ns.bot.engine.DefaultMsgService
 import ru.johnspade.s10ns.calendar.CalendarModule
-import ru.johnspade.s10ns.subscription.controller.{S10nController, SubscriptionListController}
-import ru.johnspade.s10ns.subscription.dialog.{CreateS10nMsgService, EditS10n1stPaymentDateMsgService, EditS10nAmountDialogState, EditS10nBillingPeriodDialogState, EditS10nCurrencyDialogState, EditS10nNameDialogState, EditS10nOneTimeDialogState}
-import ru.johnspade.s10ns.subscription.repository.{DoobieSubscriptionRepository, SubscriptionRepository}
-import ru.johnspade.s10ns.subscription.service.impl.{DefaultCreateS10nDialogFsmService, DefaultCreateS10nDialogService, DefaultEditS10n1stPaymentDateDialogService, DefaultEditS10nAmountDialogService, DefaultEditS10nBillingPeriodDialogService, DefaultEditS10nCurrencyDialogService, DefaultEditS10nNameDialogService, DefaultEditS10nOneTimeDialogService, DefaultSubscriptionListService}
-import ru.johnspade.s10ns.subscription.service.{S10nInfoService, S10nsListMessageService, S10nsListReplyMessageService}
+import ru.johnspade.s10ns.subscription.controller.S10nController
+import ru.johnspade.s10ns.subscription.controller.SubscriptionListController
+import ru.johnspade.s10ns.subscription.dialog.CreateS10nMsgService
+import ru.johnspade.s10ns.subscription.dialog.EditS10n1stPaymentDateMsgService
+import ru.johnspade.s10ns.subscription.dialog.EditS10nAmountDialogState
+import ru.johnspade.s10ns.subscription.dialog.EditS10nBillingPeriodDialogState
+import ru.johnspade.s10ns.subscription.dialog.EditS10nCurrencyDialogState
+import ru.johnspade.s10ns.subscription.dialog.EditS10nNameDialogState
+import ru.johnspade.s10ns.subscription.dialog.EditS10nOneTimeDialogState
+import ru.johnspade.s10ns.subscription.repository.DoobieSubscriptionRepository
+import ru.johnspade.s10ns.subscription.repository.SubscriptionRepository
+import ru.johnspade.s10ns.subscription.service.S10nInfoService
+import ru.johnspade.s10ns.subscription.service.S10nsListMessageService
+import ru.johnspade.s10ns.subscription.service.S10nsListReplyMessageService
+import ru.johnspade.s10ns.subscription.service.impl.DefaultCreateS10nDialogFsmService
+import ru.johnspade.s10ns.subscription.service.impl.DefaultCreateS10nDialogService
+import ru.johnspade.s10ns.subscription.service.impl.DefaultEditS10n1stPaymentDateDialogService
+import ru.johnspade.s10ns.subscription.service.impl.DefaultEditS10nAmountDialogService
+import ru.johnspade.s10ns.subscription.service.impl.DefaultEditS10nBillingPeriodDialogService
+import ru.johnspade.s10ns.subscription.service.impl.DefaultEditS10nCurrencyDialogService
+import ru.johnspade.s10ns.subscription.service.impl.DefaultEditS10nNameDialogService
+import ru.johnspade.s10ns.subscription.service.impl.DefaultEditS10nOneTimeDialogService
+import ru.johnspade.s10ns.subscription.service.impl.DefaultSubscriptionListService
 import ru.johnspade.s10ns.user.UserModule
-import telegramium.bots.high.Api
-import tofu.logging.Logs
-import cats.effect.Temporal
 
 final class SubscriptionModule[F[_], D[_]](
   val subscriptionRepository: SubscriptionRepository[D],

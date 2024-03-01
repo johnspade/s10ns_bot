@@ -1,12 +1,17 @@
 package ru.johnspade.s10ns.subscription.dialog
 
-import cats.syntax.option._
-import enumeratum._
-import ru.johnspade.s10ns.bot.engine.{DialogState, StateEvent}
-import ru.johnspade.s10ns.bot.{Markup, Messages}
-import telegramium.bots.{KeyboardMarkup, ReplyKeyboardRemove}
-
 import scala.collection.immutable.IndexedSeq
+
+import cats.syntax.option._
+
+import enumeratum._
+import telegramium.bots.KeyboardMarkup
+import telegramium.bots.ReplyKeyboardRemove
+
+import ru.johnspade.s10ns.bot.Markup
+import ru.johnspade.s10ns.bot.Messages
+import ru.johnspade.s10ns.bot.engine.DialogState
+import ru.johnspade.s10ns.bot.engine.StateEvent
 
 sealed abstract class CreateS10nDialogState(override val message: String, override val markup: Option[KeyboardMarkup])
   extends EnumEntry with DialogState

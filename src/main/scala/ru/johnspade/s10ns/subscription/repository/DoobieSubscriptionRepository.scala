@@ -2,21 +2,25 @@ package ru.johnspade.s10ns.subscription.repository
 
 import java.time.Instant
 
+import doobie.Query0
+import doobie.Update0
 import doobie.free.connection
 import doobie.free.connection.ConnectionIO
 import doobie.implicits._
 import doobie.implicits.legacy.instant._
 import doobie.implicits.legacy.localdate._
-import doobie.Query0
-import doobie.Update0
-import doobie.util.{Read, Write}
-import org.joda.money.{CurrencyUnit, Money}
+import doobie.util.Read
+import doobie.util.Write
+import org.joda.money.CurrencyUnit
+import org.joda.money.Money
+
+import ru.johnspade.s10ns.subscription.Subscription
+import ru.johnspade.s10ns.subscription.SubscriptionDraft
 import ru.johnspade.s10ns.subscription.repository.DoobieSubscriptionRepository.SubscriptionSql
 import ru.johnspade.s10ns.subscription.tags._
-import ru.johnspade.s10ns.subscription.{Subscription, SubscriptionDraft}
+import ru.johnspade.s10ns.user.DoobieUserMeta._
 import ru.johnspade.s10ns.user.User
 import ru.johnspade.s10ns.user.tags._
-import ru.johnspade.s10ns.user.DoobieUserMeta._
 
 class DoobieSubscriptionRepository extends SubscriptionRepository[ConnectionIO] {
   override def create(draft: SubscriptionDraft): ConnectionIO[Subscription] =

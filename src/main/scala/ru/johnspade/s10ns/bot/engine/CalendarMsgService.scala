@@ -1,14 +1,17 @@
 package ru.johnspade.s10ns.bot.engine
 
-import java.time.{LocalDate, ZoneOffset}
+import java.time.LocalDate
+import java.time.ZoneOffset
 
 import cats.Monad
 import cats.effect.Clock
 import cats.syntax.functor._
 import cats.syntax.option._
+
+import telegramium.bots.InlineKeyboardMarkup
+
 import ru.johnspade.s10ns.calendar.CalendarService
 import ru.johnspade.s10ns.currentTimestamp
-import telegramium.bots.InlineKeyboardMarkup
 
 class CalendarMsgService[F[_] : Monad : Clock, S <: DialogState](
   private val calendarService: CalendarService

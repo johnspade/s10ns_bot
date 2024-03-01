@@ -1,22 +1,34 @@
 package ru.johnspade.s10ns.notifications
 
-import java.time.{Instant, LocalDate}
+import java.time.Instant
+import java.time.LocalDate
 
 import cats.effect.IO
+import cats.effect.unsafe.implicits.global
 import cats.syntax.option._
+
 import doobie.free.connection.ConnectionIO
 import doobie.implicits._
 import org.joda.money.CurrencyUnit
 import org.scalatest.BeforeAndAfterEach
-import ru.johnspade.s10ns.PostgresContainer.{transact, xa}
+
+import ru.johnspade.s10ns.PostgresContainer.transact
+import ru.johnspade.s10ns.PostgresContainer.xa
 import ru.johnspade.s10ns.SpecBase
+import ru.johnspade.s10ns.subscription.BillingPeriodUnit
+import ru.johnspade.s10ns.subscription.Subscription
+import ru.johnspade.s10ns.subscription.SubscriptionDraft
 import ru.johnspade.s10ns.subscription.repository.DoobieSubscriptionRepository
 import ru.johnspade.s10ns.subscription.service.S10nInfoService
-import ru.johnspade.s10ns.subscription.tags.{BillingPeriodDuration, FirstPaymentDate, OneTimeSubscription, SubscriptionAmount, SubscriptionName}
-import ru.johnspade.s10ns.subscription.{BillingPeriodUnit, Subscription, SubscriptionDraft}
-import ru.johnspade.s10ns.user.tags.{FirstName, UserId}
-import ru.johnspade.s10ns.user.{DoobieUserRepository, User}
-import cats.effect.unsafe.implicits.global
+import ru.johnspade.s10ns.subscription.tags.BillingPeriodDuration
+import ru.johnspade.s10ns.subscription.tags.FirstPaymentDate
+import ru.johnspade.s10ns.subscription.tags.OneTimeSubscription
+import ru.johnspade.s10ns.subscription.tags.SubscriptionAmount
+import ru.johnspade.s10ns.subscription.tags.SubscriptionName
+import ru.johnspade.s10ns.user.DoobieUserRepository
+import ru.johnspade.s10ns.user.User
+import ru.johnspade.s10ns.user.tags.FirstName
+import ru.johnspade.s10ns.user.tags.UserId
 
 class DefaultPrepareNotificationsJobServiceISpec extends SpecBase with BeforeAndAfterEach {
 

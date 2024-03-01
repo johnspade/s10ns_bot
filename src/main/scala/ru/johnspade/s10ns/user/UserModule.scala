@@ -1,6 +1,7 @@
 package ru.johnspade.s10ns.user
 
 import cats.effect.Sync
+
 import doobie.free.connection.ConnectionIO
 
 final class UserModule[D[_]] private (

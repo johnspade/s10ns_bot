@@ -1,11 +1,15 @@
 package ru.johnspade.s10ns.notifications
 
-import cats.effect.{Async, Clock, Concurrent}
+import cats.effect.Async
+import cats.effect.Clock
+import cats.effect.Concurrent
 import cats.implicits._
 import cats.~>
+
 import doobie.free.connection.ConnectionIO
-import ru.johnspade.s10ns.subscription.SubscriptionModule
 import tofu.logging.Logs
+
+import ru.johnspade.s10ns.subscription.SubscriptionModule
 
 final class NotificationsModule[F[_], D[_]] private(
   val prepareNotificationsJobService: PrepareNotificationsJobService[F],

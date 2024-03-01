@@ -1,20 +1,29 @@
 package ru.johnspade.s10ns.subscription.service
 
 import cats.effect.IO
+import cats.effect.unsafe.implicits.global
 import cats.syntax.option._
 import cats.syntax.validated._
+
+import com.softwaremill.diffx.generic.auto._
 import com.softwaremill.diffx.scalatest.DiffShouldMatcher
-import org.joda.money.{CurrencyUnit, Money}
+import org.joda.money.CurrencyUnit
+import org.joda.money.Money
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
+import telegramium.bots.Markdown
+import telegramium.bots.ReplyKeyboardRemove
+
 import ru.johnspade.s10ns.TestTransactor.transact
-import ru.johnspade.s10ns.bot.engine.{DefaultMsgService, ReplyMessage}
-import ru.johnspade.s10ns.bot.{EditS10nAmount, EditS10nAmountDialog, NotANumber, NumberMustBePositive, TextCannotBeEmpty}
+import ru.johnspade.s10ns.bot.EditS10nAmount
+import ru.johnspade.s10ns.bot.EditS10nAmountDialog
+import ru.johnspade.s10ns.bot.NotANumber
+import ru.johnspade.s10ns.bot.NumberMustBePositive
+import ru.johnspade.s10ns.bot.TextCannotBeEmpty
+import ru.johnspade.s10ns.bot.engine.DefaultMsgService
+import ru.johnspade.s10ns.bot.engine.ReplyMessage
 import ru.johnspade.s10ns.subscription.dialog.EditS10nAmountDialogState
 import ru.johnspade.s10ns.subscription.service.impl.DefaultEditS10nAmountDialogService
-import telegramium.bots.{Markdown, ReplyKeyboardRemove}
-import com.softwaremill.diffx.generic.auto._
-import cats.effect.unsafe.implicits.global
 
 class DefaultEditS10nAmountDialogServiceSpec extends AnyFlatSpec with EditS10nDialogServiceSpec with Matchers with DiffShouldMatcher {
   private val editS10nAmountDialogService = new DefaultEditS10nAmountDialogService(

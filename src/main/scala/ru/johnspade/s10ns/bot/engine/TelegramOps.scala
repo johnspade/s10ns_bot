@@ -1,21 +1,30 @@
 package ru.johnspade.s10ns.bot.engine
 
-import cats.{Functor, Monad}
-import cats.data.Validated.{Invalid, Valid}
+import scala.concurrent.duration.FiniteDuration
+import scala.concurrent.duration.MILLISECONDS
+
+import cats.Functor
+import cats.Monad
+import cats.data.Validated.Invalid
+import cats.data.Validated.Valid
+import cats.effect.Temporal
 import cats.implicits._
-import ru.johnspade.s10ns.bot.ValidatorNec.ValidationResult
-import ru.johnspade.s10ns.bot.{CbData, Dialog}
-import ru.johnspade.s10ns.user._
-import ru.johnspade.s10ns.user.tags._
+
+import telegramium.bots.CallbackQuery
+import telegramium.bots.ChatIntId
+import telegramium.bots.InlineKeyboardButton
+import telegramium.bots.Message
 import telegramium.bots.high.Api
 import telegramium.bots.high.Methods._
 import telegramium.bots.high.implicits._
 import telegramium.bots.high.keyboards.InlineKeyboardButtons
-import telegramium.bots.{CallbackQuery, ChatIntId, InlineKeyboardButton, Message}
 import tofu.logging.Logging
 
-import scala.concurrent.duration.{FiniteDuration, MILLISECONDS}
-import cats.effect.Temporal
+import ru.johnspade.s10ns.bot.CbData
+import ru.johnspade.s10ns.bot.Dialog
+import ru.johnspade.s10ns.bot.ValidatorNec.ValidationResult
+import ru.johnspade.s10ns.user._
+import ru.johnspade.s10ns.user.tags._
 
 object TelegramOps {
   implicit class TelegramUserOps(val value: telegramium.bots.User) extends AnyVal {

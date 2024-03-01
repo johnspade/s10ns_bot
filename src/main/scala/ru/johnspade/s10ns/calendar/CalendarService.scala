@@ -1,13 +1,23 @@
 package ru.johnspade.s10ns.calendar
 
+import java.time.DayOfWeek
+import java.time.LocalDate
+import java.time.Month
+import java.time.YearMonth
 import java.time.format.TextStyle
-import java.time.{DayOfWeek, LocalDate, Month, YearMonth}
 import java.util.Locale
 
+import telegramium.bots.InlineKeyboardButton
+import telegramium.bots.InlineKeyboardMarkup
+
+import ru.johnspade.s10ns.bot.Calendar
+import ru.johnspade.s10ns.bot.DropFirstPayment
+import ru.johnspade.s10ns.bot.FirstPayment
+import ru.johnspade.s10ns.bot.Ignore
+import ru.johnspade.s10ns.bot.Months
+import ru.johnspade.s10ns.bot.Years
 import ru.johnspade.s10ns.bot.engine.TelegramOps.inlineKeyboardButton
-import ru.johnspade.s10ns.bot.{Calendar, DropFirstPayment, FirstPayment, Ignore, Months, Years}
 import ru.johnspade.s10ns.subscription.tags._
-import telegramium.bots.{InlineKeyboardButton, InlineKeyboardMarkup}
 
 class CalendarService {
   private val weekRow = DayOfWeek.values()

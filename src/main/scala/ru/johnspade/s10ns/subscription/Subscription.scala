@@ -2,8 +2,10 @@ package ru.johnspade.s10ns.subscription
 
 import java.time.Instant
 
+import org.joda.money.CurrencyUnit
 import org.joda.money.CurrencyUnit.EUR
-import org.joda.money.{CurrencyUnit, Money}
+import org.joda.money.Money
+
 import ru.johnspade.s10ns.subscription.tags._
 import ru.johnspade.s10ns.user.tags._
 

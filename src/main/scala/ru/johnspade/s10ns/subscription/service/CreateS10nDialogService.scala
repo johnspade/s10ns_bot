@@ -1,7 +1,11 @@
 package ru.johnspade.s10ns.subscription.service
 
+import ru.johnspade.s10ns.bot.CreateS10nDialog
+import ru.johnspade.s10ns.bot.FirstPayment
+import ru.johnspade.s10ns.bot.OneTime
+import ru.johnspade.s10ns.bot.PeriodUnit
+import ru.johnspade.s10ns.bot.ValidatorNec
 import ru.johnspade.s10ns.bot.engine.ReplyMessage
-import ru.johnspade.s10ns.bot.{CreateS10nDialog, FirstPayment, OneTime, PeriodUnit, ValidatorNec}
 import ru.johnspade.s10ns.user.User
 
 trait CreateS10nDialogService[F[_]] {

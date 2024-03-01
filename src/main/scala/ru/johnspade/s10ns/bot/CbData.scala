@@ -1,17 +1,20 @@
 package ru.johnspade.s10ns.bot
 
+import java.time.LocalDate
+import java.time.YearMonth
 import java.time.format.DateTimeFormatter
-import java.time.{LocalDate, YearMonth}
 
 import kantan.csv._
 import kantan.csv.enumeratum._
 import kantan.csv.java8._
 import kantan.csv.ops._
-import ru.johnspade.s10ns.bot.CbData._
 import ru.johnspade.tgbot.callbackdata.named.MagnoliaRowEncoder._
+import supertagged.@@
+import supertagged.lifterF
+
+import ru.johnspade.s10ns.bot.CbData._
 import ru.johnspade.s10ns.subscription.BillingPeriodUnit
 import ru.johnspade.s10ns.subscription.tags._
-import supertagged.{@@, lifterF}
 
 sealed abstract class CbData extends Product with Serializable {
   def toCsv: String = this.writeCsvRow(csvConfig)

@@ -1,15 +1,28 @@
 package ru.johnspade.s10ns.subscription.service
 
 import java.time.LocalDate
+
 import cats.Monad
 import cats.effect.Sync
 import cats.implicits._
-import org.joda.money.{CurrencyUnit, Money}
+
+import org.joda.money.CurrencyUnit
+import org.joda.money.Money
+import telegramium.bots.InlineKeyboardMarkup
+
 import ru.johnspade.s10ns.bot.MoneyService
 import ru.johnspade.s10ns.bot.engine.ReplyMessage
-import ru.johnspade.s10ns.subscription.tags.{FirstPaymentDate, PageNumber}
-import ru.johnspade.s10ns.subscription.{BillingPeriod, BillingPeriodUnit, ExactAmount, NonExactAmount, S10nAmount, S10nInfo, S10nItem, S10nList, Subscription}
-import telegramium.bots.InlineKeyboardMarkup
+import ru.johnspade.s10ns.subscription.BillingPeriod
+import ru.johnspade.s10ns.subscription.BillingPeriodUnit
+import ru.johnspade.s10ns.subscription.ExactAmount
+import ru.johnspade.s10ns.subscription.NonExactAmount
+import ru.johnspade.s10ns.subscription.S10nAmount
+import ru.johnspade.s10ns.subscription.S10nInfo
+import ru.johnspade.s10ns.subscription.S10nItem
+import ru.johnspade.s10ns.subscription.S10nList
+import ru.johnspade.s10ns.subscription.Subscription
+import ru.johnspade.s10ns.subscription.tags.FirstPaymentDate
+import ru.johnspade.s10ns.subscription.tags.PageNumber
 
 class S10nsListMessageService[F[_]: Monad](
   private val moneyService: MoneyService[F],

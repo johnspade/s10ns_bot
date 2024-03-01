@@ -1,33 +1,56 @@
 package ru.johnspade.s10ns.subscription.service
 
+import java.time.LocalDate
+import java.time.ZoneOffset
+
 import cats.Id
 import cats.effect.IO
 import cats.effect.unsafe.implicits.global
 import cats.syntax.option._
+
 import com.softwaremill.diffx.generic.auto._
 import com.softwaremill.diffx.scalatest.DiffShouldMatcher
 import org.joda.money.CurrencyUnit
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import ru.johnspade.s10ns.TestTransactor.transact
-import ru.johnspade.s10ns.bot.engine.TelegramOps.inlineKeyboardButton
-import ru.johnspade.s10ns.bot.engine.{DefaultDialogEngine, ReplyMessage}
-import ru.johnspade.s10ns.bot.{BotStart, CreateS10nDialog, EditS10n, MoneyService, Notify, RemoveS10n, S10ns}
-import ru.johnspade.s10ns.calendar.CalendarService
-import ru.johnspade.s10ns.exchangerates.InMemoryExchangeRatesStorage
-import ru.johnspade.s10ns.subscription.dialog.{CreateS10nDialogState, CreateS10nMsgService}
-import ru.johnspade.s10ns.subscription.repository.SubscriptionRepository
-import ru.johnspade.s10ns.subscription.service.impl.DefaultCreateS10nDialogFsmService
-import ru.johnspade.s10ns.subscription.tags.{BillingPeriodDuration, FirstPaymentDate, OneTimeSubscription, PageNumber, SubscriptionId, SubscriptionName}
-import ru.johnspade.s10ns.subscription.{BillingPeriodUnit, Subscription, SubscriptionDraft}
-import ru.johnspade.s10ns.user.tags.{FirstName, UserId}
-import ru.johnspade.s10ns.user.{InMemoryUserRepository, User}
-import telegramium.bots.high.keyboards.{InlineKeyboardButtons, InlineKeyboardMarkups}
-import telegramium.bots.{InlineKeyboardMarkup, Markdown, ReplyKeyboardRemove}
+import telegramium.bots.InlineKeyboardMarkup
+import telegramium.bots.Markdown
+import telegramium.bots.ReplyKeyboardRemove
+import telegramium.bots.high.keyboards.InlineKeyboardButtons
+import telegramium.bots.high.keyboards.InlineKeyboardMarkups
 import tofu.logging.Logs
 
-import java.time.{LocalDate, ZoneOffset}
+import ru.johnspade.s10ns.TestTransactor.transact
+import ru.johnspade.s10ns.bot.BotStart
+import ru.johnspade.s10ns.bot.CreateS10nDialog
+import ru.johnspade.s10ns.bot.EditS10n
+import ru.johnspade.s10ns.bot.MoneyService
+import ru.johnspade.s10ns.bot.Notify
+import ru.johnspade.s10ns.bot.RemoveS10n
+import ru.johnspade.s10ns.bot.S10ns
+import ru.johnspade.s10ns.bot.engine.DefaultDialogEngine
+import ru.johnspade.s10ns.bot.engine.ReplyMessage
+import ru.johnspade.s10ns.bot.engine.TelegramOps.inlineKeyboardButton
+import ru.johnspade.s10ns.calendar.CalendarService
+import ru.johnspade.s10ns.exchangerates.InMemoryExchangeRatesStorage
+import ru.johnspade.s10ns.subscription.BillingPeriodUnit
+import ru.johnspade.s10ns.subscription.Subscription
+import ru.johnspade.s10ns.subscription.SubscriptionDraft
+import ru.johnspade.s10ns.subscription.dialog.CreateS10nDialogState
+import ru.johnspade.s10ns.subscription.dialog.CreateS10nMsgService
+import ru.johnspade.s10ns.subscription.repository.SubscriptionRepository
+import ru.johnspade.s10ns.subscription.service.impl.DefaultCreateS10nDialogFsmService
+import ru.johnspade.s10ns.subscription.tags.BillingPeriodDuration
+import ru.johnspade.s10ns.subscription.tags.FirstPaymentDate
+import ru.johnspade.s10ns.subscription.tags.OneTimeSubscription
+import ru.johnspade.s10ns.subscription.tags.PageNumber
+import ru.johnspade.s10ns.subscription.tags.SubscriptionId
+import ru.johnspade.s10ns.subscription.tags.SubscriptionName
+import ru.johnspade.s10ns.user.InMemoryUserRepository
+import ru.johnspade.s10ns.user.User
+import ru.johnspade.s10ns.user.tags.FirstName
+import ru.johnspade.s10ns.user.tags.UserId
 
 class DefaultCreateS10nDialogFsmServiceSpec extends AnyFlatSpec with Matchers with DiffShouldMatcher with MockFactory {
   private implicit val logs: Logs[IO, IO] = Logs.sync[IO, IO]

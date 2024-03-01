@@ -1,17 +1,26 @@
 package ru.johnspade.s10ns.settings
 
+import cats.Defer
+import cats.Monad
 import cats.effect.Temporal
 import cats.implicits._
-import cats.{Defer, Monad}
-import ru.johnspade.s10ns.CbDataUserRoutes
-import ru.johnspade.s10ns.bot.engine.ReplyMessage
-import ru.johnspade.s10ns.bot.engine.TelegramOps.{ackCb, sendReplyMessages, toReplyMessage}
-import ru.johnspade.s10ns.bot.{CallbackQueryUserController, DefCurrency, Errors, SettingsDialog}
-import ru.johnspade.s10ns.user.User
+
 import ru.johnspade.tgbot.callbackqueries.CallbackQueryContextRoutes
 import telegramium.bots.Message
 import telegramium.bots.high.Api
-import tofu.logging.{Logging, Logs}
+import tofu.logging.Logging
+import tofu.logging.Logs
+
+import ru.johnspade.s10ns.CbDataUserRoutes
+import ru.johnspade.s10ns.bot.CallbackQueryUserController
+import ru.johnspade.s10ns.bot.DefCurrency
+import ru.johnspade.s10ns.bot.Errors
+import ru.johnspade.s10ns.bot.SettingsDialog
+import ru.johnspade.s10ns.bot.engine.ReplyMessage
+import ru.johnspade.s10ns.bot.engine.TelegramOps.ackCb
+import ru.johnspade.s10ns.bot.engine.TelegramOps.sendReplyMessages
+import ru.johnspade.s10ns.bot.engine.TelegramOps.toReplyMessage
+import ru.johnspade.s10ns.user.User
 
 class SettingsController[F[_]: Logging: Temporal: Defer](
   private val settingsService: SettingsService[F]

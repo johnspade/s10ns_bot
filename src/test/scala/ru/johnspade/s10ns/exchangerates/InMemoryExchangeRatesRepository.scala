@@ -1,8 +1,8 @@
 package ru.johnspade.s10ns.exchangerates
 
-import cats.Id
-
 import scala.collection.concurrent.TrieMap
+
+import cats.Id
 
 class InMemoryExchangeRatesRepository extends ExchangeRatesRepository[Id] {
   val rates: TrieMap[String, BigDecimal] = TrieMap.empty

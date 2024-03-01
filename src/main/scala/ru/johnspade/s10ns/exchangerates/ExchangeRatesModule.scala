@@ -1,14 +1,17 @@
 package ru.johnspade.s10ns.exchangerates
 
-import cats.effect.{Async, Concurrent, Temporal}
+import scala.concurrent.duration._
+
+import cats.effect.Async
+import cats.effect.Concurrent
+import cats.effect.Temporal
 import cats.implicits._
 import cats.~>
+
 import doobie.free.connection.ConnectionIO
 import retry.RetryPolicies
 import sttp.client3.asynchttpclient.cats.AsyncHttpClientCatsBackend
 import tofu.logging.Logs
-
-import scala.concurrent.duration._
 
 class ExchangeRatesModule[F[_], D[_]] private (
   val fixerApi: FixerApi[F],

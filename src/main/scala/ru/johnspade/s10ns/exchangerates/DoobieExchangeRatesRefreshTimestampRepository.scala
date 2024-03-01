@@ -3,10 +3,12 @@ package ru.johnspade.s10ns.exchangerates
 import java.time.Instant
 
 import cats.implicits._
+
 import doobie._
 import doobie.free.connection.ConnectionIO
 import doobie.implicits._
 import doobie.implicits.legacy.instant._
+
 import ru.johnspade.s10ns.exchangerates.DoobieExchangeRatesRefreshTimestampRepository.ExchangeRatesRefreshTimestampSql
 
 class DoobieExchangeRatesRefreshTimestampRepository extends ExchangeRatesRefreshTimestampRepository[ConnectionIO] {

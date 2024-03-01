@@ -2,7 +2,9 @@ package ru.johnspade.s10ns.subscription.dialog
 
 import cats.Monad
 import cats.effect.Clock
-import ru.johnspade.s10ns.bot.engine.{CalendarMsgService, ReplyMessage}
+
+import ru.johnspade.s10ns.bot.engine.CalendarMsgService
+import ru.johnspade.s10ns.bot.engine.ReplyMessage
 import ru.johnspade.s10ns.calendar.CalendarService
 
 class EditS10n1stPaymentDateMsgService[F[_] : Monad : Clock](

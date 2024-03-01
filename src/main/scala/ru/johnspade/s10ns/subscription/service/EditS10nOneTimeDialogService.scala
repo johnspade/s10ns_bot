@@ -1,7 +1,10 @@
 package ru.johnspade.s10ns.subscription.service
 
+import ru.johnspade.s10ns.bot.EditS10nOneTime
+import ru.johnspade.s10ns.bot.EditS10nOneTimeDialog
+import ru.johnspade.s10ns.bot.OneTime
+import ru.johnspade.s10ns.bot.PeriodUnit
 import ru.johnspade.s10ns.bot.engine.ReplyMessage
-import ru.johnspade.s10ns.bot.{EditS10nOneTime, EditS10nOneTimeDialog, OneTime, PeriodUnit}
 import ru.johnspade.s10ns.user.User
 
 trait EditS10nOneTimeDialogService[F[_]] {

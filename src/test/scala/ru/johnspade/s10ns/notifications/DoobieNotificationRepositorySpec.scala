@@ -3,6 +3,7 @@ package ru.johnspade.s10ns.notifications
 import java.util.UUID
 
 import io.chrisdavenport.fuuid.FUUID
+
 import ru.johnspade.s10ns.DoobieRepositorySpec
 import ru.johnspade.s10ns.notifications.DoobieNotificationRepository.NotificationSql._
 import ru.johnspade.s10ns.subscription.tags.SubscriptionId

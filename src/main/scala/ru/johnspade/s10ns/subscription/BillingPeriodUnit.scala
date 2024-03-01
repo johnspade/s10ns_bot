@@ -1,11 +1,10 @@
 package ru.johnspade.s10ns.subscription
 
 import java.time.temporal.ChronoUnit
+import scala.collection.immutable.IndexedSeq
 
 import com.ibm.icu.util.MeasureUnit
 import enumeratum._
-
-import scala.collection.immutable.IndexedSeq
 
 sealed abstract class BillingPeriodUnit(val chronoUnit: ChronoUnit, val measureUnit: MeasureUnit)
   extends EnumEntry

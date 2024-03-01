@@ -1,7 +1,9 @@
 package ru.johnspade.s10ns.subscription.service
 
+import ru.johnspade.s10ns.bot.EditS10nBillingPeriod
+import ru.johnspade.s10ns.bot.EditS10nBillingPeriodDialog
+import ru.johnspade.s10ns.bot.PeriodUnit
 import ru.johnspade.s10ns.bot.engine.ReplyMessage
-import ru.johnspade.s10ns.bot.{EditS10nBillingPeriod, EditS10nBillingPeriodDialog, PeriodUnit}
 import ru.johnspade.s10ns.user.User
 
 trait EditS10nBillingPeriodDialogService[F[_]] {

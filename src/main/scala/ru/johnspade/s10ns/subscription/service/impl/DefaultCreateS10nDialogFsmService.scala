@@ -1,16 +1,25 @@
 package ru.johnspade.s10ns.subscription.service.impl
 
+import cats.Monad
 import cats.implicits._
-import cats.{Monad, ~>}
-import org.joda.money.{CurrencyUnit, Money}
+import cats.~>
+
+import org.joda.money.CurrencyUnit
+import org.joda.money.Money
+
 import ru.johnspade.s10ns.bot.CreateS10nDialog
-import ru.johnspade.s10ns.bot.engine.{ReplyMessage, StateMessageService, TransactionalDialogEngine}
+import ru.johnspade.s10ns.bot.engine.ReplyMessage
+import ru.johnspade.s10ns.bot.engine.StateMessageService
+import ru.johnspade.s10ns.bot.engine.TransactionalDialogEngine
 import ru.johnspade.s10ns.subscription.BillingPeriodUnit
-import ru.johnspade.s10ns.subscription.dialog.{CreateS10nDialogEvent, CreateS10nDialogState}
+import ru.johnspade.s10ns.subscription.dialog.CreateS10nDialogEvent
+import ru.johnspade.s10ns.subscription.dialog.CreateS10nDialogState
 import ru.johnspade.s10ns.subscription.repository.SubscriptionRepository
-import ru.johnspade.s10ns.subscription.service.{CreateS10nDialogFsmService, S10nsListMessageService}
+import ru.johnspade.s10ns.subscription.service.CreateS10nDialogFsmService
+import ru.johnspade.s10ns.subscription.service.S10nsListMessageService
 import ru.johnspade.s10ns.subscription.tags._
-import ru.johnspade.s10ns.user.{User, UserRepository}
+import ru.johnspade.s10ns.user.User
+import ru.johnspade.s10ns.user.UserRepository
 
 class DefaultCreateS10nDialogFsmService[F[_]: Monad, D[_]: Monad](
   private val subscriptionRepo: SubscriptionRepository[D],

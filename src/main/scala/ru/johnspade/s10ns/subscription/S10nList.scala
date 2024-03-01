@@ -3,7 +3,9 @@ package ru.johnspade.s10ns.subscription
 import java.time.temporal.TemporalUnit
 
 import org.joda.money.Money
-import ru.johnspade.s10ns.subscription.tags.{PageNumber, SubscriptionId}
+
+import ru.johnspade.s10ns.subscription.tags.PageNumber
+import ru.johnspade.s10ns.subscription.tags.SubscriptionId
 
 case class RemainingTime(unit: TemporalUnit, count: Long)
 

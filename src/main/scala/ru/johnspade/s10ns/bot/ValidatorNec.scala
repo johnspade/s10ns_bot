@@ -1,11 +1,13 @@
 package ru.johnspade.s10ns.bot
 
+import scala.util.Try
+
 import cats.data.ValidatedNec
 import cats.implicits._
-import org.joda.money.CurrencyUnit
-import ru.johnspade.s10ns.subscription.tags._
 
-import scala.util.Try
+import org.joda.money.CurrencyUnit
+
+import ru.johnspade.s10ns.subscription.tags._
 
 class ValidatorNec {
   type ValidationResult[A] = ValidatedNec[Validation, A]

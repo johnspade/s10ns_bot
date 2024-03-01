@@ -1,7 +1,13 @@
 package ru.johnspade.s10ns.notifications
 
+import java.time.Instant
+import scala.concurrent.duration._
+
+import cats.Monad
+import cats.MonadError
 import cats.data.OptionT
-import cats.effect.{Concurrent, Temporal}
+import cats.effect.Concurrent
+import cats.effect.Temporal
 import cats.syntax.applicative._
 import cats.syntax.applicativeError._
 import cats.syntax.apply._
@@ -9,21 +15,22 @@ import cats.syntax.flatMap._
 import cats.syntax.foldable._
 import cats.syntax.functor._
 import cats.syntax.option._
-import cats.{Monad, MonadError, ~>}
+import cats.~>
+
+import telegramium.bots.ChatIntId
+import telegramium.bots.high.Api
+import telegramium.bots.high.FailedRequest
+import telegramium.bots.high.Methods._
+import telegramium.bots.high.implicits._
+import tofu.logging._
+import tofu.syntax.logging._
+
+import ru.johnspade.s10ns.currentTimestamp
+import ru.johnspade.s10ns.repeat
 import ru.johnspade.s10ns.subscription.Subscription
 import ru.johnspade.s10ns.subscription.repository.SubscriptionRepository
 import ru.johnspade.s10ns.subscription.service.S10nsListMessageService
 import ru.johnspade.s10ns.user.User
-import ru.johnspade.s10ns.{currentTimestamp, repeat}
-import telegramium.bots.ChatIntId
-import telegramium.bots.high.Methods._
-import telegramium.bots.high.implicits._
-import telegramium.bots.high.{Api, FailedRequest}
-import tofu.logging._
-import tofu.syntax.logging._
-
-import java.time.Instant
-import scala.concurrent.duration._
 
 class DefaultNotificationsJobService[F[_]: Concurrent: Temporal: Logging, D[_]: Monad](
   private val notificationRepo: NotificationRepository[D],

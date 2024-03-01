@@ -1,25 +1,51 @@
 package ru.johnspade.s10ns.subscription.service
 
+import java.time.LocalDate
+import java.time.Period
+import java.time.ZoneOffset
+import java.time.format.DateTimeFormatter
+
 import cats.effect.IO
 import cats.effect.unsafe.implicits.global
 import cats.syntax.option._
+
 import com.softwaremill.diffx.generic.auto._
 import com.softwaremill.diffx.scalatest.DiffShouldMatcher
-import org.joda.money.{CurrencyUnit, Money}
+import org.joda.money.CurrencyUnit
+import org.joda.money.Money
 import org.scalatest.OptionValues
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import ru.johnspade.s10ns.bot.engine.TelegramOps.inlineKeyboardButton
-import ru.johnspade.s10ns.bot.{EditS10n, EditS10nAmount, EditS10nBillingPeriod, EditS10nCurrency, EditS10nFirstPaymentDate, EditS10nName, EditS10nOneTime, MoneyService, Notify, RemoveS10n, S10n, S10ns, S10nsPeriod}
-import ru.johnspade.s10ns.exchangerates.InMemoryExchangeRatesStorage
-import ru.johnspade.s10ns.subscription.tags.{BillingPeriodDuration, FirstPaymentDate, OneTimeSubscription, PageNumber, SubscriptionId, SubscriptionName}
-import ru.johnspade.s10ns.subscription.{BillingPeriod, BillingPeriodUnit, Subscription}
-import ru.johnspade.s10ns.user.tags.UserId
-import telegramium.bots.high.keyboards.{InlineKeyboardButtons, InlineKeyboardMarkups}
-import telegramium.bots.{InlineKeyboardMarkup, KeyboardMarkup}
+import telegramium.bots.InlineKeyboardMarkup
+import telegramium.bots.KeyboardMarkup
+import telegramium.bots.high.keyboards.InlineKeyboardButtons
+import telegramium.bots.high.keyboards.InlineKeyboardMarkups
 
-import java.time.format.DateTimeFormatter
-import java.time.{LocalDate, Period, ZoneOffset}
+import ru.johnspade.s10ns.bot.EditS10n
+import ru.johnspade.s10ns.bot.EditS10nAmount
+import ru.johnspade.s10ns.bot.EditS10nBillingPeriod
+import ru.johnspade.s10ns.bot.EditS10nCurrency
+import ru.johnspade.s10ns.bot.EditS10nFirstPaymentDate
+import ru.johnspade.s10ns.bot.EditS10nName
+import ru.johnspade.s10ns.bot.EditS10nOneTime
+import ru.johnspade.s10ns.bot.MoneyService
+import ru.johnspade.s10ns.bot.Notify
+import ru.johnspade.s10ns.bot.RemoveS10n
+import ru.johnspade.s10ns.bot.S10n
+import ru.johnspade.s10ns.bot.S10ns
+import ru.johnspade.s10ns.bot.S10nsPeriod
+import ru.johnspade.s10ns.bot.engine.TelegramOps.inlineKeyboardButton
+import ru.johnspade.s10ns.exchangerates.InMemoryExchangeRatesStorage
+import ru.johnspade.s10ns.subscription.BillingPeriod
+import ru.johnspade.s10ns.subscription.BillingPeriodUnit
+import ru.johnspade.s10ns.subscription.Subscription
+import ru.johnspade.s10ns.subscription.tags.BillingPeriodDuration
+import ru.johnspade.s10ns.subscription.tags.FirstPaymentDate
+import ru.johnspade.s10ns.subscription.tags.OneTimeSubscription
+import ru.johnspade.s10ns.subscription.tags.PageNumber
+import ru.johnspade.s10ns.subscription.tags.SubscriptionId
+import ru.johnspade.s10ns.subscription.tags.SubscriptionName
+import ru.johnspade.s10ns.user.tags.UserId
 
 class S10nsListMessageServiceSpec extends AnyFlatSpec with Matchers with OptionValues with DiffShouldMatcher {
 

@@ -4,16 +4,17 @@ import java.time.Instant
 
 import cats.Id
 import cats.effect.IO
+import cats.effect.unsafe.implicits.global
+
 import com.softwaremill.diffx.scalatest.DiffShouldMatcher
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.OptionValues
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import retry.RetryPolicies
-import ru.johnspade.s10ns.TestTransactor.transact
 import tofu.logging.Logs
 
-import cats.effect.unsafe.implicits.global
+import ru.johnspade.s10ns.TestTransactor.transact
 
 class DefaultExchangeRatesServiceSpec extends AnyFlatSpec with Matchers with OptionValues with DiffShouldMatcher with MockFactory {
   private implicit val logs: Logs[IO, IO] = Logs.sync[IO, IO]

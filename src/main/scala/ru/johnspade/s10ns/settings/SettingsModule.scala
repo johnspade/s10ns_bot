@@ -1,13 +1,15 @@
 package ru.johnspade.s10ns.settings
 
 import cats.Defer
+import cats.effect.Temporal
 import cats.implicits._
+
 import doobie.free.connection.ConnectionIO
-import ru.johnspade.s10ns.bot.BotModule
-import ru.johnspade.s10ns.bot.engine.DefaultMsgService
 import telegramium.bots.high.Api
 import tofu.logging.Logs
-import cats.effect.Temporal
+
+import ru.johnspade.s10ns.bot.BotModule
+import ru.johnspade.s10ns.bot.engine.DefaultMsgService
 
 final class SettingsModule[F[_]] private(
   val settingsController: SettingsController[F]

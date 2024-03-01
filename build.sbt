@@ -2,7 +2,13 @@ import TestSettings._
 
 name := "s10ns_bot"
 
-scalaVersion := "2.13.7"
+inThisBuild(
+  List(
+    scalaVersion := "2.13.7",
+    semanticdbEnabled := true,
+    semanticdbVersion := scalafixSemanticdb.revision
+  )
+)
 
 scalacOptions ++= Seq(
   "-language:higherKinds"
@@ -69,6 +75,8 @@ addCompilerPlugin("com.olegpy" %% "better-monadic-for" % "0.3.1")
 addCompilerPlugin("org.typelevel" %% "kind-projector" % "0.13.2" cross CrossVersion.full)
 
 ThisBuild / dynverSeparator := "-"
+
+Global / onChangedBuildSource := ReloadOnSourceChanges
 
 lazy val root: Project = (project in file("."))
   .enablePlugins(JavaAppPackaging, DockerPlugin, AshScriptPlugin)

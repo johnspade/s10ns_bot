@@ -1,21 +1,34 @@
 package ru.johnspade.s10ns.subscription.service
 
 import cats.effect.IO
+import cats.effect.unsafe.implicits.global
 import cats.syntax.option._
 import cats.syntax.validated._
+
+import com.softwaremill.diffx.generic.auto._
 import com.softwaremill.diffx.scalatest.DiffShouldMatcher
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
+import telegramium.bots.Markdown
+import telegramium.bots.ReplyKeyboardRemove
+
 import ru.johnspade.s10ns.TestTransactor.transact
-import ru.johnspade.s10ns.bot.engine.{DefaultMsgService, ReplyMessage}
-import ru.johnspade.s10ns.bot.{EditS10nOneTime, EditS10nOneTimeDialog, Markup, NotANumber, NumberMustBePositive, OneTime, PeriodUnit, TextCannotBeEmpty}
+import ru.johnspade.s10ns.bot.EditS10nOneTime
+import ru.johnspade.s10ns.bot.EditS10nOneTimeDialog
+import ru.johnspade.s10ns.bot.Markup
+import ru.johnspade.s10ns.bot.NotANumber
+import ru.johnspade.s10ns.bot.NumberMustBePositive
+import ru.johnspade.s10ns.bot.OneTime
+import ru.johnspade.s10ns.bot.PeriodUnit
+import ru.johnspade.s10ns.bot.TextCannotBeEmpty
+import ru.johnspade.s10ns.bot.engine.DefaultMsgService
+import ru.johnspade.s10ns.bot.engine.ReplyMessage
+import ru.johnspade.s10ns.subscription.BillingPeriod
+import ru.johnspade.s10ns.subscription.BillingPeriodUnit
 import ru.johnspade.s10ns.subscription.dialog.EditS10nOneTimeDialogState
 import ru.johnspade.s10ns.subscription.service.impl.DefaultEditS10nOneTimeDialogService
-import ru.johnspade.s10ns.subscription.tags.{BillingPeriodDuration, OneTimeSubscription}
-import ru.johnspade.s10ns.subscription.{BillingPeriod, BillingPeriodUnit}
-import telegramium.bots.{Markdown, ReplyKeyboardRemove}
-import com.softwaremill.diffx.generic.auto._
-import cats.effect.unsafe.implicits.global
+import ru.johnspade.s10ns.subscription.tags.BillingPeriodDuration
+import ru.johnspade.s10ns.subscription.tags.OneTimeSubscription
 
 class DefaultEditS10nOneTimeDialogServiceSpec extends AnyFlatSpec with EditS10nDialogServiceSpec with Matchers with DiffShouldMatcher {
   private val editS10nOneTimeDialogService = new DefaultEditS10nOneTimeDialogService(

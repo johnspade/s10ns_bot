@@ -2,14 +2,17 @@ package ru.johnspade.s10ns.notifications
 
 import cats.instances.list.catsStdInstancesForList
 import cats.syntax.functor._
+
+import doobie.Query0
+import doobie.Update0
 import doobie.free.connection.ConnectionIO
 import doobie.implicits._
 import doobie.implicits.legacy.instant._
 import doobie.postgres.implicits._
 import doobie.util.update.Update
-import doobie.{Query0, Update0}
 import io.chrisdavenport.fuuid.FUUID
 import io.chrisdavenport.fuuid.doobie.implicits._
+
 import ru.johnspade.s10ns.notifications.DoobieNotificationRepository.NotificationSql
 import ru.johnspade.s10ns.subscription.tags.SubscriptionId
 

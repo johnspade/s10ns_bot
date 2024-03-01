@@ -1,7 +1,9 @@
 package ru.johnspade.s10ns.subscription.service
 
+import ru.johnspade.s10ns.bot.EditS10nFirstPaymentDate
+import ru.johnspade.s10ns.bot.EditS10nFirstPaymentDateDialog
+import ru.johnspade.s10ns.bot.FirstPayment
 import ru.johnspade.s10ns.bot.engine.ReplyMessage
-import ru.johnspade.s10ns.bot.{EditS10nFirstPaymentDate, EditS10nFirstPaymentDateDialog, FirstPayment}
 import ru.johnspade.s10ns.user.User
 
 trait EditS10n1stPaymentDateDialogService[F[_]] {

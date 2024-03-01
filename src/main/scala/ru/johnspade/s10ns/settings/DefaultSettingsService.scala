@@ -2,12 +2,17 @@ package ru.johnspade.s10ns.settings
 
 import cats.Monad
 import cats.implicits._
-import ru.johnspade.s10ns.bot.ValidatorNec._
-import ru.johnspade.s10ns.bot.engine.TelegramOps.inlineKeyboardButton
-import ru.johnspade.s10ns.bot.engine.{DialogEngine, ReplyMessage, StateMessageService}
-import ru.johnspade.s10ns.bot.{DefCurrency, SettingsDialog}
-import ru.johnspade.s10ns.user.User
+
 import telegramium.bots.high.keyboards.InlineKeyboardMarkups
+
+import ru.johnspade.s10ns.bot.DefCurrency
+import ru.johnspade.s10ns.bot.SettingsDialog
+import ru.johnspade.s10ns.bot.ValidatorNec._
+import ru.johnspade.s10ns.bot.engine.DialogEngine
+import ru.johnspade.s10ns.bot.engine.ReplyMessage
+import ru.johnspade.s10ns.bot.engine.StateMessageService
+import ru.johnspade.s10ns.bot.engine.TelegramOps.inlineKeyboardButton
+import ru.johnspade.s10ns.user.User
 
 class DefaultSettingsService[F[_]: Monad](
   private val dialogEngine: DialogEngine[F],

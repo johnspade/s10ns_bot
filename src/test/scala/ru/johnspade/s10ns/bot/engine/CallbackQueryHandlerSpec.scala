@@ -1,16 +1,24 @@
 package ru.johnspade.s10ns.bot.engine
 
 import cats.effect.IO
+import cats.effect.unsafe.implicits.global
+
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import ru.johnspade.s10ns.TelegramiumScalamockUtils.verifyMethodCall
+import ru.johnspade.tgbot.callbackqueries.CallbackDataDecoder
 import ru.johnspade.tgbot.callbackqueries.CallbackQueryDsl._
-import ru.johnspade.tgbot.callbackqueries.{CallbackDataDecoder, CallbackQueryHandler, CallbackQueryRoutes, DecodeResult}
+import ru.johnspade.tgbot.callbackqueries.CallbackQueryHandler
+import ru.johnspade.tgbot.callbackqueries.CallbackQueryRoutes
+import ru.johnspade.tgbot.callbackqueries.DecodeResult
+import telegramium.bots.CallbackQuery
+import telegramium.bots.ChatIntId
+import telegramium.bots.User
 import telegramium.bots.client.Method
-import telegramium.bots.high.{Api, Methods}
-import telegramium.bots.{CallbackQuery, ChatIntId, User}
-import cats.effect.unsafe.implicits.global
+import telegramium.bots.high.Api
+import telegramium.bots.high.Methods
+
+import ru.johnspade.s10ns.TelegramiumScalamockUtils.verifyMethodCall
 
 class CallbackQueryHandlerSpec extends AnyFlatSpec with Matchers with MockFactory {
   private implicit val api: Api[IO] = stub[Api[IO]]

@@ -1,19 +1,48 @@
 package ru.johnspade.s10ns
 
+import cats.Monad
+import cats.Parallel
+import cats.effect.Async
 import cats.implicits._
-import cats.{Monad, Parallel, ~>}
+import cats.~>
+
+import ru.johnspade.tgbot.callbackqueries.CallbackDataDecoder
+import ru.johnspade.tgbot.callbackqueries.CallbackQueryHandler
+import ru.johnspade.tgbot.callbackqueries.DecodeError
+import ru.johnspade.tgbot.callbackqueries.ParseError
+import telegramium.bots.CallbackQuery
+import telegramium.bots.Message
+import telegramium.bots.high.Api
+import telegramium.bots.high.WebhookBot
+import telegramium.bots.{User => TgUser}
+import tofu.logging.Logging
+import tofu.logging.Logs
+
+import ru.johnspade.s10ns.bot.BotConfig
+import ru.johnspade.s10ns.bot.CbData
+import ru.johnspade.s10ns.bot.CbDataService
+import ru.johnspade.s10ns.bot.CreateS10nDialog
+import ru.johnspade.s10ns.bot.Dialog
+import ru.johnspade.s10ns.bot.EditS10nAmountDialog
+import ru.johnspade.s10ns.bot.EditS10nBillingPeriodDialog
+import ru.johnspade.s10ns.bot.EditS10nCurrencyDialog
+import ru.johnspade.s10ns.bot.EditS10nNameDialog
+import ru.johnspade.s10ns.bot.EditS10nOneTimeDialog
+import ru.johnspade.s10ns.bot.Errors
+import ru.johnspade.s10ns.bot.IgnoreController
+import ru.johnspade.s10ns.bot.SettingsDialog
+import ru.johnspade.s10ns.bot.StartController
+import ru.johnspade.s10ns.bot.UserMiddleware
 import ru.johnspade.s10ns.bot.engine.ReplyMessage
-import ru.johnspade.s10ns.bot.engine.TelegramOps.{TelegramUserOps, sendReplyMessages, singleTextMessage}
-import ru.johnspade.s10ns.bot.{BotConfig, CbData, CbDataService, CreateS10nDialog, Dialog, EditS10nAmountDialog, EditS10nBillingPeriodDialog, EditS10nCurrencyDialog, EditS10nNameDialog, EditS10nOneTimeDialog, Errors, IgnoreController, SettingsDialog, StartController, UserMiddleware}
+import ru.johnspade.s10ns.bot.engine.TelegramOps.TelegramUserOps
+import ru.johnspade.s10ns.bot.engine.TelegramOps.sendReplyMessages
+import ru.johnspade.s10ns.bot.engine.TelegramOps.singleTextMessage
 import ru.johnspade.s10ns.calendar.CalendarController
 import ru.johnspade.s10ns.settings.SettingsController
-import ru.johnspade.s10ns.subscription.controller.{S10nController, SubscriptionListController}
-import ru.johnspade.s10ns.user.{User, UserRepository}
-import ru.johnspade.tgbot.callbackqueries.{CallbackDataDecoder, CallbackQueryHandler, DecodeError, ParseError}
-import telegramium.bots.high.{Api, WebhookBot}
-import telegramium.bots.{CallbackQuery, Message, User => TgUser}
-import tofu.logging.{Logging, Logs}
-import cats.effect.Async
+import ru.johnspade.s10ns.subscription.controller.S10nController
+import ru.johnspade.s10ns.subscription.controller.SubscriptionListController
+import ru.johnspade.s10ns.user.User
+import ru.johnspade.s10ns.user.UserRepository
 
 class SubscriptionsBot[F[_]: Async: Logging, D[_]: Monad](
   private val botConfig: BotConfig,

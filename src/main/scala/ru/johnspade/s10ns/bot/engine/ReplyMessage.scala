@@ -1,6 +1,7 @@
 package ru.johnspade.s10ns.bot.engine
 
-import telegramium.bots.{KeyboardMarkup, ParseMode}
+import telegramium.bots.KeyboardMarkup
+import telegramium.bots.ParseMode
 
 case class ReplyMessage(
   text: String,

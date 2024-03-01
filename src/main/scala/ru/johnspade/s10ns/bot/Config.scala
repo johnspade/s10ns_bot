@@ -1,9 +1,9 @@
 package ru.johnspade.s10ns.bot
 
+import java.net.URI
+
 import pureconfig.ConfigReader
 import pureconfig.module.magnolia.semiauto.reader.deriveReader
-
-import java.net.URI
 
 final case class DbConfig(driver: String, url: String, user: String, password: String)
 object DbConfig {
