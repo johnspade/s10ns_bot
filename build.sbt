@@ -4,7 +4,7 @@ name := "s10ns_bot"
 
 inThisBuild(
   List(
-    scalaVersion      := "2.13.7",
+    scalaVersion      := "2.13.12",
     semanticdbEnabled := true,
     semanticdbVersion := scalafixSemanticdb.revision
   )
