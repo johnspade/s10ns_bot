@@ -1,7 +1,6 @@
 package ru.johnspade.s10ns.subscription.service
 
 import cats.Id
-import cats.effect.Clock
 import cats.effect.IO
 import cats.effect.unsafe.implicits.global
 import cats.implicits._

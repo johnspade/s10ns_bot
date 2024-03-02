@@ -1,7 +1,6 @@
 package ru.johnspade.s10ns.subscription.service.impl
 
 import cats.Monad
-import cats.effect.Sync
 import cats.implicits._
 import cats.~>
 

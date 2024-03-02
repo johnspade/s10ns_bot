@@ -2,7 +2,6 @@ package ru.johnspade.s10ns.notifications
 
 import java.time.Instant
 import java.time.LocalDate
-import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 
 import cats.effect.IO

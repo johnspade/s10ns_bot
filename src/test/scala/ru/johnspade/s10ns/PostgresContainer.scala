@@ -1,7 +1,5 @@
 package ru.johnspade.s10ns
 
-import scala.concurrent.ExecutionContext
-
 import cats.effect.IO
 import cats.~>
 

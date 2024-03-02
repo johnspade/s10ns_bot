@@ -28,7 +28,6 @@ object DoobieUserMeta {
         o
       })
 
-  import io.circe.generic.auto._
   import io.circe.{Decoder, Encoder}
 
   implicit val CurrencyUnitEncoder: Encoder[CurrencyUnit] = Encoder.encodeString.contramap(_.getCode)

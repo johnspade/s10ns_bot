@@ -4,13 +4,10 @@ import cats.Monad
 import cats.implicits._
 import cats.~>
 
-import telegramium.bots.CallbackQuery
-
 import ru.johnspade.s10ns.bot.EditS10nDialog
 import ru.johnspade.s10ns.bot.Errors
 import ru.johnspade.s10ns.bot.engine.DialogState
 import ru.johnspade.s10ns.bot.engine.ReplyMessage
-import ru.johnspade.s10ns.bot.engine.StateEvent
 import ru.johnspade.s10ns.bot.engine.StateMessageService
 import ru.johnspade.s10ns.bot.engine.TelegramOps.singleTextMessage
 import ru.johnspade.s10ns.bot.engine.TransactionalDialogEngine

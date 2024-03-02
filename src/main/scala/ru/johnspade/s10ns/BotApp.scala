@@ -31,7 +31,6 @@ import ru.johnspade.s10ns.subscription.SubscriptionModule
 import ru.johnspade.s10ns.user.UserModule
 
 object BotApp extends IOApp {
-  private type F[A] = IO[A]
   private type D[A] = ConnectionIO[A]
 
   override def run(args: List[String]): IO[ExitCode] = {

@@ -19,7 +19,6 @@ import telegramium.bots.Markdown
 import telegramium.bots.ReplyKeyboardRemove
 import telegramium.bots.high.keyboards.InlineKeyboardButtons
 import telegramium.bots.high.keyboards.InlineKeyboardMarkups
-import tofu.logging.Logs
 
 import ru.johnspade.s10ns.TestTransactor.transact
 import ru.johnspade.s10ns.bot.BotStart
@@ -45,8 +44,6 @@ import ru.johnspade.s10ns.user.InMemoryUserRepository
 import ru.johnspade.s10ns.user.User
 
 class DefaultCreateS10nDialogFsmServiceSpec extends AnyFlatSpec with Matchers with DiffShouldMatcher with MockFactory {
-  private implicit val logs: Logs[IO, IO] = Logs.sync[IO, IO]
-
   private val mockS10nRepo   = mock[SubscriptionRepository[Id]]
   private val userRepository = new InMemoryUserRepository
   private val dialogEngine   = new DefaultDialogEngine[IO, Id](userRepository)

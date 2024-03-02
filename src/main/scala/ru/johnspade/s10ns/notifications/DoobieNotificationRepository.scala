@@ -9,7 +9,6 @@ import doobie.Query0
 import doobie.Update0
 import doobie.free.connection.ConnectionIO
 import doobie.implicits._
-import doobie.implicits.legacy.instant._
 import doobie.postgres.implicits._
 import doobie.util.update.Update
 

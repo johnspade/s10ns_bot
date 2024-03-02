@@ -11,7 +11,11 @@ inThisBuild(
 )
 
 scalacOptions ++= Seq(
-  "-language:higherKinds"
+  "-language:higherKinds",
+  "-Wunused:imports",
+  "-Wunused:locals",
+  "-Wunused:privates",
+  "-deprecation"
 )
 
 val CatsRetryVersion           = "3.1.0"

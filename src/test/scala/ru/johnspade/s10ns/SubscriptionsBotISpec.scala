@@ -28,7 +28,6 @@ import telegramium.bots.User
 import telegramium.bots.client.Method
 import telegramium.bots.high.Api
 import telegramium.bots.high.Methods._
-import telegramium.bots.high._
 import telegramium.bots.high.keyboards.InlineKeyboardMarkups
 import tofu.logging.Logs
 

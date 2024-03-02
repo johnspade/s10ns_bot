@@ -1,9 +1,6 @@
 package ru.johnspade.s10ns.subscription.service
 
-import scala.concurrent.ExecutionContext
-
 import cats.Id
-import cats.effect.Clock
 import cats.effect.IO
 import cats.syntax.option._
 

@@ -4,7 +4,6 @@ import java.time.LocalDate
 import java.time.ZoneOffset
 import java.time.temporal.ChronoUnit
 
-import cats.effect.Clock
 import cats.effect.IO
 import cats.effect.unsafe.implicits.global
 

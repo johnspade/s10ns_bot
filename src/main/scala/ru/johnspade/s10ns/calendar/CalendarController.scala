@@ -14,7 +14,6 @@ import telegramium.bots.high.implicits._
 import ru.johnspade.s10ns.CbDataRoutes
 import ru.johnspade.s10ns.bot.Calendar
 import ru.johnspade.s10ns.bot.CallbackQueryController
-import ru.johnspade.s10ns.bot.CbData
 import ru.johnspade.s10ns.bot.Months
 import ru.johnspade.s10ns.bot.Years
 import ru.johnspade.s10ns.bot.engine.TelegramOps.ackCb
