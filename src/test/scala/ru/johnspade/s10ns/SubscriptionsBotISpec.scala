@@ -196,7 +196,8 @@ class SubscriptionsBotISpec extends AnyFreeSpec with BeforeAndAfterAll with Mock
     "org.postgresql.Driver",
     container.jdbcUrl,
     container.username,
-    container.password
+    container.password,
+    logHandler = None
   )
 
   private lazy val s10nId = s10nRepo.getByUserId(userId.toLong).transact(transactor).unsafeRunSync().head.id

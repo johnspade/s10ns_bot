@@ -32,7 +32,8 @@ object PostgresContainer {
     "org.postgresql.Driver",
     container.jdbcUrl,
     container.username,
-    container.password
+    container.password,
+    logHandler = None
   )
   implicit val transact: ~>[ConnectionIO, IO] = new ~>[ConnectionIO, IO] {
     override def apply[A](fa: ConnectionIO[A]): IO[A] = fa.transact(xa)

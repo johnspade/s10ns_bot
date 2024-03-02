@@ -16,13 +16,13 @@ scalacOptions ++= Seq(
 
 val TelegramiumVersion         = "7.54.0"
 val TgbotUtilsVersion          = "0.5.0"
-val DoobieVersion              = "1.0.0-RC1"
-val CirceVersion               = "0.14.1"
+val DoobieVersion              = "1.0.0-RC5"
+val CirceVersion               = "0.14.6"
 val SttpVersion                = "3.3.17"
 val PureconfigVersion          = "0.17.1"
 val CatsRetryVersion           = "3.1.0"
 val KantanVersion              = "0.6.2"
-val EnumeratumVersion          = "1.7.0"
+val EnumeratumVersion          = "1.7.3"
 val TestcontainersScalaVersion = "0.39.12"
 val TofuVersion                = "0.10.6"
 
@@ -37,7 +37,7 @@ libraryDependencies ++= Seq(
   "ch.qos.logback"                 % "logback-classic"                 % "1.2.7",
   "io.circe"                      %% "circe-core"                      % CirceVersion,
   "io.circe"                      %% "circe-generic"                   % CirceVersion,
-  "io.circe"                      %% "circe-generic-extras"            % CirceVersion,
+  "io.circe"                      %% "circe-generic-extras"            % "0.14.3",
   "io.circe"                      %% "circe-parser"                    % CirceVersion,
   "org.tpolecat"                  %% "doobie-core"                     % DoobieVersion,
   "org.tpolecat"                  %% "doobie-postgres"                 % DoobieVersion,
@@ -45,7 +45,7 @@ libraryDependencies ++= Seq(
   "org.tpolecat"                  %% "doobie-scalatest"                % DoobieVersion,
   "com.beachape"                  %% "enumeratum"                      % EnumeratumVersion,
   "com.beachape"                  %% "enumeratum-circe"                % EnumeratumVersion,
-  "com.beachape"                  %% "enumeratum-doobie"               % EnumeratumVersion,
+  "com.beachape"                  %% "enumeratum-doobie"               % "1.7.5",
   "org.joda"                       % "joda-money"                      % "1.0.1",
   "tf.tofu"                       %% "tofu-core-ce3"                   % TofuVersion,
   "tf.tofu"                       %% "tofu-logging-derivation"         % TofuVersion,

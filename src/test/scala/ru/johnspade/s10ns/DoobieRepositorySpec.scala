@@ -15,6 +15,7 @@ abstract class DoobieRepositorySpec extends AnyFunSuite with IOChecker {
     "org.postgresql.Driver",
     pgContainer.getJdbcUrl,
     pgContainer.getUsername,
-    pgContainer.getPassword
+    pgContainer.getPassword,
+    logHandler = None
   )
 }
