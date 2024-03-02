@@ -7,6 +7,7 @@ import cats.syntax.validated._
 
 import com.softwaremill.diffx.generic.auto._
 import com.softwaremill.diffx.scalatest.DiffShouldMatcher
+import org.scalamock.scalatest.MockFactory
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import telegramium.bots.Markdown
@@ -26,6 +27,7 @@ class DefaultEditS10nNameDialogServiceSpec
     extends AnyFlatSpec
     with Matchers
     with DiffShouldMatcher
+    with MockFactory
     with EditS10nDialogServiceSpec {
   private val editS10nNameDialogService = new DefaultEditS10nNameDialogService(
     s10nsListMessageService,

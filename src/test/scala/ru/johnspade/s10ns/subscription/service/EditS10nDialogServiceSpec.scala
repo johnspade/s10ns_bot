@@ -29,7 +29,8 @@ import ru.johnspade.s10ns.subscription.repository.SubscriptionRepository
 import ru.johnspade.s10ns.user.User
 import ru.johnspade.s10ns.user.UserRepository
 
-trait EditS10nDialogServiceSpec extends MockFactory {
+trait EditS10nDialogServiceSpec {
+  this: MockFactory =>
 
   protected val mockS10nRepo: SubscriptionRepository[Id] = mock[SubscriptionRepository[Id]]
   protected val mockUserRepo: UserRepository[Id]         = mock[UserRepository[Id]]

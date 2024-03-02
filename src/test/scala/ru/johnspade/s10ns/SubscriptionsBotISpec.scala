@@ -33,7 +33,6 @@ import telegramium.bots.high.keyboards.InlineKeyboardMarkups
 import tofu.logging.Logs
 
 import ru.johnspade.s10ns.PostgresContainer.container
-import ru.johnspade.s10ns.TelegramiumScalamockUtils.verifyMethodCall
 import ru.johnspade.s10ns.bot.BotConfig
 import ru.johnspade.s10ns.bot.BotStart
 import ru.johnspade.s10ns.bot.CbDataService
@@ -80,7 +79,7 @@ import ru.johnspade.s10ns.subscription.service.impl.DefaultEditS10nOneTimeDialog
 import ru.johnspade.s10ns.subscription.service.impl.DefaultSubscriptionListService
 import ru.johnspade.s10ns.user.DoobieUserRepository
 
-class SubscriptionsBotISpec extends AnyFreeSpec with BeforeAndAfterAll with MockFactory {
+class SubscriptionsBotISpec extends AnyFreeSpec with BeforeAndAfterAll with MockFactory with TelegramiumScalamockUtils {
 
   private implicit val api: Api[IO] = stub[Api[IO]]
 

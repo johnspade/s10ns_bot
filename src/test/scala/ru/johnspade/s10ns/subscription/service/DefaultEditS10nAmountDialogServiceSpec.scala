@@ -9,6 +9,7 @@ import com.softwaremill.diffx.generic.auto._
 import com.softwaremill.diffx.scalatest.DiffShouldMatcher
 import org.joda.money.CurrencyUnit
 import org.joda.money.Money
+import org.scalamock.scalatest.MockFactory
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import telegramium.bots.Markdown
@@ -27,6 +28,7 @@ import ru.johnspade.s10ns.subscription.service.impl.DefaultEditS10nAmountDialogS
 
 class DefaultEditS10nAmountDialogServiceSpec
     extends AnyFlatSpec
+    with MockFactory
     with EditS10nDialogServiceSpec
     with Matchers
     with DiffShouldMatcher {

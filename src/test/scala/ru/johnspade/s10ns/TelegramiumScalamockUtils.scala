@@ -6,7 +6,8 @@ import org.scalamock.scalatest.MockFactory
 import telegramium.bots.client.Method
 import telegramium.bots.high.Api
 
-object TelegramiumScalamockUtils extends MockFactory {
+trait TelegramiumScalamockUtils {
+  this: MockFactory =>
   def verifyMethodCall[F[_], Res](api: Api[F], method: Method[Res]): CallHandler1[Method[Res], F[Res]] with Verify =
     (api.execute[Res] _)
       .verify(where {

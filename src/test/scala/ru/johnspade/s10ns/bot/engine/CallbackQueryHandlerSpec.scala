@@ -18,9 +18,9 @@ import telegramium.bots.client.Method
 import telegramium.bots.high.Api
 import telegramium.bots.high.Methods
 
-import ru.johnspade.s10ns.TelegramiumScalamockUtils.verifyMethodCall
+import ru.johnspade.s10ns.TelegramiumScalamockUtils
 
-class CallbackQueryHandlerSpec extends AnyFlatSpec with Matchers with MockFactory {
+class CallbackQueryHandlerSpec extends AnyFlatSpec with Matchers with MockFactory with TelegramiumScalamockUtils {
   private implicit val api: Api[IO] = stub[Api[IO]]
   private val routes = CallbackQueryRoutes.of[String, Unit, IO] {
     case "test1" in cb => api.execute(Methods.answerCallbackQuery(cb.id)).void

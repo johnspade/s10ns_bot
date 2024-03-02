@@ -9,6 +9,7 @@ import cats.syntax.option._
 
 import com.softwaremill.diffx.generic.auto._
 import com.softwaremill.diffx.scalatest.DiffShouldMatcher
+import org.scalamock.scalatest.MockFactory
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import telegramium.bots.Markdown
@@ -26,6 +27,7 @@ import ru.johnspade.s10ns.subscription.service.impl.DefaultEditS10n1stPaymentDat
 
 class DefaultEditS10n1stPaymentDateDialogServiceSpec
     extends AnyFlatSpec
+    with MockFactory
     with EditS10nDialogServiceSpec
     with Matchers
     with DiffShouldMatcher {
