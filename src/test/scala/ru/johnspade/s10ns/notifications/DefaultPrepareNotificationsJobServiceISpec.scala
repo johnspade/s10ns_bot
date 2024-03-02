@@ -20,15 +20,8 @@ import ru.johnspade.s10ns.subscription.Subscription
 import ru.johnspade.s10ns.subscription.SubscriptionDraft
 import ru.johnspade.s10ns.subscription.repository.DoobieSubscriptionRepository
 import ru.johnspade.s10ns.subscription.service.S10nInfoService
-import ru.johnspade.s10ns.subscription.tags.BillingPeriodDuration
-import ru.johnspade.s10ns.subscription.tags.FirstPaymentDate
-import ru.johnspade.s10ns.subscription.tags.OneTimeSubscription
-import ru.johnspade.s10ns.subscription.tags.SubscriptionAmount
-import ru.johnspade.s10ns.subscription.tags.SubscriptionName
 import ru.johnspade.s10ns.user.DoobieUserRepository
 import ru.johnspade.s10ns.user.User
-import ru.johnspade.s10ns.user.tags.FirstName
-import ru.johnspade.s10ns.user.tags.UserId
 
 class DefaultPrepareNotificationsJobServiceISpec extends SpecBase with BeforeAndAfterEach {
 
@@ -37,7 +30,7 @@ class DefaultPrepareNotificationsJobServiceISpec extends SpecBase with BeforeAnd
   it should "create notifications if less than hoursBefore left" in new Wiring {
     val s10n1: Subscription = createS10n(sampleS10nDraft)
     val s10n2: Subscription = createS10n(sampleS10nDraft)
-    createS10n(sampleS10nDraft.copy(firstPaymentDate = FirstPaymentDate(LocalDate.now.plusMonths(1)).some))
+    createS10n(sampleS10nDraft.copy(firstPaymentDate = LocalDate.now.plusMonths(1).some))
 
     val notifications: List[Notification] = prepareAndGetNotifications
     notifications.head.subscriptionId shouldBe s10n1.id
@@ -81,14 +74,14 @@ class DefaultPrepareNotificationsJobServiceISpec extends SpecBase with BeforeAnd
 
     protected val sampleS10nDraft: SubscriptionDraft =
       SubscriptionDraft(
-        userId = UserId(0L),
-        name = SubscriptionName("Netflix"),
+        userId = 0L,
+        name = "Netflix",
         currency = CurrencyUnit.EUR,
-        amount = SubscriptionAmount(100L),
-        oneTime = OneTimeSubscription(false).some,
-        periodDuration = BillingPeriodDuration(1).some,
+        amount = 100L,
+        oneTime = false.some,
+        periodDuration = 1.some,
         periodUnit = BillingPeriodUnit.Month.some,
-        firstPaymentDate = FirstPaymentDate(LocalDate.now.plusDays(1)).some,
+        firstPaymentDate = LocalDate.now.plusDays(1).some,
         sendNotifications = true
       )
 
@@ -104,7 +97,7 @@ class DefaultPrepareNotificationsJobServiceISpec extends SpecBase with BeforeAnd
   private val userRepo = new DoobieUserRepository
 
   override protected def beforeEach(): Unit = {
-    userRepo.createOrUpdate(User(id = UserId(0L), FirstName("John"), None)).transact(xa).unsafeRunSync()
+    userRepo.createOrUpdate(User(id = 0L, "John", None)).transact(xa).unsafeRunSync()
   }
 
   override protected def afterEach(): Unit = {

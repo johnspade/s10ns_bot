@@ -22,8 +22,6 @@ import ru.johnspade.s10ns.subscription.repository.SubscriptionRepository
 import ru.johnspade.s10ns.subscription.service.EditS10nOneTimeDialogService
 import ru.johnspade.s10ns.subscription.service.RepliesValidated
 import ru.johnspade.s10ns.subscription.service.S10nsListMessageService
-import ru.johnspade.s10ns.subscription.tags.BillingPeriodDuration
-import ru.johnspade.s10ns.subscription.tags.OneTimeSubscription
 import ru.johnspade.s10ns.user.User
 import ru.johnspade.s10ns.user.UserRepository
 
@@ -77,14 +75,14 @@ class DefaultEditS10nOneTimeDialogService[F[_]: Monad, D[_]: Monad](
   ): F[RepliesValidated] =
     validateText(text)
       .andThen(validateDurationString)
-      .andThen(duration => validateDuration(BillingPeriodDuration(duration)))
+      .andThen(duration => validateDuration(duration))
       .traverse(saveBillingPeriodDurationTransition(user, dialog, _))
 
   private def saveEveryMonthTransition(user: User, dialog: EditS10nOneTimeDialog): F[List[ReplyMessage]] = {
-    val everyMonth = BillingPeriod(unit = BillingPeriodUnit.Month, duration = BillingPeriodDuration(1)).some
+    val everyMonth = BillingPeriod(unit = BillingPeriodUnit.Month, duration = 1).some
     val updatedDialog = dialog
       .modify(_.draft.oneTime)
-      .setTo(OneTimeSubscription(false).some)
+      .setTo(false.some)
       .modify(_.draft.billingPeriod)
       .setTo(everyMonth)
     transition(user, updatedDialog)(EditS10nOneTimeDialogEvent.ChosenEveryMonth)
@@ -102,7 +100,7 @@ class DefaultEditS10nOneTimeDialogService[F[_]: Monad, D[_]: Monad](
   private def saveIsOneTimeTransition(
       user: User,
       dialog: EditS10nOneTimeDialog,
-      oneTime: OneTimeSubscription
+      oneTime: Boolean
   ): F[List[ReplyMessage]] = {
     val updatedDialog = dialog
       .modify(_.draft.oneTime)
@@ -127,7 +125,7 @@ class DefaultEditS10nOneTimeDialogService[F[_]: Monad, D[_]: Monad](
   ): F[List[ReplyMessage]] = {
     val billingPeriod = BillingPeriod(
       unit = unit,
-      duration = BillingPeriodDuration(1)
+      duration = 1
     )
     val updatedDialog = dialog.modify(_.draft.billingPeriod).setTo(billingPeriod.some)
     transition(user, updatedDialog)(EditS10nOneTimeDialogEvent.ChosenBillingPeriodUnit)
@@ -136,7 +134,7 @@ class DefaultEditS10nOneTimeDialogService[F[_]: Monad, D[_]: Monad](
   private def saveBillingPeriodDurationTransition(
       user: User,
       dialog: EditS10nOneTimeDialog,
-      duration: BillingPeriodDuration
+      duration: Int
   ): F[List[ReplyMessage]] = {
     val billingPeriod = dialog.draft.billingPeriod
       .map { period =>

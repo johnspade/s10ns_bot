@@ -26,13 +26,8 @@ import ru.johnspade.s10ns.exchangerates.InMemoryExchangeRatesStorage
 import ru.johnspade.s10ns.subscription.Subscription
 import ru.johnspade.s10ns.subscription.SubscriptionDraft
 import ru.johnspade.s10ns.subscription.repository.SubscriptionRepository
-import ru.johnspade.s10ns.subscription.tags.PageNumber
-import ru.johnspade.s10ns.subscription.tags.SubscriptionId
-import ru.johnspade.s10ns.subscription.tags.SubscriptionName
 import ru.johnspade.s10ns.user.User
 import ru.johnspade.s10ns.user.UserRepository
-import ru.johnspade.s10ns.user.tags.FirstName
-import ru.johnspade.s10ns.user.tags.UserId
 
 trait EditS10nDialogServiceSpec extends MockFactory {
 
@@ -46,11 +41,11 @@ trait EditS10nDialogServiceSpec extends MockFactory {
     new S10nsListReplyMessageService
   )
 
-  protected val s10nId: SubscriptionId   = SubscriptionId(0L)
-  protected val user: User               = User(UserId(0L), FirstName("John"), None)
-  protected val draft: SubscriptionDraft = SubscriptionDraft.create(UserId(0L)).copy(name = SubscriptionName("Name"))
+  protected val s10nId: Long             = 0L
+  protected val user: User               = User(0L, "John", None)
+  protected val draft: SubscriptionDraft = SubscriptionDraft.create(0L).copy(name = "Name")
   protected val s10n: Subscription       = Subscription.fromDraft(draft, s10nId)
-  protected val page0: PageNumber        = PageNumber(0)
+  protected val page0: Int               = 0
 
   protected val defaultSavedMessage: ReplyMessage = ReplyMessage(Messages.S10nSaved, BotStart.markup.some)
 

@@ -17,7 +17,6 @@ import ru.johnspade.s10ns.subscription.repository.SubscriptionRepository
 import ru.johnspade.s10ns.subscription.service.EditS10nNameDialogService
 import ru.johnspade.s10ns.subscription.service.RepliesValidated
 import ru.johnspade.s10ns.subscription.service.S10nsListMessageService
-import ru.johnspade.s10ns.subscription.tags.SubscriptionName
 import ru.johnspade.s10ns.user.User
 import ru.johnspade.s10ns.user.UserRepository
 
@@ -50,10 +49,10 @@ class DefaultEditS10nNameDialogService[F[_]: Monad, D[_]: Monad](
 
   def saveName(user: User, dialog: EditS10nNameDialog, text: Option[String]): F[RepliesValidated] =
     validateText(text)
-      .andThen(name => validateNameLength(SubscriptionName(name)))
+      .andThen(name => validateNameLength(name))
       .traverse(saveName(user, dialog, _))
 
-  private def saveName(user: User, dialog: EditS10nNameDialog, name: SubscriptionName): F[List[ReplyMessage]] = {
+  private def saveName(user: User, dialog: EditS10nNameDialog, name: String): F[List[ReplyMessage]] = {
     val updatedDialog = dialog.modify(_.draft.name).setTo(name)
     transition(user, updatedDialog)(EditS10nNameDialogEvent.EnteredName)
   }

@@ -1,5 +1,7 @@
 package ru.johnspade.s10ns.subscription.service.impl
 
+import java.time.LocalDate
+
 import cats.Monad
 import cats.implicits._
 import cats.~>
@@ -17,7 +19,6 @@ import ru.johnspade.s10ns.subscription.dialog.CreateS10nDialogState
 import ru.johnspade.s10ns.subscription.repository.SubscriptionRepository
 import ru.johnspade.s10ns.subscription.service.CreateS10nDialogFsmService
 import ru.johnspade.s10ns.subscription.service.S10nsListMessageService
-import ru.johnspade.s10ns.subscription.tags._
 import ru.johnspade.s10ns.user.User
 import ru.johnspade.s10ns.user.UserRepository
 
@@ -30,7 +31,7 @@ class DefaultCreateS10nDialogFsmService[F[_]: Monad, D[_]: Monad](
 )(private implicit val transact: D ~> F)
     extends CreateS10nDialogFsmService[F] {
 
-  override def saveName(user: User, dialog: CreateS10nDialog, name: SubscriptionName): F[List[ReplyMessage]] = {
+  override def saveName(user: User, dialog: CreateS10nDialog, name: String): F[List[ReplyMessage]] = {
     val draft = dialog.draft.copy(name = name)
     transition(user, dialog.copy(draft = draft), CreateS10nDialogEvent.EnteredName)
   }
@@ -42,7 +43,7 @@ class DefaultCreateS10nDialogFsmService[F[_]: Monad, D[_]: Monad](
 
   override def saveAmount(user: User, dialog: CreateS10nDialog, amount: BigDecimal): F[List[ReplyMessage]] = {
     val draft = dialog.draft.copy(
-      amount = SubscriptionAmount(Money.of(dialog.draft.currency, amount.bigDecimal).getAmountMinorLong)
+      amount = Money.of(dialog.draft.currency, amount.bigDecimal).getAmountMinorLong
     )
     transition(user, dialog.copy(draft = draft), CreateS10nDialogEvent.EnteredAmount)
   }
@@ -50,7 +51,7 @@ class DefaultCreateS10nDialogFsmService[F[_]: Monad, D[_]: Monad](
   override def saveBillingPeriodDuration(
       user: User,
       dialog: CreateS10nDialog,
-      duration: BillingPeriodDuration
+      duration: Int
   ): F[List[ReplyMessage]] = {
     val draft = dialog.draft.copy(periodDuration = duration.some)
     transition(user, dialog.copy(draft = draft), CreateS10nDialogEvent.EnteredBillingPeriodDuration)
@@ -68,7 +69,7 @@ class DefaultCreateS10nDialogFsmService[F[_]: Monad, D[_]: Monad](
   override def saveEveryMonth(user: User, dialog: CreateS10nDialog): F[List[ReplyMessage]] = {
     val draft = dialog.draft.copy(
       periodUnit = BillingPeriodUnit.Month.some,
-      periodDuration = BillingPeriodDuration(1).some
+      periodDuration = 1.some
     )
     transition(user, dialog.copy(draft = draft), CreateS10nDialogEvent.ChosenEveryMonth)
   }
@@ -79,7 +80,7 @@ class DefaultCreateS10nDialogFsmService[F[_]: Monad, D[_]: Monad](
   override def saveIsOneTime(
       user: User,
       dialog: CreateS10nDialog,
-      oneTime: OneTimeSubscription
+      oneTime: Boolean
   ): F[List[ReplyMessage]] = {
     val draft = dialog.draft.copy(oneTime = oneTime.some)
     val event =
@@ -94,7 +95,7 @@ class DefaultCreateS10nDialogFsmService[F[_]: Monad, D[_]: Monad](
   override def saveFirstPaymentDate(
       user: User,
       dialog: CreateS10nDialog,
-      date: FirstPaymentDate
+      date: LocalDate
   ): F[List[ReplyMessage]] = {
     val draft = dialog.draft.copy(firstPaymentDate = date.some)
     transition(user, dialog.copy(draft = draft), CreateS10nDialogEvent.ChosenFirstPaymentDate)
@@ -113,7 +114,7 @@ class DefaultCreateS10nDialogFsmService[F[_]: Monad, D[_]: Monad](
         }
           .flatMap { p =>
             s10nsListMessageService
-              .createSubscriptionMessage(user.defaultCurrency, p._2, PageNumber(0))
+              .createSubscriptionMessage(user.defaultCurrency, p._2, 0)
               .map(List(p._1, _))
           }
       case _ =>

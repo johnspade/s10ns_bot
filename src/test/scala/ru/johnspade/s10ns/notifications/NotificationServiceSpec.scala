@@ -17,12 +17,6 @@ import ru.johnspade.s10ns.subscription.BillingPeriod
 import ru.johnspade.s10ns.subscription.BillingPeriodUnit
 import ru.johnspade.s10ns.subscription.Subscription
 import ru.johnspade.s10ns.subscription.service.S10nInfoService
-import ru.johnspade.s10ns.subscription.tags.BillingPeriodDuration
-import ru.johnspade.s10ns.subscription.tags.FirstPaymentDate
-import ru.johnspade.s10ns.subscription.tags.OneTimeSubscription
-import ru.johnspade.s10ns.subscription.tags.SubscriptionId
-import ru.johnspade.s10ns.subscription.tags.SubscriptionName
-import ru.johnspade.s10ns.user.tags.UserId
 
 class NotificationServiceSpec extends SpecBase {
   private val s10nInfoService     = new S10nInfoService[IO]
@@ -30,13 +24,13 @@ class NotificationServiceSpec extends SpecBase {
   private val notificationService = new NotificationService[IO](hoursBefore, s10nInfoService)
 
   private val sampleS10n = Subscription(
-    id = SubscriptionId(0L),
-    userId = UserId(0L),
-    name = SubscriptionName("Netflix"),
+    id = 0L,
+    userId = 0L,
+    name = "Netflix",
     amount = Money.of(CurrencyUnit.EUR, 12),
-    oneTime = OneTimeSubscription(false).some,
-    billingPeriod = BillingPeriod(BillingPeriodDuration(1), BillingPeriodUnit.Month).some,
-    firstPaymentDate = FirstPaymentDate(LocalDate.now.plusDays(1)).some,
+    oneTime = false.some,
+    billingPeriod = BillingPeriod(1, BillingPeriodUnit.Month).some,
+    firstPaymentDate = LocalDate.now.plusDays(1).some,
     sendNotifications = true,
     lastNotification = None
   )
@@ -51,7 +45,7 @@ class NotificationServiceSpec extends SpecBase {
   it should "return false if more than hoursBefore left" in {
     notificationService
       .needNotification(
-        sampleS10n.copy(firstPaymentDate = FirstPaymentDate(LocalDate.now.plusMonths(1)).some),
+        sampleS10n.copy(firstPaymentDate = LocalDate.now.plusMonths(1).some),
         now
       )
       .unsafeRunSync() shouldBe false
@@ -79,7 +73,7 @@ class NotificationServiceSpec extends SpecBase {
     notificationService.needNotification(
       sampleS10n.copy(
         lastNotification = now.minus(48, ChronoUnit.HOURS).some,
-        firstPaymentDate = FirstPaymentDate(LocalDate.now).some
+        firstPaymentDate = LocalDate.now.some
       ),
       now
     )

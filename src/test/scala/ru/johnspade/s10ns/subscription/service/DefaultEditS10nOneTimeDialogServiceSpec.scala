@@ -27,8 +27,6 @@ import ru.johnspade.s10ns.subscription.BillingPeriod
 import ru.johnspade.s10ns.subscription.BillingPeriodUnit
 import ru.johnspade.s10ns.subscription.dialog.EditS10nOneTimeDialogState
 import ru.johnspade.s10ns.subscription.service.impl.DefaultEditS10nOneTimeDialogService
-import ru.johnspade.s10ns.subscription.tags.BillingPeriodDuration
-import ru.johnspade.s10ns.subscription.tags.OneTimeSubscription
 
 class DefaultEditS10nOneTimeDialogServiceSpec
     extends AnyFlatSpec
@@ -63,16 +61,16 @@ class DefaultEditS10nOneTimeDialogServiceSpec
   it should "just save a subscription when oneTime=true and remove a billing period" in {
     val dialog = EditS10nOneTimeDialog(
       EditS10nOneTimeDialogState.IsOneTime,
-      s10n.copy(billingPeriod = BillingPeriod(BillingPeriodDuration(1), BillingPeriodUnit.Day).some)
+      s10n.copy(billingPeriod = BillingPeriod(1, BillingPeriodUnit.Day).some)
     )
     val updatedS10n = s10n.copy(
-      oneTime = OneTimeSubscription(true).some,
+      oneTime = true.some,
       billingPeriod = None
     )
     (mockS10nRepo.update _).expects(updatedS10n).returns(updatedS10n.some)
 
     editS10nOneTimeDialogService
-      .saveIsOneTime(OneTime(OneTimeSubscription(true)), user, dialog)
+      .saveIsOneTime(OneTime(true), user, dialog)
       .unsafeRunSync() shouldBe
       List(
         defaultSavedMessage,
@@ -90,16 +88,16 @@ class DefaultEditS10nOneTimeDialogServiceSpec
   it should "just save a subscription with a billing period when oneTime=false" in {
     val dialog = EditS10nOneTimeDialog(
       EditS10nOneTimeDialogState.IsOneTime,
-      s10n.copy(billingPeriod = BillingPeriod(BillingPeriodDuration(1), BillingPeriodUnit.Day).some)
+      s10n.copy(billingPeriod = BillingPeriod(1, BillingPeriodUnit.Day).some)
     )
     val updatedS10n = s10n.copy(
-      oneTime = OneTimeSubscription(false).some,
-      billingPeriod = BillingPeriod(BillingPeriodDuration(1), BillingPeriodUnit.Day).some
+      oneTime = false.some,
+      billingPeriod = BillingPeriod(1, BillingPeriodUnit.Day).some
     )
     (mockS10nRepo.update _).expects(updatedS10n).returns(updatedS10n.some)
 
     editS10nOneTimeDialogService
-      .saveIsOneTime(OneTime(OneTimeSubscription(false)), user, dialog)
+      .saveIsOneTime(OneTime(false), user, dialog)
       .unsafeRunSync() shouldBe
       List(
         defaultSavedMessage,
@@ -118,14 +116,14 @@ class DefaultEditS10nOneTimeDialogServiceSpec
   it should "ask for a billing period unit when oneTime=false" in {
     val updatedDialog = EditS10nOneTimeDialog(
       EditS10nOneTimeDialogState.BillingPeriodUnit,
-      s10n.copy(oneTime = OneTimeSubscription(false).some)
+      s10n.copy(oneTime = false.some)
     )
     val updatedUser = user.copy(dialog = updatedDialog.some)
     (mockUserRepo.createOrUpdate _).expects(updatedUser).returns(updatedUser)
 
     val dialog = EditS10nOneTimeDialog(EditS10nOneTimeDialogState.IsOneTime, s10n)
     editS10nOneTimeDialogService
-      .saveIsOneTime(OneTime(OneTimeSubscription(false)), user, dialog)
+      .saveIsOneTime(OneTime(false), user, dialog)
       .unsafeRunSync() shouldBe
       List(ReplyMessage("Billing period unit:", Markup.BillingPeriodUnitReplyMarkup.some))
   }
@@ -135,7 +133,7 @@ class DefaultEditS10nOneTimeDialogServiceSpec
 
     val dialog = EditS10nOneTimeDialog(
       EditS10nOneTimeDialogState.IsOneTime,
-      s10n.copy(oneTime = OneTimeSubscription(true).some)
+      s10n.copy(oneTime = true.some)
     )
     editS10nOneTimeDialogService.removeIsOneTime(user, dialog).unsafeRunSync() shouldBe
       List(
@@ -153,8 +151,8 @@ class DefaultEditS10nOneTimeDialogServiceSpec
 
   "saveEveryMonth" should "just save a subscription" in {
     val updatedS10n = s10n.copy(
-      oneTime = OneTimeSubscription(false).some,
-      billingPeriod = BillingPeriod(BillingPeriodDuration(1), BillingPeriodUnit.Month).some
+      oneTime = false.some,
+      billingPeriod = BillingPeriod(1, BillingPeriodUnit.Month).some
     )
     (mockS10nRepo.update _).expects(updatedS10n).returns(updatedS10n.some)
 
@@ -179,8 +177,8 @@ class DefaultEditS10nOneTimeDialogServiceSpec
       EditS10nOneTimeDialog(
         EditS10nOneTimeDialogState.BillingPeriodDuration,
         s10n.copy(
-          oneTime = OneTimeSubscription(false).some,
-          billingPeriod = BillingPeriod(BillingPeriodDuration(1), BillingPeriodUnit.Day).some
+          oneTime = false.some,
+          billingPeriod = BillingPeriod(1, BillingPeriodUnit.Day).some
         )
       ).some
     )
@@ -188,7 +186,7 @@ class DefaultEditS10nOneTimeDialogServiceSpec
 
     val dialog = EditS10nOneTimeDialog(
       EditS10nOneTimeDialogState.BillingPeriodUnit,
-      s10n.copy(oneTime = OneTimeSubscription(false).some)
+      s10n.copy(oneTime = false.some)
     )
     editS10nOneTimeDialogService
       .saveBillingPeriodUnit(PeriodUnit(BillingPeriodUnit.Day), user, dialog)
@@ -200,16 +198,16 @@ class DefaultEditS10nOneTimeDialogServiceSpec
 
   it should "save a subscription with a new billing period" in {
     val updatedS10n = s10n.copy(
-      oneTime = OneTimeSubscription(false).some,
-      billingPeriod = BillingPeriod(BillingPeriodDuration(3), BillingPeriodUnit.Day).some
+      oneTime = false.some,
+      billingPeriod = BillingPeriod(3, BillingPeriodUnit.Day).some
     )
     (mockS10nRepo.update _).expects(updatedS10n).returns(updatedS10n.some)
 
     val dialog = EditS10nOneTimeDialog(
       EditS10nOneTimeDialogState.BillingPeriodDuration,
       s10n.copy(
-        oneTime = OneTimeSubscription(false).some,
-        billingPeriod = BillingPeriod(BillingPeriodDuration(1), BillingPeriodUnit.Day).some
+        oneTime = false.some,
+        billingPeriod = BillingPeriod(1, BillingPeriodUnit.Day).some
       )
     )
     editS10nOneTimeDialogService.saveBillingPeriodDuration(user, dialog, "3".some).unsafeRunSync() shouldBe
@@ -231,8 +229,8 @@ class DefaultEditS10nOneTimeDialogServiceSpec
     val dialog = EditS10nOneTimeDialog(
       EditS10nOneTimeDialogState.BillingPeriodDuration,
       s10n.copy(
-        oneTime = OneTimeSubscription(false).some,
-        billingPeriod = BillingPeriod(BillingPeriodDuration(1), BillingPeriodUnit.Day).some
+        oneTime = false.some,
+        billingPeriod = BillingPeriod(1, BillingPeriodUnit.Day).some
       )
     )
     editS10nOneTimeDialogService.saveBillingPeriodDuration(user, dialog, None).unsafeRunSync() shouldBe
@@ -243,8 +241,8 @@ class DefaultEditS10nOneTimeDialogServiceSpec
     val dialog = EditS10nOneTimeDialog(
       EditS10nOneTimeDialogState.BillingPeriodDuration,
       s10n.copy(
-        oneTime = OneTimeSubscription(false).some,
-        billingPeriod = BillingPeriod(BillingPeriodDuration(1), BillingPeriodUnit.Day).some
+        oneTime = false.some,
+        billingPeriod = BillingPeriod(1, BillingPeriodUnit.Day).some
       )
     )
     editS10nOneTimeDialogService.saveBillingPeriodDuration(user, dialog, "NaN".some).unsafeRunSync() shouldBe
@@ -255,11 +253,11 @@ class DefaultEditS10nOneTimeDialogServiceSpec
     val dialog = EditS10nOneTimeDialog(
       EditS10nOneTimeDialogState.BillingPeriodDuration,
       s10n.copy(
-        oneTime = OneTimeSubscription(false).some,
-        billingPeriod = BillingPeriod(BillingPeriodDuration(1), BillingPeriodUnit.Day).some
+        oneTime = false.some,
+        billingPeriod = BillingPeriod(1, BillingPeriodUnit.Day).some
       )
     )
     editS10nOneTimeDialogService.saveBillingPeriodDuration(user, dialog, "-3".some).unsafeRunSync() shouldBe
-      NumberMustBePositive.invalidNec[BillingPeriodDuration]
+      NumberMustBePositive.invalidNec[Int]
   }
 }

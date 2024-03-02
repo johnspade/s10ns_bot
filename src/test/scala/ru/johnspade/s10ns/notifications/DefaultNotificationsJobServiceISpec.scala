@@ -41,17 +41,8 @@ import ru.johnspade.s10ns.subscription.repository.DoobieSubscriptionRepository
 import ru.johnspade.s10ns.subscription.service.S10nInfoService
 import ru.johnspade.s10ns.subscription.service.S10nsListMessageService
 import ru.johnspade.s10ns.subscription.service.S10nsListReplyMessageService
-import ru.johnspade.s10ns.subscription.tags.BillingPeriodDuration
-import ru.johnspade.s10ns.subscription.tags.FirstPaymentDate
-import ru.johnspade.s10ns.subscription.tags.OneTimeSubscription
-import ru.johnspade.s10ns.subscription.tags.PageNumber
-import ru.johnspade.s10ns.subscription.tags.SubscriptionAmount
-import ru.johnspade.s10ns.subscription.tags.SubscriptionName
 import ru.johnspade.s10ns.user.DoobieUserRepository
 import ru.johnspade.s10ns.user.User
-import ru.johnspade.s10ns.user.tags.ChatId
-import ru.johnspade.s10ns.user.tags.FirstName
-import ru.johnspade.s10ns.user.tags.UserId
 
 class DefaultNotificationsJobServiceISpec extends SpecBase with MockFactory with BeforeAndAfterEach with OptionValues {
 
@@ -73,7 +64,7 @@ class DefaultNotificationsJobServiceISpec extends SpecBase with MockFactory with
   private implicit val api: Api[IO] = stub[Api[IO]]
 
   private val today: String = DateTimeFormatter.ISO_DATE.format(LocalDate.now(ZoneOffset.UTC))
-  private val userId        = UserId(911L)
+  private val userId        = 911L
 
   behavior of "executeTask"
 
@@ -101,10 +92,10 @@ class DefaultNotificationsJobServiceISpec extends SpecBase with MockFactory with
         replyMarkup = InlineKeyboardMarkups
           .singleColumn(
             List(
-              inlineKeyboardButton("Edit", EditS10n(s10nId, PageNumber(0))),
-              inlineKeyboardButton("Disable notifications", Notify(s10nId, enable = false, PageNumber(0))),
-              inlineKeyboardButton("Remove", RemoveS10n(s10nId, PageNumber(0))),
-              inlineKeyboardButton("List", S10ns(PageNumber(0)))
+              inlineKeyboardButton("Edit", EditS10n(s10nId, 0)),
+              inlineKeyboardButton("Disable notifications", Notify(s10nId, enable = false, 0)),
+              inlineKeyboardButton("Remove", RemoveS10n(s10nId, 0)),
+              inlineKeyboardButton("List", S10ns(0))
             )
           )
           .some
@@ -122,13 +113,13 @@ class DefaultNotificationsJobServiceISpec extends SpecBase with MockFactory with
       .create(
         SubscriptionDraft(
           userId = userId,
-          name = SubscriptionName("Netflix"),
+          name = "Netflix",
           currency = CurrencyUnit.EUR,
-          amount = SubscriptionAmount(1136L),
-          oneTime = OneTimeSubscription(false).some,
-          periodDuration = BillingPeriodDuration(1).some,
+          amount = 1136L,
+          oneTime = false.some,
+          periodDuration = 1.some,
           periodUnit = BillingPeriodUnit.Month.some,
-          firstPaymentDate = FirstPaymentDate(LocalDate.now(ZoneOffset.UTC)).some,
+          firstPaymentDate = LocalDate.now(ZoneOffset.UTC).some,
           sendNotifications = true
         )
       )
@@ -152,13 +143,13 @@ class DefaultNotificationsJobServiceISpec extends SpecBase with MockFactory with
       .create(
         SubscriptionDraft(
           userId = userId,
-          name = SubscriptionName("Netflix"),
+          name = "Netflix",
           currency = CurrencyUnit.EUR,
-          amount = SubscriptionAmount(1136L),
-          oneTime = OneTimeSubscription(false).some,
-          periodDuration = BillingPeriodDuration(1).some,
+          amount = 1136L,
+          oneTime = false.some,
+          periodDuration = 1.some,
           periodUnit = BillingPeriodUnit.Month.some,
-          firstPaymentDate = FirstPaymentDate(LocalDate.now(ZoneOffset.UTC)).some,
+          firstPaymentDate = LocalDate.now(ZoneOffset.UTC).some,
           sendNotifications = true
         )
       )
@@ -182,13 +173,13 @@ class DefaultNotificationsJobServiceISpec extends SpecBase with MockFactory with
       .create(
         SubscriptionDraft(
           userId = userId,
-          name = SubscriptionName("Netflix"),
+          name = "Netflix",
           currency = CurrencyUnit.EUR,
-          amount = SubscriptionAmount(1136L),
-          oneTime = OneTimeSubscription(false).some,
-          periodDuration = BillingPeriodDuration(1).some,
+          amount = 1136L,
+          oneTime = false.some,
+          periodDuration = 1.some,
           periodUnit = BillingPeriodUnit.Month.some,
-          firstPaymentDate = FirstPaymentDate(LocalDate.now(ZoneOffset.UTC)).some,
+          firstPaymentDate = LocalDate.now(ZoneOffset.UTC).some,
           sendNotifications = true
         )
       )
@@ -209,18 +200,18 @@ class DefaultNotificationsJobServiceISpec extends SpecBase with MockFactory with
   private lazy val s10nId = s10nRepo.getByUserId(userId).transact(xa).unsafeRunSync().head.id
 
   override protected def beforeEach(): Unit = {
-    userRepo.createOrUpdate(User(UserId(911L), FirstName("John"), ChatId(0L).some)).transact(xa).unsafeRunSync()
+    userRepo.createOrUpdate(User(911L, "John", 0L.some)).transact(xa).unsafeRunSync()
     s10nRepo
       .create(
         SubscriptionDraft(
           userId = userId,
-          name = SubscriptionName("Netflix"),
+          name = "Netflix",
           currency = CurrencyUnit.EUR,
-          amount = SubscriptionAmount(1136L),
-          oneTime = OneTimeSubscription(false).some,
-          periodDuration = BillingPeriodDuration(1).some,
+          amount = 1136L,
+          oneTime = false.some,
+          periodDuration = 1.some,
           periodUnit = BillingPeriodUnit.Month.some,
-          firstPaymentDate = FirstPaymentDate(LocalDate.now(ZoneOffset.UTC)).some,
+          firstPaymentDate = LocalDate.now(ZoneOffset.UTC).some,
           sendNotifications = true
         )
       )

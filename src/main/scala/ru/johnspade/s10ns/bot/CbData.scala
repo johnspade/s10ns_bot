@@ -9,12 +9,9 @@ import kantan.csv.enumeratum._
 import kantan.csv.java8._
 import kantan.csv.ops._
 import ru.johnspade.tgbot.callbackdata.named.MagnoliaRowEncoder._
-import supertagged.@@
-import supertagged.lifterF
 
 import ru.johnspade.s10ns.bot.CbData._
 import ru.johnspade.s10ns.subscription.BillingPeriodUnit
-import ru.johnspade.s10ns.subscription.tags._
 
 sealed abstract class CbData extends Product with Serializable {
   def toCsv: String = this.writeCsvRow(csvConfig)
@@ -30,9 +27,9 @@ sealed trait Skip extends CbData {
 
 case object Ignore extends CbData
 
-final case class S10ns(page: PageNumber) extends CbData
+final case class S10ns(page: Int) extends CbData
 
-final case class S10n(subscriptionId: SubscriptionId, page: PageNumber) extends CbData
+final case class S10n(subscriptionId: Long, page: Int) extends CbData
 
 final case class PeriodUnit(unit: BillingPeriodUnit) extends CbData {
   override def print: String = unit.chronoUnit.toString
@@ -40,7 +37,7 @@ final case class PeriodUnit(unit: BillingPeriodUnit) extends CbData {
 
 case object SkipIsOneTime extends CbData with Skip
 
-final case class OneTime(oneTime: OneTimeSubscription) extends CbData {
+final case class OneTime(oneTime: Boolean) extends CbData {
   override def print: String = if (oneTime) "One time" else "Recurring"
 }
 
@@ -54,43 +51,38 @@ final case class Years(yearMonth: YearMonth) extends CbData
 
 final case class Months(year: Int) extends CbData
 
-final case class FirstPayment(date: FirstPaymentDate) extends CbData {
+final case class FirstPayment(date: LocalDate) extends CbData {
   override def print: String = DateTimeFormatter.ISO_DATE.format(date)
 }
 
 case object DropFirstPayment extends CbData with Skip
 
-final case class RemoveS10n(subscriptionId: SubscriptionId, page: PageNumber) extends CbData
+final case class RemoveS10n(subscriptionId: Long, page: Int) extends CbData
 
-final case class EditS10n(subscriptionId: SubscriptionId, page: PageNumber) extends CbData
+final case class EditS10n(subscriptionId: Long, page: Int) extends CbData
 
-final case class EditS10nName(subscriptionId: SubscriptionId) extends CbData with StartsDialog
+final case class EditS10nName(subscriptionId: Long) extends CbData with StartsDialog
 
-final case class EditS10nCurrency(subscriptionId: SubscriptionId) extends CbData with StartsDialog
+final case class EditS10nCurrency(subscriptionId: Long) extends CbData with StartsDialog
 
-final case class EditS10nAmount(subscriptionId: SubscriptionId) extends CbData with StartsDialog
+final case class EditS10nAmount(subscriptionId: Long) extends CbData with StartsDialog
 
-final case class EditS10nOneTime(subscriptionId: SubscriptionId) extends CbData with StartsDialog
+final case class EditS10nOneTime(subscriptionId: Long) extends CbData with StartsDialog
 
-final case class EditS10nBillingPeriod(subscriptionId: SubscriptionId) extends CbData with StartsDialog
+final case class EditS10nBillingPeriod(subscriptionId: Long) extends CbData with StartsDialog
 
-final case class EditS10nFirstPaymentDate(subscriptionId: SubscriptionId) extends CbData with StartsDialog
+final case class EditS10nFirstPaymentDate(subscriptionId: Long) extends CbData with StartsDialog
 
 case object DefCurrency extends CbData with StartsDialog
 
-final case class S10nsPeriod(period: BillingPeriodUnit, page: PageNumber) extends CbData
+final case class S10nsPeriod(period: BillingPeriodUnit, page: Int) extends CbData
 
-final case class Notify(subscriptionId: SubscriptionId, enable: Boolean, page: PageNumber) extends CbData
+final case class Notify(subscriptionId: Long, enable: Boolean, page: Int) extends CbData
 
 object CbData {
   val Separator: Char = '\u001D'
 
   val csvConfig: CsvConfiguration = rfc.withCellSeparator(Separator)
-
-  implicit def liftedCellEncoder[T, U](implicit cellEncoder: CellEncoder[T]): CellEncoder[T @@ U] =
-    lifterF[CellEncoder].lift
-  implicit def liftedCellDecoder[T, U](implicit cellDecoder: CellDecoder[T]): CellDecoder[T @@ U] =
-    lifterF[CellDecoder].lift
 
   implicit val yearMonthCellCodec: CellCodec[YearMonth] =
     CellCodec.from(s => DecodeResult(YearMonth.parse(s)))(ym => ym.toString)

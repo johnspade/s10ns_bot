@@ -16,15 +16,12 @@ import ru.johnspade.s10ns.bot.SettingsDialog
 import ru.johnspade.s10ns.settings.SettingsDialogState
 import ru.johnspade.s10ns.user.InMemoryUserRepository
 import ru.johnspade.s10ns.user.User
-import ru.johnspade.s10ns.user.tags.ChatId
-import ru.johnspade.s10ns.user.tags.FirstName
-import ru.johnspade.s10ns.user.tags.UserId
 
 class DefaultDialogEngineSpec extends AnyFlatSpec with Matchers {
   private val userRepo     = new InMemoryUserRepository
   private val dialogEngine = new DefaultDialogEngine[IO, Id](userRepo)
 
-  private val user           = User(UserId(1337L), FirstName("John"), ChatId(911L).some)
+  private val user           = User(1337L, "John", 911L.some)
   private val dialog         = SettingsDialog(SettingsDialogState.DefaultCurrency)
   private val userWithDialog = user.copy(dialog = dialog.some)
 

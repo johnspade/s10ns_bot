@@ -21,8 +21,6 @@ import ru.johnspade.s10ns.subscription.S10nInfo
 import ru.johnspade.s10ns.subscription.S10nItem
 import ru.johnspade.s10ns.subscription.S10nList
 import ru.johnspade.s10ns.subscription.Subscription
-import ru.johnspade.s10ns.subscription.tags.FirstPaymentDate
-import ru.johnspade.s10ns.subscription.tags.PageNumber
 
 class S10nsListMessageService[F[_]: Monad](
     private val moneyService: MoneyService[F],
@@ -33,7 +31,7 @@ class S10nsListMessageService[F[_]: Monad](
 
   def createSubscriptionsPage(
       subscriptions: List[Subscription],
-      page: PageNumber,
+      page: Int,
       defaultCurrency: CurrencyUnit,
       period: BillingPeriodUnit = BillingPeriodUnit.Month
   ): F[ReplyMessage] = {
@@ -89,11 +87,11 @@ class S10nsListMessageService[F[_]: Monad](
   def createSubscriptionMessage(
       defaultCurrency: CurrencyUnit,
       s10n: Subscription,
-      page: PageNumber = PageNumber(0)
+      page: Int = 0
   ): F[ReplyMessage] = {
     val amountInDefaultCurrency = getAmountInDefaultCurrency(s10n.amount, defaultCurrency)
 
-    def calcWithPeriod[T](f: (FirstPaymentDate, BillingPeriod) => F[T]): F[Option[T]] =
+    def calcWithPeriod[T](f: (LocalDate, BillingPeriod) => F[T]): F[Option[T]] =
       s10n.firstPaymentDate.flatTraverse { start =>
         s10n.billingPeriod.traverse(f(start, _))
       }
@@ -126,10 +124,10 @@ class S10nsListMessageService[F[_]: Monad](
     )
   }
 
-  def createS10nMessageMarkup(s10n: Subscription, page: PageNumber): InlineKeyboardMarkup =
+  def createS10nMessageMarkup(s10n: Subscription, page: Int): InlineKeyboardMarkup =
     s10nsListReplyMessageService.createS10nMessageMarkup(s10n.id, s10n.sendNotifications, page)
 
-  def createEditS10nMarkup(s10n: Subscription, page: PageNumber): InlineKeyboardMarkup =
+  def createEditS10nMarkup(s10n: Subscription, page: Int): InlineKeyboardMarkup =
     s10nsListReplyMessageService.createEditS10nMarkup(s10n.id, s10n.oneTime, page)
 
   private def getAmountInDefaultCurrency(amount: Money, defaultCurrency: CurrencyUnit): F[S10nAmount] =

@@ -25,7 +25,6 @@ import ru.johnspade.s10ns.subscription.SubscriptionDraft
 import ru.johnspade.s10ns.subscription.dialog.CreateS10nDialogState
 import ru.johnspade.s10ns.subscription.service.CreateS10nDialogFsmService
 import ru.johnspade.s10ns.subscription.service.CreateS10nDialogService
-import ru.johnspade.s10ns.subscription.tags._
 import ru.johnspade.s10ns.user.User
 
 class DefaultCreateS10nDialogService[F[_]: Monad, D[_]: Monad](
@@ -56,7 +55,7 @@ class DefaultCreateS10nDialogService[F[_]: Monad, D[_]: Monad](
       : PartialFunction[(User, CreateS10nDialog, Option[String]), F[ValidationResult[List[ReplyMessage]]]] = {
     case (user, dialog, text) if dialog.state == CreateS10nDialogState.Name =>
       validateText(text)
-        .andThen(name => validateNameLength(SubscriptionName(name)))
+        .andThen(name => validateNameLength(name))
         .traverse(createS10nDialogFsmService.saveName(user, dialog, _))
     case (user, dialog, text) if dialog.state == CreateS10nDialogState.Currency =>
       validateText(text.map(_.trim.toUpperCase))
@@ -70,7 +69,7 @@ class DefaultCreateS10nDialogService[F[_]: Monad, D[_]: Monad](
     case (user, dialog, text) if dialog.state == CreateS10nDialogState.BillingPeriodDuration =>
       validateText(text)
         .andThen(validateDurationString)
-        .andThen(duration => validateDuration(BillingPeriodDuration(duration)))
+        .andThen(duration => validateDuration(duration))
         .traverse(createS10nDialogFsmService.saveBillingPeriodDuration(user, dialog, _))
   }
 

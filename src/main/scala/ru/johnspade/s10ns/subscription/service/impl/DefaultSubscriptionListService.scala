@@ -24,9 +24,7 @@ import ru.johnspade.s10ns.subscription.Subscription
 import ru.johnspade.s10ns.subscription.repository.SubscriptionRepository
 import ru.johnspade.s10ns.subscription.service.S10nsListMessageService
 import ru.johnspade.s10ns.subscription.service.SubscriptionListService
-import ru.johnspade.s10ns.subscription.tags.PageNumber
 import ru.johnspade.s10ns.user.User
-import ru.johnspade.s10ns.user.tags._
 
 class DefaultSubscriptionListService[F[_]: Monad, D[_]: Monad](
     private val s10nRepo: SubscriptionRepository[D],
@@ -69,7 +67,7 @@ class DefaultSubscriptionListService[F[_]: Monad, D[_]: Monad](
     } yield replyOpt.toRight[String](Errors.NotFound).flatten
   }
 
-  override def onListCommand(from: User, page: PageNumber): F[ReplyMessage] =
+  override def onListCommand(from: User, page: Int): F[ReplyMessage] =
     transact(s10nRepo.getByUserId(from.id))
       .flatMap {
         s10nsListMessageService.createSubscriptionsPage(_, page, from.defaultCurrency)
@@ -78,7 +76,7 @@ class DefaultSubscriptionListService[F[_]: Monad, D[_]: Monad](
   override def onEditS10nCb(cb: CallbackQuery, data: EditS10n): F[Either[String, InlineKeyboardMarkup]] = {
     def checkUserAndGetMarkup(subscription: Subscription) =
       Either.cond(
-        subscription.userId == UserId(cb.from.id),
+        subscription.userId == cb.from.id,
         s10nsListMessageService.createEditS10nMarkup(subscription, data.page),
         Errors.AccessDenied
       )

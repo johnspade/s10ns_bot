@@ -1,18 +1,16 @@
 package ru.johnspade.s10ns.subscription.service
 
+import java.time.LocalDate
+
 import org.joda.money.CurrencyUnit
 
 import ru.johnspade.s10ns.bot.CreateS10nDialog
 import ru.johnspade.s10ns.bot.engine.ReplyMessage
 import ru.johnspade.s10ns.subscription.BillingPeriodUnit
-import ru.johnspade.s10ns.subscription.tags.BillingPeriodDuration
-import ru.johnspade.s10ns.subscription.tags.FirstPaymentDate
-import ru.johnspade.s10ns.subscription.tags.OneTimeSubscription
-import ru.johnspade.s10ns.subscription.tags.SubscriptionName
 import ru.johnspade.s10ns.user.User
 
 trait CreateS10nDialogFsmService[F[_]] {
-  def saveName(user: User, dialog: CreateS10nDialog, name: SubscriptionName): F[List[ReplyMessage]]
+  def saveName(user: User, dialog: CreateS10nDialog, name: String): F[List[ReplyMessage]]
 
   def saveCurrency(user: User, dialog: CreateS10nDialog, currency: CurrencyUnit): F[List[ReplyMessage]]
 
@@ -21,7 +19,7 @@ trait CreateS10nDialogFsmService[F[_]] {
   def saveBillingPeriodDuration(
       user: User,
       dialog: CreateS10nDialog,
-      duration: BillingPeriodDuration
+      duration: Int
   ): F[List[ReplyMessage]]
 
   def saveBillingPeriodUnit(user: User, dialog: CreateS10nDialog, unit: BillingPeriodUnit): F[List[ReplyMessage]]
@@ -30,9 +28,9 @@ trait CreateS10nDialogFsmService[F[_]] {
 
   def skipIsOneTime(user: User, dialog: CreateS10nDialog): F[List[ReplyMessage]]
 
-  def saveIsOneTime(user: User, dialog: CreateS10nDialog, oneTime: OneTimeSubscription): F[List[ReplyMessage]]
+  def saveIsOneTime(user: User, dialog: CreateS10nDialog, oneTime: Boolean): F[List[ReplyMessage]]
 
   def skipFirstPaymentDate(user: User, dialog: CreateS10nDialog): F[List[ReplyMessage]]
 
-  def saveFirstPaymentDate(user: User, dialog: CreateS10nDialog, date: FirstPaymentDate): F[List[ReplyMessage]]
+  def saveFirstPaymentDate(user: User, dialog: CreateS10nDialog, date: LocalDate): F[List[ReplyMessage]]
 }

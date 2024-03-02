@@ -37,8 +37,6 @@ import ru.johnspade.s10ns.subscription.service.impl.DefaultCreateS10nDialogFsmSe
 import ru.johnspade.s10ns.subscription.service.impl.DefaultCreateS10nDialogService
 import ru.johnspade.s10ns.user.InMemoryUserRepository
 import ru.johnspade.s10ns.user.User
-import ru.johnspade.s10ns.user.tags.FirstName
-import ru.johnspade.s10ns.user.tags.UserId
 
 class DefaultCreateS10nDialogServiceSpec
     extends AnyFlatSpec
@@ -71,8 +69,8 @@ class DefaultCreateS10nDialogServiceSpec
     dialogEngine
   )
 
-  private val user  = User(UserId(0L), FirstName("John"), None)
-  private val draft = SubscriptionDraft.create(UserId(0L))
+  private val user  = User(0L, "John", None)
+  private val draft = SubscriptionDraft.create(0L)
 
   "onCreateCommand" should "ask for a subscription's currency" in {
     val result = createS10nDialogService.onCreateCommand(user).unsafeRunSync()

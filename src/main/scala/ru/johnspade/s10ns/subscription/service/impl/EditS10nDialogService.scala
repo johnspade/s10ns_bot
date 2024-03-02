@@ -17,7 +17,6 @@ import ru.johnspade.s10ns.bot.engine.TransactionalDialogEngine
 import ru.johnspade.s10ns.subscription.Subscription
 import ru.johnspade.s10ns.subscription.repository.SubscriptionRepository
 import ru.johnspade.s10ns.subscription.service.S10nsListMessageService
-import ru.johnspade.s10ns.subscription.tags._
 import ru.johnspade.s10ns.user.User
 import ru.johnspade.s10ns.user.UserRepository
 
@@ -54,14 +53,14 @@ abstract class EditS10nDialogService[F[_]: Monad, D[_]: Monad, S <: DialogState]
     for {
       reply <- replyOpt
       replies <- reply.traverse { p =>
-        s10nsListMessageService.createSubscriptionMessage(user.defaultCurrency, p._2, PageNumber(0)).map(List(p._1, _))
+        s10nsListMessageService.createSubscriptionMessage(user.defaultCurrency, p._2, 0).map(List(p._1, _))
       }
     } yield replies.getOrElse(singleTextMessage(Errors.NotFound))
   }
 
   protected def onEditS10nDialogCb(
       user: User,
-      s10nId: SubscriptionId,
+      s10nId: Long,
       state: S,
       createDialog: Subscription => EditS10nDialog
   ): F[List[ReplyMessage]] = {

@@ -57,7 +57,6 @@ libraryDependencies ++= Seq(
   "com.nrinaudo"                  %% "kantan.csv"                      % KantanVersion,
   "com.nrinaudo"                  %% "kantan.csv-java8"                % KantanVersion,
   "com.nrinaudo"                  %% "kantan.csv-enumeratum"           % KantanVersion,
-  "org.rudogma"                   %% "supertagged"                     % "1.5",
   "org.flywaydb"                   % "flyway-core"                     % "8.0.5",
   "com.softwaremill.quicklens"    %% "quicklens"                       % "1.7.5",
   "com.ibm.icu"                    % "icu4j"                           % "70.1",

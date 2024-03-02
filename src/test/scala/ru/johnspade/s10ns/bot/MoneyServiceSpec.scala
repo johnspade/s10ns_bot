@@ -17,17 +17,13 @@ import ru.johnspade.s10ns.exchangerates.InMemoryExchangeRatesStorage
 import ru.johnspade.s10ns.subscription.BillingPeriod
 import ru.johnspade.s10ns.subscription.BillingPeriodUnit
 import ru.johnspade.s10ns.subscription.Subscription
-import ru.johnspade.s10ns.subscription.tags.BillingPeriodDuration
-import ru.johnspade.s10ns.subscription.tags.SubscriptionId
-import ru.johnspade.s10ns.subscription.tags.SubscriptionName
-import ru.johnspade.s10ns.user.tags.UserId
 
 class MoneyServiceSpec extends AnyFlatSpec with Matchers {
   private val exchangeRatesStorage: ExchangeRatesStorage[IO] = new InMemoryExchangeRatesStorage
   private val moneyService                                   = new MoneyService[IO](exchangeRatesStorage)
 
   private val rub      = CurrencyUnit.of("RUB")
-  private val oneMonth = BillingPeriod(BillingPeriodDuration(1), BillingPeriodUnit.Month)
+  private val oneMonth = BillingPeriod(1, BillingPeriodUnit.Month)
 
   behavior of "convert"
 
@@ -66,8 +62,8 @@ class MoneyServiceSpec extends AnyFlatSpec with Matchers {
 
   it should "sum subscriptions with different billing periods" in {
     val s10ns = List(
-      createS10n(Money.of(rub, 256), BillingPeriod(BillingPeriodDuration(2), BillingPeriodUnit.Week).some),
-      createS10n(Money.of(rub, 10), BillingPeriod(BillingPeriodDuration(1), BillingPeriodUnit.Day).some)
+      createS10n(Money.of(rub, 256), BillingPeriod(2, BillingPeriodUnit.Week).some),
+      createS10n(Money.of(rub, 10), BillingPeriod(1, BillingPeriodUnit.Day).some)
     )
     moneyService.sum(s10ns, rub).unsafeRunSync() shouldBe Money.of(rub, 860.93)
   }
@@ -76,7 +72,7 @@ class MoneyServiceSpec extends AnyFlatSpec with Matchers {
     val s10ns = List(
       createS10n(
         Money.of(CurrencyUnit.EUR, 10),
-        BillingPeriod(BillingPeriodDuration(1), BillingPeriodUnit.Month).some
+        BillingPeriod(1, BillingPeriodUnit.Month).some
       ),
       createS10n(Money.of(CurrencyUnit.EUR, 20))
     )
@@ -88,7 +84,7 @@ class MoneyServiceSpec extends AnyFlatSpec with Matchers {
 
   it should "return a passed amount if periods are equal" in {
     moneyService.calcAmount(
-      BillingPeriod(BillingPeriodDuration(1), BillingPeriodUnit.Month),
+      BillingPeriod(1, BillingPeriodUnit.Month),
       Money.of(rub, 256),
       ChronoUnit.MONTHS
     ) shouldBe Money.of(rub, 256)
@@ -96,7 +92,7 @@ class MoneyServiceSpec extends AnyFlatSpec with Matchers {
 
   it should "calculate an amount correctly if a period is larger than a billing period" in {
     moneyService.calcAmount(
-      BillingPeriod(BillingPeriodDuration(1), BillingPeriodUnit.Day),
+      BillingPeriod(1, BillingPeriodUnit.Day),
       Money.of(rub, 256),
       ChronoUnit.MONTHS
     ) shouldBe Money.of(rub, 7791.84)
@@ -104,16 +100,16 @@ class MoneyServiceSpec extends AnyFlatSpec with Matchers {
 
   it should "calculate an amount correctly if a period is less than a billing period" in {
     moneyService.calcAmount(
-      BillingPeriod(BillingPeriodDuration(2), BillingPeriodUnit.Year),
+      BillingPeriod(2, BillingPeriodUnit.Year),
       Money.of(rub, 256),
       ChronoUnit.WEEKS
     ) shouldBe Money.of(rub, 2.45)
   }
 
   private val s10n = Subscription(
-    SubscriptionId(1L),
-    UserId(0L),
-    SubscriptionName("s10n"),
+    1L,
+    0L,
+    "s10n",
     Money.zero(rub),
     None,
     None,

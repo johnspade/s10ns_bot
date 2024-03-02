@@ -21,7 +21,6 @@ import ru.johnspade.s10ns.bot.engine.DefaultMsgService
 import ru.johnspade.s10ns.bot.engine.ReplyMessage
 import ru.johnspade.s10ns.subscription.dialog.EditS10nNameDialogState
 import ru.johnspade.s10ns.subscription.service.impl.DefaultEditS10nNameDialogService
-import ru.johnspade.s10ns.subscription.tags.SubscriptionName
 
 class DefaultEditS10nNameDialogServiceSpec
     extends AnyFlatSpec
@@ -51,7 +50,7 @@ class DefaultEditS10nNameDialogServiceSpec
   behavior of "saveName"
 
   it should "save a subscription with a new name" in {
-    val updatedS10n = s10n.copy(name = SubscriptionName("New name"))
+    val updatedS10n = s10n.copy(name = "New name")
     (mockS10nRepo.update _).expects(updatedS10n).returns(updatedS10n.some)
 
     editS10nNameDialogService.saveName(user, dialog, "New name".some).unsafeRunSync() shouldBe

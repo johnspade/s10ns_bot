@@ -23,7 +23,6 @@ import ru.johnspade.s10ns.calendar.CalendarService
 import ru.johnspade.s10ns.subscription.dialog.EditS10n1stPaymentDateMsgService
 import ru.johnspade.s10ns.subscription.dialog.EditS10nFirstPaymentDateDialogState
 import ru.johnspade.s10ns.subscription.service.impl.DefaultEditS10n1stPaymentDateDialogService
-import ru.johnspade.s10ns.subscription.tags.FirstPaymentDate
 
 class DefaultEditS10n1stPaymentDateDialogServiceSpec
     extends AnyFlatSpec
@@ -57,7 +56,7 @@ class DefaultEditS10n1stPaymentDateDialogServiceSpec
   }
 
   "saveFirstPaymentDate" should "just save a subscription" in {
-    val date        = FirstPaymentDate(LocalDate.of(2020, 10, 8))
+    val date        = LocalDate.of(2020, 10, 8)
     val updatedS10n = s10n.copy(firstPaymentDate = date.some)
     (mockS10nRepo.update _).expects(updatedS10n).returns(updatedS10n.some)
 
@@ -82,7 +81,7 @@ class DefaultEditS10n1stPaymentDateDialogServiceSpec
 
     val dialog = EditS10nFirstPaymentDateDialog(
       EditS10nFirstPaymentDateDialogState.FirstPaymentDate,
-      s10n.copy(firstPaymentDate = FirstPaymentDate(LocalDate.of(2020, 10, 8)).some)
+      s10n.copy(firstPaymentDate = LocalDate.of(2020, 10, 8).some)
     )
 
     editS10n1stPaymentDateDialogService.removeFirstPaymentDate(user, dialog).unsafeRunSync() shouldBe

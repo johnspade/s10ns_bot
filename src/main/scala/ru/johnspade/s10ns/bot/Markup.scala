@@ -8,7 +8,6 @@ import telegramium.bots.high.keyboards.InlineKeyboardMarkups
 
 import ru.johnspade.s10ns.bot.engine.TelegramOps.inlineKeyboardButton
 import ru.johnspade.s10ns.subscription.BillingPeriodUnit
-import ru.johnspade.s10ns.subscription.tags.OneTimeSubscription
 
 object Markup {
   val CurrencyReplyMarkup: ReplyKeyboardMarkup = ReplyKeyboardMarkup(
@@ -34,8 +33,8 @@ object Markup {
     InlineKeyboardMarkup(
       List(
         List(
-          inlineKeyboardButton("Recurring", OneTime(OneTimeSubscription(false))),
-          inlineKeyboardButton("One time", OneTime(OneTimeSubscription(true))),
+          inlineKeyboardButton("Recurring", OneTime(false)),
+          inlineKeyboardButton("One time", OneTime(true)),
           inlineKeyboardButton("Every month", EveryMonth)
         ),
         List(inlineKeyboardButton(skipIsOneTimeMessage, SkipIsOneTime))

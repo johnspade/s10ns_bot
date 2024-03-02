@@ -23,14 +23,13 @@ import ru.johnspade.s10ns.bot.S10nsPeriod
 import ru.johnspade.s10ns.bot.engine.ReplyMessage
 import ru.johnspade.s10ns.bot.engine.TelegramOps.ackCb
 import ru.johnspade.s10ns.subscription.service.SubscriptionListService
-import ru.johnspade.s10ns.subscription.tags.PageNumber
 import ru.johnspade.s10ns.user.User
 
 class SubscriptionListController[F[_]: Monad: Defer](
     private val s10nListService: SubscriptionListService[F]
 )(implicit bot: Api[F])
     extends CallbackQueryUserController[F] {
-  def listCommand(from: User): F[ReplyMessage] = s10nListService.onListCommand(from, PageNumber(0))
+  def listCommand(from: User): F[ReplyMessage] = s10nListService.onListCommand(from, 0)
 
   override val routes: CbDataUserRoutes[F] = CallbackQueryContextRoutes.of {
     case (data: S10ns) in cb as user =>

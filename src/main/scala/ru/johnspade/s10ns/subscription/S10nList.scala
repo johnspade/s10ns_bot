@@ -4,9 +4,6 @@ import java.time.temporal.TemporalUnit
 
 import org.joda.money.Money
 
-import ru.johnspade.s10ns.subscription.tags.PageNumber
-import ru.johnspade.s10ns.subscription.tags.SubscriptionId
-
 case class RemainingTime(unit: TemporalUnit, count: Long)
 
 sealed abstract class S10nAmount {
@@ -18,7 +15,7 @@ final case class NonExactAmount(override val amount: Money) extends S10nAmount
 
 final case class S10nItem(
     index: Int,
-    id: SubscriptionId,
+    id: Long,
     name: String,
     amount: S10nAmount,
     remainingTime: Option[RemainingTime]
@@ -29,6 +26,6 @@ final case class S10nList(
     period: BillingPeriodUnit,
     items: List[S10nItem],
     nextPeriod: BillingPeriodUnit,
-    page: PageNumber,
+    page: Int,
     totalSize: Int
 )

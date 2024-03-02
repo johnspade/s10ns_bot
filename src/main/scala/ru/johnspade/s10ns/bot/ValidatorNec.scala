@@ -7,15 +7,13 @@ import cats.implicits._
 
 import org.joda.money.CurrencyUnit
 
-import ru.johnspade.s10ns.subscription.tags._
-
 class ValidatorNec {
   type ValidationResult[A] = ValidatedNec[Validation, A]
 
   def validateText(text: Option[String]): ValidationResult[String] =
     text.map(_.validNec).getOrElse(TextCannotBeEmpty.invalidNec)
 
-  def validateNameLength(name: SubscriptionName): ValidationResult[SubscriptionName] =
+  def validateNameLength(name: String): ValidationResult[String] =
     if (name.length <= 256) name.validNec else NameTooLong.invalidNec
 
   def validateCurrency(currency: String): ValidationResult[CurrencyUnit] =
@@ -30,7 +28,7 @@ class ValidatorNec {
   def validateDurationString(duration: String): ValidationResult[Int] =
     Try(duration.toInt).toEither.left.map(_ => NotANumber).toValidatedNec
 
-  def validateDuration(duration: BillingPeriodDuration): ValidationResult[BillingPeriodDuration] =
+  def validateDuration(duration: Int): ValidationResult[Int] =
     if (duration > 0) duration.validNec else NumberMustBePositive.invalidNec
 }
 

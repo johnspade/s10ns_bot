@@ -34,9 +34,6 @@ import ru.johnspade.s10ns.subscription.ExactAmount
 import ru.johnspade.s10ns.subscription.NonExactAmount
 import ru.johnspade.s10ns.subscription.S10nInfo
 import ru.johnspade.s10ns.subscription.S10nList
-import ru.johnspade.s10ns.subscription.tags.OneTimeSubscription
-import ru.johnspade.s10ns.subscription.tags.PageNumber
-import ru.johnspade.s10ns.subscription.tags.SubscriptionId
 
 // todo write unit tests
 class S10nsListReplyMessageService {
@@ -72,8 +69,8 @@ class S10nsListReplyMessageService {
 
     def createNavButtons(listSize: Int) = {
       val pageLastElementNumber = defaultPageSize * (page + 1)
-      val leftButton            = inlineKeyboardButton("⬅", S10ns(PageNumber(page - 1)))
-      val rightButton           = inlineKeyboardButton("➡", S10ns(PageNumber(page + 1)))
+      val leftButton            = inlineKeyboardButton("⬅", S10ns(page - 1))
+      val rightButton           = inlineKeyboardButton("➡", S10ns(page + 1))
       List(
         (pageLastElementNumber > defaultPageSize, leftButton),
         (pageLastElementNumber < listSize, rightButton)
@@ -146,9 +143,9 @@ class S10nsListReplyMessageService {
   }
 
   def createS10nMessageMarkup(
-      id: SubscriptionId,
+      id: Long,
       sendNotifications: Boolean,
-      page: PageNumber
+      page: Int
   ): InlineKeyboardMarkup = {
     val editButton = inlineKeyboardButton("Edit", EditS10n(id, page))
     val notifyButton = inlineKeyboardButton(
@@ -161,9 +158,9 @@ class S10nsListReplyMessageService {
   }
 
   def createEditS10nMarkup(
-      id: SubscriptionId,
-      oneTime: Option[OneTimeSubscription],
-      page: PageNumber
+      id: Long,
+      oneTime: Option[Boolean],
+      page: Int
   ): InlineKeyboardMarkup = {
     val nameButton     = inlineKeyboardButton("Name", EditS10nName(id))
     val amountButton   = inlineKeyboardButton("Amount", EditS10nAmount(id))

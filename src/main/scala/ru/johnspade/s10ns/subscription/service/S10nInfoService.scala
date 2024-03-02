@@ -15,10 +15,9 @@ import org.joda.money.Money
 import ru.johnspade.s10ns.currentTimestamp
 import ru.johnspade.s10ns.subscription.BillingPeriod
 import ru.johnspade.s10ns.subscription.RemainingTime
-import ru.johnspade.s10ns.subscription.tags.FirstPaymentDate
 
 class S10nInfoService[F[_]: Monad: Clock] {
-  def getNextPaymentDate(start: FirstPaymentDate, billingPeriod: Option[BillingPeriod]): F[LocalDate] =
+  def getNextPaymentDate(start: LocalDate, billingPeriod: Option[BillingPeriod]): F[LocalDate] =
     currentTimestamp.map { now =>
       val today = now.atZone(ZoneOffset.UTC).toLocalDate
       billingPeriod
@@ -29,7 +28,7 @@ class S10nInfoService[F[_]: Monad: Clock] {
         .getOrElse(start)
     }
 
-  def getNextPaymentTimestamp(start: FirstPaymentDate, billingPeriod: Option[BillingPeriod]): F[Instant] =
+  def getNextPaymentTimestamp(start: LocalDate, billingPeriod: Option[BillingPeriod]): F[Instant] =
     getNextPaymentDate(start, billingPeriod)
       .map(_.atStartOfDay(ZoneOffset.UTC).toInstant)
 
@@ -45,16 +44,16 @@ class S10nInfoService[F[_]: Monad: Clock] {
         }
     }
 
-  def getPaidInTotal(amount: Money, start: FirstPaymentDate, billingPeriod: BillingPeriod): F[Money] =
+  def getPaidInTotal(amount: Money, start: LocalDate, billingPeriod: BillingPeriod): F[Money] =
     calculatePeriodsPassed(start, billingPeriod).map(amount.multipliedBy)
 
-  private def calculatePeriodsPassed(start: FirstPaymentDate, billingPeriod: BillingPeriod) =
+  private def calculatePeriodsPassed(start: LocalDate, billingPeriod: BillingPeriod) =
     currentTimestamp.map { now =>
       val today = now.atZone(ZoneOffset.UTC).toLocalDate
       calcPeriodsPassed(today, start, billingPeriod)
     }
 
-  private def calcPeriodsPassed(today: LocalDate, start: FirstPaymentDate, billingPeriod: BillingPeriod) = {
+  private def calcPeriodsPassed(today: LocalDate, start: LocalDate, billingPeriod: BillingPeriod) = {
     import billingPeriod.duration
     import billingPeriod.unit.chronoUnit
 

@@ -17,7 +17,6 @@ import ru.johnspade.s10ns.bot.Ignore
 import ru.johnspade.s10ns.bot.Months
 import ru.johnspade.s10ns.bot.Years
 import ru.johnspade.s10ns.bot.engine.TelegramOps.inlineKeyboardButton
-import ru.johnspade.s10ns.subscription.tags._
 
 class CalendarService {
   private val weekRow = DayOfWeek
@@ -86,7 +85,7 @@ class CalendarService {
 
     val days = (1 to lengthOfMonth).map { n =>
       val day = firstDay.withDayOfMonth(n)
-      inlineKeyboardButton(n.toString, FirstPayment(FirstPaymentDate(day)))
+      inlineKeyboardButton(n.toString, FirstPayment(day))
     }
     val calendarRows = (createPlaceholders(shiftStart) ++ days.toList ++ createPlaceholders(shiftEnd))
       .grouped(LengthOfWeek)

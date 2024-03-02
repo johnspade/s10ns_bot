@@ -21,8 +21,6 @@ import ru.johnspade.s10ns.subscription.repository.SubscriptionRepository
 import ru.johnspade.s10ns.subscription.service.EditS10nBillingPeriodDialogService
 import ru.johnspade.s10ns.subscription.service.RepliesValidated
 import ru.johnspade.s10ns.subscription.service.S10nsListMessageService
-import ru.johnspade.s10ns.subscription.tags.BillingPeriodDuration
-import ru.johnspade.s10ns.subscription.tags.OneTimeSubscription
 import ru.johnspade.s10ns.user.User
 import ru.johnspade.s10ns.user.UserRepository
 
@@ -67,7 +65,7 @@ class DefaultEditS10nBillingPeriodDialogService[F[_]: Monad, D[_]: Monad](
   ): F[RepliesValidated] =
     validateText(text)
       .andThen(validateDurationString)
-      .andThen(duration => validateDuration(BillingPeriodDuration(duration)))
+      .andThen(duration => validateDuration(duration))
       .traverse(saveBillingPeriodDuration(user, dialog, _))
 
   private def saveBillingPeriodUnit(
@@ -77,20 +75,20 @@ class DefaultEditS10nBillingPeriodDialogService[F[_]: Monad, D[_]: Monad](
   ): F[List[ReplyMessage]] = {
     val billingPeriod = BillingPeriod(
       unit = unit,
-      duration = BillingPeriodDuration(1)
+      duration = 1
     )
     val updatedDialog = dialog
       .modify(_.draft.billingPeriod)
       .setTo(billingPeriod.some)
       .modify(_.draft.oneTime)
-      .setTo(OneTimeSubscription(false).some)
+      .setTo(false.some)
     transition(user, updatedDialog)(EditS10nBillingPeriodEvent.ChosenBillingPeriodUnit)
   }
 
   private def saveBillingPeriodDuration(
       user: User,
       dialog: EditS10nBillingPeriodDialog,
-      duration: BillingPeriodDuration
+      duration: Int
   ): F[List[ReplyMessage]] = {
     val billingPeriod = dialog.draft.billingPeriod
       .map { period =>

@@ -41,16 +41,8 @@ import ru.johnspade.s10ns.subscription.dialog.CreateS10nDialogState
 import ru.johnspade.s10ns.subscription.dialog.CreateS10nMsgService
 import ru.johnspade.s10ns.subscription.repository.SubscriptionRepository
 import ru.johnspade.s10ns.subscription.service.impl.DefaultCreateS10nDialogFsmService
-import ru.johnspade.s10ns.subscription.tags.BillingPeriodDuration
-import ru.johnspade.s10ns.subscription.tags.FirstPaymentDate
-import ru.johnspade.s10ns.subscription.tags.OneTimeSubscription
-import ru.johnspade.s10ns.subscription.tags.PageNumber
-import ru.johnspade.s10ns.subscription.tags.SubscriptionId
-import ru.johnspade.s10ns.subscription.tags.SubscriptionName
 import ru.johnspade.s10ns.user.InMemoryUserRepository
 import ru.johnspade.s10ns.user.User
-import ru.johnspade.s10ns.user.tags.FirstName
-import ru.johnspade.s10ns.user.tags.UserId
 
 class DefaultCreateS10nDialogFsmServiceSpec extends AnyFlatSpec with Matchers with DiffShouldMatcher with MockFactory {
   private implicit val logs: Logs[IO, IO] = Logs.sync[IO, IO]
@@ -74,11 +66,11 @@ class DefaultCreateS10nDialogFsmServiceSpec extends AnyFlatSpec with Matchers wi
     createS10nMsgService
   )
 
-  private val s10nId = SubscriptionId(0L)
-  private val page   = PageNumber(0)
+  private val s10nId = 0L
+  private val page   = 0
 
-  private val user  = User(UserId(0L), FirstName("John"), None)
-  private val draft = SubscriptionDraft.create(UserId(0L))
+  private val user  = User(0L, "John", None)
+  private val draft = SubscriptionDraft.create(0L)
   private val s10n  = Subscription.fromDraft(draft, s10nId)
   private val finish = List(
     ReplyMessage("Saved.", BotStart.markup.some),
@@ -100,7 +92,7 @@ class DefaultCreateS10nDialogFsmServiceSpec extends AnyFlatSpec with Matchers wi
 
   "saveName" should "ask for amount" in {
     val dialog = CreateS10nDialog(CreateS10nDialogState.Name, draft)
-    createS10nDialogFsmService.saveName(user, dialog, SubscriptionName("Netflix")).unsafeRunSync() shouldMatchTo {
+    createS10nDialogFsmService.saveName(user, dialog, "Netflix").unsafeRunSync() shouldMatchTo {
       List(ReplyMessage("Amount:"))
     }
   }
@@ -136,7 +128,7 @@ class DefaultCreateS10nDialogFsmServiceSpec extends AnyFlatSpec with Matchers wi
   "saveBillingPeriodDuration" should "ask for a first payment date" in {
     val dialog = CreateS10nDialog(CreateS10nDialogState.BillingPeriodDuration, draft)
     createS10nDialogFsmService
-      .saveBillingPeriodDuration(user, dialog, BillingPeriodDuration(1))
+      .saveBillingPeriodDuration(user, dialog, 1)
       .unsafeRunSync() shouldMatchTo {
       List(
         ReplyMessage(
@@ -165,7 +157,7 @@ class DefaultCreateS10nDialogFsmServiceSpec extends AnyFlatSpec with Matchers wi
 
   "saveIsOneTime" should "ask for a billing period unit of a recurring subscription" in {
     val dialog = CreateS10nDialog(CreateS10nDialogState.IsOneTime, draft)
-    createS10nDialogFsmService.saveIsOneTime(user, dialog, OneTimeSubscription(false)).unsafeRunSync() shouldMatchTo {
+    createS10nDialogFsmService.saveIsOneTime(user, dialog, false).unsafeRunSync() shouldMatchTo {
       List(
         ReplyMessage(
           "Billing period unit:",
@@ -186,7 +178,7 @@ class DefaultCreateS10nDialogFsmServiceSpec extends AnyFlatSpec with Matchers wi
 
   it should "ask for a first payment date of an one time subscription" in {
     val dialog = CreateS10nDialog(CreateS10nDialogState.IsOneTime, draft)
-    createS10nDialogFsmService.saveIsOneTime(user, dialog, OneTimeSubscription(true)).unsafeRunSync() shouldMatchTo {
+    createS10nDialogFsmService.saveIsOneTime(user, dialog, true).unsafeRunSync() shouldMatchTo {
       List(
         ReplyMessage(
           "First payment date:",
@@ -208,7 +200,7 @@ class DefaultCreateS10nDialogFsmServiceSpec extends AnyFlatSpec with Matchers wi
 
     val dialog = CreateS10nDialog(CreateS10nDialogState.FirstPaymentDate, draft)
     createS10nDialogFsmService
-      .saveFirstPaymentDate(user, dialog, FirstPaymentDate(LocalDate.now(ZoneOffset.UTC)))
+      .saveFirstPaymentDate(user, dialog, LocalDate.now(ZoneOffset.UTC))
       .unsafeRunSync() shouldMatchTo finish
   }
 }

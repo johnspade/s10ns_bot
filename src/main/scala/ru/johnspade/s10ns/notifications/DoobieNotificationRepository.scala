@@ -14,7 +14,6 @@ import doobie.postgres.implicits._
 import doobie.util.update.Update
 
 import ru.johnspade.s10ns.notifications.DoobieNotificationRepository.NotificationSql
-import ru.johnspade.s10ns.subscription.tags.SubscriptionId
 
 class DoobieNotificationRepository extends NotificationRepository[ConnectionIO] {
   override def create(notification: Notification): ConnectionIO[Unit] =
@@ -34,7 +33,7 @@ class DoobieNotificationRepository extends NotificationRepository[ConnectionIO] 
 
 object DoobieNotificationRepository {
   object NotificationSql {
-    type NotificationInfo = (UUID, SubscriptionId, Int)
+    type NotificationInfo = (UUID, Long, Int)
 
     def create(notification: Notification): Update0 = {
       import notification._

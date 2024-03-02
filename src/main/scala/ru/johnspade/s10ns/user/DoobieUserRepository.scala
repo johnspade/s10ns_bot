@@ -10,7 +10,6 @@ import doobie.util.update.Update0
 
 import ru.johnspade.s10ns.user.DoobieUserMeta._
 import ru.johnspade.s10ns.user.DoobieUserRepository.UserSql
-import ru.johnspade.s10ns.user.tags._
 
 class DoobieUserRepository extends UserRepository[ConnectionIO] {
   override def create(user: User): ConnectionIO[User] =
@@ -19,7 +18,7 @@ class DoobieUserRepository extends UserRepository[ConnectionIO] {
       .run
       .map(_ => user)
 
-  override def getById(id: UserId): ConnectionIO[Option[User]] =
+  override def getById(id: Long): ConnectionIO[Option[User]] =
     UserSql
       .get(id)
       .option
@@ -45,7 +44,7 @@ object DoobieUserRepository {
         values (${user.id}, ${user.firstName}, ${user.chatId}, ${user.defaultCurrency}, ${user.dialog})
       """.update
 
-    def get(id: UserId): Query0[User] = sql"""
+    def get(id: Long): Query0[User] = sql"""
         select id, first_name, chat_id, default_currency, dialog
         from users
         where id = $id

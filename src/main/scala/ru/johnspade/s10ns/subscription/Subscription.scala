@@ -1,33 +1,31 @@
 package ru.johnspade.s10ns.subscription
 
 import java.time.Instant
+import java.time.LocalDate
 
 import org.joda.money.CurrencyUnit
 import org.joda.money.CurrencyUnit.EUR
 import org.joda.money.Money
 
-import ru.johnspade.s10ns.subscription.tags._
-import ru.johnspade.s10ns.user.tags._
-
 final case class BillingPeriod(
-    duration: BillingPeriodDuration,
+    duration: Int,
     unit: BillingPeriodUnit
 )
 
 case class Subscription(
-    id: SubscriptionId,
-    userId: UserId,
-    name: SubscriptionName,
+    id: Long,
+    userId: Long,
+    name: String,
     amount: Money,
-    oneTime: Option[OneTimeSubscription],
+    oneTime: Option[Boolean],
     billingPeriod: Option[BillingPeriod],
-    firstPaymentDate: Option[FirstPaymentDate],
+    firstPaymentDate: Option[LocalDate],
     sendNotifications: Boolean = false,
     lastNotification: Option[Instant] = None
 )
 
 object Subscription {
-  def fromDraft(draft: SubscriptionDraft, id: SubscriptionId): Subscription =
+  def fromDraft(draft: SubscriptionDraft, id: Long): Subscription =
     Subscription(
       id = id,
       userId = draft.userId,
@@ -43,24 +41,24 @@ object Subscription {
 }
 
 case class SubscriptionDraft(
-    userId: UserId,
-    name: SubscriptionName,
+    userId: Long,
+    name: String,
     currency: CurrencyUnit,
-    amount: SubscriptionAmount,
-    oneTime: Option[OneTimeSubscription],
-    periodDuration: Option[BillingPeriodDuration],
+    amount: Long,
+    oneTime: Option[Boolean],
+    periodDuration: Option[Int],
     periodUnit: Option[BillingPeriodUnit],
-    firstPaymentDate: Option[FirstPaymentDate],
+    firstPaymentDate: Option[LocalDate],
     sendNotifications: Boolean = false
 )
 
 object SubscriptionDraft {
-  def create(userId: UserId, currency: CurrencyUnit = EUR): SubscriptionDraft =
+  def create(userId: Long, currency: CurrencyUnit = EUR): SubscriptionDraft =
     SubscriptionDraft(
       userId = userId,
-      name = SubscriptionName(""),
+      name = "",
       currency = currency,
-      amount = SubscriptionAmount(0L),
+      amount = 0L,
       oneTime = None,
       periodDuration = None,
       periodUnit = None,

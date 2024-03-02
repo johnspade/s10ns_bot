@@ -17,7 +17,6 @@ import ru.johnspade.s10ns.bot.Ignore
 import ru.johnspade.s10ns.bot.Months
 import ru.johnspade.s10ns.bot.Years
 import ru.johnspade.s10ns.bot.engine.TelegramOps.inlineKeyboardButton
-import ru.johnspade.s10ns.subscription.tags.FirstPaymentDate
 
 class CalendarServiceSpec extends AnyFlatSpec with Matchers with DiffShouldMatcher {
   private val calendarService = new CalendarService
@@ -73,7 +72,7 @@ class CalendarServiceSpec extends AnyFlatSpec with Matchers with DiffShouldMatch
 
   private def ignored(text: String): InlineKeyboardButton = inlineKeyboardButton(text, Ignore)
   private val start                                       = LocalDate.of(2020, 1, 1)
-  private def day(n: Int)  = inlineKeyboardButton(n.toString, FirstPayment(FirstPaymentDate(start.withDayOfMonth(n))))
-  private def year(n: Int) = inlineKeyboardButton(n.toString, Calendar(start.withYear(n)))
+  private def day(n: Int)                 = inlineKeyboardButton(n.toString, FirstPayment(start.withDayOfMonth(n)))
+  private def year(n: Int)                = inlineKeyboardButton(n.toString, Calendar(start.withYear(n)))
   private def month(name: String, n: Int) = inlineKeyboardButton(name, Calendar(start.withMonth(n)))
 }

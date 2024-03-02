@@ -78,9 +78,7 @@ import ru.johnspade.s10ns.subscription.service.impl.DefaultEditS10nCurrencyDialo
 import ru.johnspade.s10ns.subscription.service.impl.DefaultEditS10nNameDialogService
 import ru.johnspade.s10ns.subscription.service.impl.DefaultEditS10nOneTimeDialogService
 import ru.johnspade.s10ns.subscription.service.impl.DefaultSubscriptionListService
-import ru.johnspade.s10ns.subscription.tags.PageNumber
 import ru.johnspade.s10ns.user.DoobieUserRepository
-import ru.johnspade.s10ns.user.tags.UserId
 
 class SubscriptionsBotISpec extends AnyFreeSpec with BeforeAndAfterAll with MockFactory {
 
@@ -137,10 +135,10 @@ class SubscriptionsBotISpec extends AnyFreeSpec with BeforeAndAfterAll with Mock
       InlineKeyboardMarkups
         .singleColumn(
           List(
-            inlineKeyboardButton("Edit", EditS10n(s10nId, PageNumber(0))),
-            inlineKeyboardButton("Enable notifications", Notify(s10nId, enable = true, PageNumber(0))),
-            inlineKeyboardButton("Remove", RemoveS10n(s10nId, PageNumber(0))),
-            inlineKeyboardButton("List", S10ns(PageNumber(0)))
+            inlineKeyboardButton("Edit", EditS10n(s10nId, 0)),
+            inlineKeyboardButton("Enable notifications", Notify(s10nId, enable = true, 0)),
+            inlineKeyboardButton("Remove", RemoveS10n(s10nId, 0)),
+            inlineKeyboardButton("List", S10ns(0))
           )
         )
         .some,
@@ -201,7 +199,7 @@ class SubscriptionsBotISpec extends AnyFreeSpec with BeforeAndAfterAll with Mock
     container.password
   )
 
-  private lazy val s10nId = s10nRepo.getByUserId(UserId(userId.toLong)).transact(transactor).unsafeRunSync().head.id
+  private lazy val s10nId = s10nRepo.getByUserId(userId.toLong).transact(transactor).unsafeRunSync().head.id
 
   private trait Wiring {
 
