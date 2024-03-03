@@ -80,15 +80,17 @@ ThisBuild / dynverSeparator := "-"
 
 Global / onChangedBuildSource := ReloadOnSourceChanges
 
-lazy val root: Project = (project in file("."))
-  .enablePlugins(JavaAppPackaging, DockerPlugin, AshScriptPlugin)
-  .withSerialTests
+lazy val root: Project = (project in file(".")).withSerialTests
   .settings(
-    dockerBaseImage := "adoptopenjdk/openjdk11:jre-11.0.10_9-alpine",
-    dockerExposedPorts ++= Seq(8080)
+    jibBaseImage    := "17.0.10_7-jre",
+    jibOrganization := "johnspade",
+    jibName         := "s10ns_bot",
+    jibRegistry     := "ghcr.io",
+    jibLabels       := Map("org.opencontainers.image.source" -> "https://github.com/johnspade/s10ns_bot")
   )
 
 addCommandAlias(
   "validate",
   ";compile;Test/compile;scalafixAll --check;scalafmtSbtCheck;scalafmtCheck;Test/scalafmtCheck;test;Serial/test"
 )
+addCommandAlias("publishDockerContainer", ";jibImageBuild")

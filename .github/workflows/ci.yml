@@ -14,3 +14,8 @@ jobs:
       - uses: coursier/cache-action@v6
       - name: Validate project
         run: sbt validate
+      - name: Publish Docker container
+        env:
+          JIB_TARGET_IMAGE_USERNAME: johnspade
+          JIB_TARGET_IMAGE_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
+        run: sbt publishDockerContainer
