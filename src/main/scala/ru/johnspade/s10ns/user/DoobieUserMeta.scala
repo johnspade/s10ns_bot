@@ -16,6 +16,7 @@ object DoobieUserMeta {
   import io.circe.parser._
   import io.circe.syntax._
 
+  @annotation.nowarn
   private implicit val jsonConfig: Configuration = Configuration.default.withDiscriminator("discriminator")
 
   implicit val dialogJsonMeta: Meta[Dialog] =

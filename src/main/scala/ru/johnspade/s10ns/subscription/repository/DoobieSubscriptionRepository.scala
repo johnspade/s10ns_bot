@@ -1,6 +1,7 @@
 package ru.johnspade.s10ns.subscription.repository
 
 import java.time.Instant
+import scala.annotation.nowarn
 
 import doobie.Query0
 import doobie.Update0
@@ -137,10 +138,12 @@ object DoobieSubscriptionRepository {
       """.update
   }
 
+  @nowarn
   private implicit val moneyRead: Read[Money] =
     Read[(Long, String)].map { case (amountMinor, currencyUnit) =>
       Money.ofMinor(CurrencyUnit.of(currencyUnit), amountMinor)
     }
+  @nowarn
   private implicit val moneyWrite: Write[Money] =
     Write[(Long, String)].contramap(m => (m.getAmountMinorLong, m.getCurrencyUnit.getCode))
 }

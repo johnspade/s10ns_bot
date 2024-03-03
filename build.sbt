@@ -87,3 +87,8 @@ lazy val root: Project = (project in file("."))
     dockerBaseImage := "adoptopenjdk/openjdk11:jre-11.0.10_9-alpine",
     dockerExposedPorts ++= Seq(8080)
   )
+
+addCommandAlias(
+  "validate",
+  ";compile;Test/compile;scalafixAll --check;scalafmtSbtCheck;scalafmtCheck;Test/scalafmtCheck;test;Serial/test"
+)
