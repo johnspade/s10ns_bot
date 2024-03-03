@@ -85,6 +85,7 @@ lazy val root: Project = (project in file(".")).withSerialTests
     jibBaseImage    := "eclipse-temurin:17.0.10_7-jre",
     jibOrganization := "johnspade",
     jibName         := "s10ns_bot",
+    jibTcpPorts     := List(8080),
     jibRegistry     := "ghcr.io",
     jibLabels       := Map("org.opencontainers.image.source" -> "https://github.com/johnspade/s10ns_bot")
   )
