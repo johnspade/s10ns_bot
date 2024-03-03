@@ -82,7 +82,7 @@ Global / onChangedBuildSource := ReloadOnSourceChanges
 
 lazy val root: Project = (project in file(".")).withSerialTests
   .settings(
-    jibBaseImage    := "17.0.10_7-jre",
+    jibBaseImage    := "eclipse-temurin:17.0.10_7-jre",
     jibOrganization := "johnspade",
     jibName         := "s10ns_bot",
     jibRegistry     := "ghcr.io",
