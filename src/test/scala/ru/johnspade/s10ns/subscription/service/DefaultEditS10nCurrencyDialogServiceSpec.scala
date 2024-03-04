@@ -49,7 +49,12 @@ class DefaultEditS10nCurrencyDialogServiceSpec
 
     val result = editS10nCurrencyDialogService.onEditS10nCurrencyCb(user, EditS10nCurrency(s10nId)).unsafeRunSync()
     result shouldMatchTo {
-      List(ReplyMessage("Enter or select the currency code:", Markup.CurrencyReplyMarkup.some))
+      List(
+        ReplyMessage(
+          "Please select a popular currency from the options below, or manually type in the code for any other currency not listed in the buttons. For example: 'CNY' for Chinese Yuan or 'INR' for Indian Rupee:",
+          Markup.CurrencyReplyMarkup.some
+        )
+      )
     }
   }
 
