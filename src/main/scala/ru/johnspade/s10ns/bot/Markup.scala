@@ -46,4 +46,11 @@ object Markup {
       inlineKeyboardButton(unit.chronoUnit.toString, PeriodUnit(unit))
     }
   )
+
+  val SettingsMarkup: InlineKeyboardMarkup = InlineKeyboardMarkups.singleColumn(
+    List(
+      inlineKeyboardButton("Default currency", DefCurrency),
+      inlineKeyboardButton("Notify by default", NotifyByDefault)
+    )
+  )
 }

@@ -105,12 +105,15 @@ class DefaultCreateS10nDialogFsmService[F[_]: Monad, D[_]: Monad](
     val updatedDialog = dialog.copy(state = CreateS10nDialogState.transition(dialog.state, event))
     updatedDialog.state match {
       case finished @ CreateS10nDialogState.Finished =>
+        val sendNotifications = user.notifyByDefault.getOrElse(false)
         transact {
-          subscriptionRepo.create(updatedDialog.draft).flatMap { s10n =>
-            dialogEngine
-              .reset(user, finished.message)
-              .map((_, s10n))
-          }
+          subscriptionRepo
+            .create(updatedDialog.draft.copy(sendNotifications = sendNotifications))
+            .flatMap { s10n =>
+              dialogEngine
+                .reset(user, finished.message)
+                .map((_, s10n))
+            }
         }
           .flatMap { p =>
             s10nsListMessageService

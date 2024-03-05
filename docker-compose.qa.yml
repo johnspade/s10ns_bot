@@ -1,0 +1,13 @@
+version: "3.9"
+services:
+  bot:
+    image: ghcr.io/johnspade/s10ns_bot:{BOT_VERSION}
+    depends_on:
+      - db
+    environment:
+      - DATABASE_URL
+      - BOT_TOKEN
+      - FIXER_TOKEN
+      - BOT_EXTERNAL_URL
+    ports:
+      - ${BOT_PORT:-8080}:8080

@@ -103,8 +103,8 @@ class SubscriptionsBot[F[_]: Async: Logging, D[_]: Monad](
         case t if t.startsWith("/start") || t.startsWith("/reset") => startController.startCommand(user).map(List(_))
         case t if t.startsWith("/help")                            => startController.helpCommand.map(List(_))
         case t if t.startsWith("/list")                            => s10nListController.listCommand(user).map(List(_))
-        case t if t.startsWith("/settings")                        => settingsController.settingsCommand.map(List(_))
-        case _                                                     => startController.helpCommand.map(List(_))
+        case t if t.startsWith("/settings") => settingsController.settingsCommand(user).map(List(_))
+        case _                              => startController.helpCommand.map(List(_))
       }
 
     def handleDialogs(user: User, dialog: Dialog) =
@@ -138,7 +138,7 @@ class SubscriptionsBot[F[_]: Async: Logging, D[_]: Monad](
               case t if t.startsWith("\uD83D\uDCCB") => s10nListController.listCommand(user).map(List(_))
               case t if t.startsWith("\uD83D\uDCB2") => s10nController.createCommand(user)
               case t if t.startsWith("➕")            => s10nController.createWithDefaultCurrencyCommand(user)
-              case t if t.startsWith("⚙️")           => settingsController.settingsCommand.map(List(_))
+              case t if t.startsWith("⚙️")           => settingsController.settingsCommand(user).map(List(_))
               case _                                 => startController.helpCommand.map(List(_))
             }
           }

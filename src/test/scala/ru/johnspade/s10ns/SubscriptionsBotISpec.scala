@@ -19,8 +19,10 @@ import telegramium.bots.CallbackQuery
 import telegramium.bots.Chat
 import telegramium.bots.ChatIntId
 import telegramium.bots.Html
+import telegramium.bots.InlineKeyboardMarkup
 import telegramium.bots.KeyboardMarkup
 import telegramium.bots.Markdown
+import telegramium.bots.Markdown2
 import telegramium.bots.Message
 import telegramium.bots.ParseMode
 import telegramium.bots.ReplyKeyboardRemove
@@ -121,6 +123,8 @@ class SubscriptionsBotISpec extends AnyFreeSpec with BeforeAndAfterAll with Mock
 
     sendCallbackQuery(s"FirstPayment\u001D$today")
     verifySendMessage(Messages.S10nSaved, BotStart.markup.some).once()
+
+    val s10nId = s10nIdByName("Netflix")
     verifySendMessage(
       s"""*Netflix*
          |
@@ -142,10 +146,72 @@ class SubscriptionsBotISpec extends AnyFreeSpec with BeforeAndAfterAll with Mock
         .some,
       Markdown.some
     ).once()
-    verifyEditMessageText(s" <em>${DateTimeFormatter.ISO_DATE.format(LocalDate.now(ZoneOffset.UTC))}</em>")
+    verifyEditMessageText(
+      s" <em>${DateTimeFormatter.ISO_DATE.format(LocalDate.now(ZoneOffset.UTC))}</em>"
+    )
 
     verifyMethodCall(api, editMessageReplyMarkup(ChatIntId(0).some, 0.some)).repeat(3)
     (api.execute[Boolean] _).verify(answerCallbackQuery("0")).repeat(3)
+  }
+
+  "enable notifications by default" in new Wiring {
+    prepareStubs()
+
+    sendMessage("/settings")
+    verifySendMessage(
+      s"""Default currency: *EUR*
+         |Enable notifications for new subscriptions by default: *NO*
+         |""".stripMargin,
+      Markup.SettingsMarkup.some,
+      Markdown2.some
+    ).once()
+
+    sendCallbackQuery("NotifyByDefault")
+    verifyEditMessageText(
+      s"""Default currency: *EUR*
+         |Enable notifications for new subscriptions by default: *YES*
+         |""".stripMargin,
+      Markup.SettingsMarkup.some,
+      Markdown2.some
+    )
+
+    sendMessage("➕ New subscription (default currency)")
+    verifySendMessage(Messages.Name, ReplyKeyboardRemove(removeKeyboard = true).some).once()
+
+    sendMessage("Amazon Prime")
+    verifySendMessage(Messages.Amount).once()
+
+    sendMessage("4.99")
+    verifySendMessage(Messages.IsOneTime, Markup.isOneTimeReplyMarkup("Skip").some).once()
+
+    sendCallbackQuery("OneTime\u001Dtrue")
+    verifySendMessage(
+      Messages.FirstPaymentDate,
+      calendarService.generateDaysKeyboard(LocalDate.now(ZoneOffset.UTC)).some
+    ).once()
+
+    sendCallbackQuery(s"FirstPayment\u001D$today")
+    verifySendMessage(Messages.S10nSaved, BotStart.markup.some).once()
+
+    val s10nId = s10nIdByName("Amazon Prime")
+    verifySendMessage(
+      s"""*Amazon Prime*
+         |
+         |4.99 €
+         |
+         |_First payment:_ $today""".stripMargin,
+      InlineKeyboardMarkups
+        .singleColumn(
+          List(
+            inlineKeyboardButton("Edit", EditS10n(s10nId, 0)),
+            inlineKeyboardButton("Disable notifications", Notify(s10nId, enable = false, 0)),
+            inlineKeyboardButton("Remove", RemoveS10n(s10nId, 0)),
+            inlineKeyboardButton("List", S10ns(0))
+          )
+        )
+        .some,
+      Markdown.some
+    ).once()
   }
 
   private val userId = 1337
@@ -185,8 +251,21 @@ class SubscriptionsBotISpec extends AnyFreeSpec with BeforeAndAfterAll with Mock
       )
     )
 
-  private def verifyEditMessageText(text: String): Unit = {
-    verifyMethodCall(api, editMessageText(ChatIntId(0).some, messageId = 0.some, text = text, parseMode = Html.some))
+  private def verifyEditMessageText(
+      text: String,
+      replyMarkup: Option[InlineKeyboardMarkup] = None,
+      parseMode: Option[ParseMode] = Some(Html)
+  ): Unit = {
+    verifyMethodCall(
+      api,
+      editMessageText(
+        ChatIntId(0).some,
+        messageId = 0.some,
+        text = text,
+        parseMode = parseMode,
+        replyMarkup = replyMarkup
+      )
+    )
   }
 
   private val s10nRepo = new DoobieSubscriptionRepository
@@ -198,7 +277,8 @@ class SubscriptionsBotISpec extends AnyFreeSpec with BeforeAndAfterAll with Mock
     logHandler = None
   )
 
-  private lazy val s10nId = s10nRepo.getByUserId(userId.toLong).transact(transactor).unsafeRunSync().head.id
+  private def s10nIdByName(name: String): Long =
+    s10nRepo.getByUserId(userId.toLong).transact(transactor).unsafeRunSync().find(_.name == name).get.id
 
   private trait Wiring {
 
@@ -286,7 +366,11 @@ class SubscriptionsBotISpec extends AnyFreeSpec with BeforeAndAfterAll with Mock
     ).unsafeRunSync()
     private val calendarController = new CalendarController[IO](calendarService)
     private val settingsService =
-      new DefaultSettingsService[IO](dialogEngine, new DefaultMsgService[IO, SettingsDialogState])
+      new DefaultSettingsService[IO, ConnectionIO](
+        dialogEngine,
+        new DefaultMsgService[IO, SettingsDialogState],
+        userRepo
+      )
     private val settingsController = SettingsController[IO](settingsService).unsafeRunSync()
     private val startController    = new StartController[IO](dialogEngine)
     private val cbDataService      = new CbDataService[IO]

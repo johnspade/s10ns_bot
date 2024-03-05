@@ -40,12 +40,12 @@ object DoobieUserRepository {
   object UserSql {
     def create(user: User): Update0 =
       sql"""
-        insert into users (id, first_name, chat_id, default_currency, dialog)
-        values (${user.id}, ${user.firstName}, ${user.chatId}, ${user.defaultCurrency}, ${user.dialog})
+        insert into users (id, first_name, chat_id, default_currency, dialog, notify_by_default)
+        values (${user.id}, ${user.firstName}, ${user.chatId}, ${user.defaultCurrency}, ${user.dialog}, ${user.notifyByDefault})
       """.update
 
     def get(id: Long): Query0[User] = sql"""
-        select id, first_name, chat_id, default_currency, dialog
+        select id, first_name, chat_id, default_currency, dialog, notify_by_default
         from users
         where id = $id
       """.query[User]
@@ -56,7 +56,8 @@ object DoobieUserRepository {
         first_name = ${user.firstName},
         chat_id = ${user.chatId},
         default_currency = ${user.defaultCurrency},
-        dialog = ${user.dialog}
+        dialog = ${user.dialog},
+        notify_by_default = ${user.notifyByDefault}
         where id = ${user.id}
       """.update
   }

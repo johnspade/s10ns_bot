@@ -58,7 +58,7 @@ object BotApp extends IOApp {
           userModule          <- UserModule.make[F]()
           exchangeRatesModule <- ExchangeRatesModule.make[F](conf.fixer.token)
           botModule           <- BotModule.make[F](userModule, exchangeRatesModule)
-          settingsModule      <- SettingsModule.make[F](botModule)
+          settingsModule      <- SettingsModule.make[F](botModule, userModule)
           subscriptionModule  <- SubscriptionModule.make[F](userModule, botModule, calendarModule)
           notificationsModule <- NotificationsModule.make[F](subscriptionModule)
           _                   <- exchangeRatesModule.exchangeRatesJobService.startExchangeRatesJob()

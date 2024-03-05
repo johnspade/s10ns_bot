@@ -79,6 +79,8 @@ final case class S10nsPeriod(period: BillingPeriodUnit, page: Int) extends CbDat
 
 final case class Notify(subscriptionId: Long, enable: Boolean, page: Int) extends CbData
 
+case object NotifyByDefault extends CbData
+
 object CbData {
   val Separator: Char = '\u001D'
 
@@ -135,4 +137,6 @@ object CbData {
     caseObjectRowCodec(DefCurrency)
   implicit val everyMonthRowCodec: RowCodec[EveryMonth.type] =
     caseObjectRowCodec(EveryMonth)
+  implicit val notifyByDefaultRowCodec: RowCodec[NotifyByDefault.type] =
+    caseObjectRowCodec(NotifyByDefault)
 }

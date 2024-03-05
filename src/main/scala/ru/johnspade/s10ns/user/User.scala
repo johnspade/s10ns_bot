@@ -9,5 +9,6 @@ case class User(
     firstName: String,
     chatId: Option[Long],
     defaultCurrency: CurrencyUnit = CurrencyUnit.EUR,
-    dialog: Option[Dialog] = None
+    dialog: Option[Dialog] = None,
+    notifyByDefault: Option[Boolean] = None
 )

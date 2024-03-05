@@ -9,5 +9,7 @@ trait SettingsService[F[_]] {
 
   def saveDefaultCurrency(user: User, text: Option[String]): F[ValidationResult[ReplyMessage]]
 
-  def onSettingsCommand: F[ReplyMessage]
+  def toggleNotifyByDefault(user: User): F[ReplyMessage]
+
+  def onSettingsCommand(user: User): F[ReplyMessage]
 }

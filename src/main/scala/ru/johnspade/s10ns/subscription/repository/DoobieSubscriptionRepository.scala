@@ -86,7 +86,7 @@ object DoobieSubscriptionRepository {
       sql"""
         select s.id, s.user_id, s.name, s.amount, s.currency, s.one_time, s.period_duration, s.period_unit,
         s.first_payment_date, s.send_notifications, s.last_notification, u.id, u.first_name, u.chat_id,
-        u.default_currency, u.dialog
+        u.default_currency, u.dialog, u.notify_by_default
         from subscriptions s
         left join users u on s.user_id = u.id
         where s.id = $id
