@@ -3,7 +3,7 @@ package ru.johnspade.s10ns.subscription.service
 import java.time.LocalDate
 
 import cats.Monad
-import cats.implicits._
+import cats.implicits.*
 
 import org.joda.money.CurrencyUnit
 import org.joda.money.Money
@@ -131,6 +131,6 @@ class S10nsListMessageService[F[_]: Monad](
 
   private def getAmountInDefaultCurrency(amount: Money, defaultCurrency: CurrencyUnit): F[S10nAmount] =
     if (amount.getCurrencyUnit == defaultCurrency) Monad[F].pure(ExactAmount(amount))
-    else moneyService.convert(amount, defaultCurrency).map(_.map(NonExactAmount).getOrElse(ExactAmount(amount)))
+    else moneyService.convert(amount, defaultCurrency).map(_.map(NonExactAmount.apply).getOrElse(ExactAmount(amount)))
 
 }

@@ -2,7 +2,7 @@ package ru.johnspade.s10ns.subscription.service
 
 import cats.Id
 import cats.effect.IO
-import cats.syntax.option._
+import cats.syntax.option.*
 
 import org.scalamock.scalatest.MockFactory
 import telegramium.bots.InlineKeyboardMarkup

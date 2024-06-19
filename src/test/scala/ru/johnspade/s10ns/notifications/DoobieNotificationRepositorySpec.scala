@@ -3,7 +3,7 @@ package ru.johnspade.s10ns.notifications
 import java.util.UUID
 
 import ru.johnspade.s10ns.DoobieRepositorySpec
-import ru.johnspade.s10ns.notifications.DoobieNotificationRepository.NotificationSql._
+import ru.johnspade.s10ns.notifications.DoobieNotificationRepository.NotificationSql.*
 
 class DoobieNotificationRepositorySpec extends DoobieRepositorySpec {
   private val sampleUuid         = UUID.randomUUID()

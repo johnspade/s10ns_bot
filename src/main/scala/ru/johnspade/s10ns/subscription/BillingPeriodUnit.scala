@@ -4,7 +4,7 @@ import java.time.temporal.ChronoUnit
 import scala.collection.immutable.IndexedSeq
 
 import com.ibm.icu.util.MeasureUnit
-import enumeratum._
+import enumeratum.*
 
 sealed abstract class BillingPeriodUnit(val chronoUnit: ChronoUnit, val measureUnit: MeasureUnit) extends EnumEntry
 

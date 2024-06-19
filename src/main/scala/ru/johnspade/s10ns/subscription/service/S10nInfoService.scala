@@ -4,11 +4,11 @@ import java.time.Instant
 import java.time.LocalDate
 import java.time.Period
 import java.time.ZoneOffset
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 
 import cats.Monad
 import cats.effect.Clock
-import cats.implicits._
+import cats.implicits.*
 
 import org.joda.money.Money
 

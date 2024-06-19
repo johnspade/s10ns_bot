@@ -3,7 +3,7 @@ package ru.johnspade.s10ns.user
 import scala.collection.concurrent.TrieMap
 
 import cats.Id
-import cats.syntax.option._
+import cats.syntax.option.*
 
 class InMemoryUserRepository extends UserRepository[Id] {
   val users: TrieMap[Long, User] = TrieMap.empty

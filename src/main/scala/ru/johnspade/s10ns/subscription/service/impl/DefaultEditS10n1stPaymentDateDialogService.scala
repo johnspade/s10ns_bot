@@ -1,10 +1,10 @@
 package ru.johnspade.s10ns.subscription.service.impl
 
 import cats.Monad
-import cats.syntax.option._
+import cats.syntax.option.*
 import cats.~>
 
-import com.softwaremill.quicklens._
+import com.softwaremill.quicklens.*
 
 import ru.johnspade.s10ns.bot.EditS10nFirstPaymentDate
 import ru.johnspade.s10ns.bot.EditS10nFirstPaymentDateDialog

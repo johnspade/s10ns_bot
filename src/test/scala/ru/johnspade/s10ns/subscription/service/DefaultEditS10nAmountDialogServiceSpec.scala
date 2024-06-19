@@ -2,11 +2,9 @@ package ru.johnspade.s10ns.subscription.service
 
 import cats.effect.IO
 import cats.effect.unsafe.implicits.global
-import cats.syntax.option._
-import cats.syntax.validated._
+import cats.syntax.option.*
+import cats.syntax.validated.*
 
-import com.softwaremill.diffx.generic.auto._
-import com.softwaremill.diffx.scalatest.DiffShouldMatcher
 import org.joda.money.CurrencyUnit
 import org.joda.money.Money
 import org.scalamock.scalatest.MockFactory
@@ -30,8 +28,7 @@ class DefaultEditS10nAmountDialogServiceSpec
     extends AnyFlatSpec
     with MockFactory
     with EditS10nDialogServiceSpec
-    with Matchers
-    with DiffShouldMatcher {
+    with Matchers {
   private val editS10nAmountDialogService = new DefaultEditS10nAmountDialogService(
     s10nsListMessageService,
     new DefaultMsgService[IO, EditS10nAmountDialogState],
@@ -42,12 +39,12 @@ class DefaultEditS10nAmountDialogServiceSpec
   private val dialog = EditS10nAmountDialog(EditS10nAmountDialogState.Amount, s10n)
 
   "onEditS10nAmountCb" should "ask for a new subscription's amount" in {
-    (mockS10nRepo.getById _).expects(s10nId).returns(s10n.some)
+    (mockS10nRepo.getById).expects(s10nId).returns(s10n.some)
     val updatedUser = user.copy(dialog = dialog.some)
-    (mockUserRepo.createOrUpdate _).expects(updatedUser).returns(updatedUser)
+    (mockUserRepo.createOrUpdate).expects(updatedUser).returns(updatedUser)
 
     val result = editS10nAmountDialogService.onEditS10nAmountCb(user, EditS10nAmount(s10nId)).unsafeRunSync()
-    result shouldMatchTo {
+    result shouldBe {
       List(ReplyMessage("Amount:", ReplyKeyboardRemove(removeKeyboard = true).some))
     }
   }
@@ -56,7 +53,7 @@ class DefaultEditS10nAmountDialogServiceSpec
 
   it should "save a subscription with new amount" in {
     val updatedS10n = s10n.copy(amount = Money.of(CurrencyUnit.EUR, 13.37))
-    (mockS10nRepo.update _).expects(updatedS10n).returns(updatedS10n.some)
+    (mockS10nRepo.update).expects(updatedS10n).returns(updatedS10n.some)
 
     editS10nAmountDialogService.saveAmount(user, dialog, "13.37".some).unsafeRunSync() shouldBe
       List(

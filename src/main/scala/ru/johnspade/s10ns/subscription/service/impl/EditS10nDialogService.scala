@@ -1,7 +1,7 @@
 package ru.johnspade.s10ns.subscription.service.impl
 
 import cats.Monad
-import cats.implicits._
+import cats.implicits.*
 import cats.~>
 
 import ru.johnspade.s10ns.bot.EditS10nDialog

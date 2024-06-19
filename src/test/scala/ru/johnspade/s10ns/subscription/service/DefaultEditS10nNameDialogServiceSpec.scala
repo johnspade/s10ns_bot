@@ -2,11 +2,9 @@ package ru.johnspade.s10ns.subscription.service
 
 import cats.effect.IO
 import cats.effect.unsafe.implicits.global
-import cats.syntax.option._
-import cats.syntax.validated._
+import cats.syntax.option.*
+import cats.syntax.validated.*
 
-import com.softwaremill.diffx.generic.auto._
-import com.softwaremill.diffx.scalatest.DiffShouldMatcher
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
@@ -26,7 +24,6 @@ import ru.johnspade.s10ns.subscription.service.impl.DefaultEditS10nNameDialogSer
 class DefaultEditS10nNameDialogServiceSpec
     extends AnyFlatSpec
     with Matchers
-    with DiffShouldMatcher
     with MockFactory
     with EditS10nDialogServiceSpec {
   private val editS10nNameDialogService = new DefaultEditS10nNameDialogService(
@@ -39,12 +36,12 @@ class DefaultEditS10nNameDialogServiceSpec
   private val dialog = EditS10nNameDialog(EditS10nNameDialogState.Name, s10n)
 
   "onEditS10nNameCb" should "ask for a new subscription's name" in {
-    (mockS10nRepo.getById _).expects(s10nId).returns(s10n.some)
+    (mockS10nRepo.getById).expects(s10nId).returns(s10n.some)
     val updatedUser = user.copy(dialog = dialog.some)
-    (mockUserRepo.createOrUpdate _).expects(updatedUser).returns(updatedUser)
+    (mockUserRepo.createOrUpdate).expects(updatedUser).returns(updatedUser)
 
     val result = editS10nNameDialogService.onEditS10nNameCb(user, EditS10nName(s10nId)).unsafeRunSync()
-    result shouldMatchTo {
+    result shouldBe {
       List(ReplyMessage("Name:", ReplyKeyboardRemove(removeKeyboard = true).some))
     }
   }
@@ -53,7 +50,7 @@ class DefaultEditS10nNameDialogServiceSpec
 
   it should "save a subscription with a new name" in {
     val updatedS10n = s10n.copy(name = "New name")
-    (mockS10nRepo.update _).expects(updatedS10n).returns(updatedS10n.some)
+    (mockS10nRepo.update).expects(updatedS10n).returns(updatedS10n.some)
 
     editS10nNameDialogService.saveName(user, dialog, "New name".some).unsafeRunSync() shouldBe
       List(

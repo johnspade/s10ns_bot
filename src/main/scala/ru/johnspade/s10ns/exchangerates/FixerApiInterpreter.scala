@@ -2,12 +2,12 @@ package ru.johnspade.s10ns.exchangerates
 
 import cats.Monad
 import cats.MonadError
-import cats.implicits._
+import cats.implicits.*
 
 import io.circe.Error
-import io.circe.generic.auto._
-import sttp.client3._
-import sttp.client3.circe._
+import io.circe.generic.auto.*
+import sttp.client3.*
+import sttp.client3.circe.*
 
 class FixerApiInterpreter[F[_]](private val token: String, sttpBackend: SttpBackend[F, Any])(implicit
     monadError: MonadError[F, Throwable]

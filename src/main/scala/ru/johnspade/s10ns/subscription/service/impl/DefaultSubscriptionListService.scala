@@ -2,11 +2,11 @@ package ru.johnspade.s10ns.subscription.service.impl
 
 import cats.Monad
 import cats.data.EitherT
-import cats.instances.either._
-import cats.instances.option._
-import cats.syntax.flatMap._
-import cats.syntax.functor._
-import cats.syntax.traverse._
+import cats.instances.either.*
+import cats.instances.option.*
+import cats.syntax.flatMap.*
+import cats.syntax.functor.*
+import cats.syntax.traverse.*
 import cats.~>
 
 import telegramium.bots.CallbackQuery

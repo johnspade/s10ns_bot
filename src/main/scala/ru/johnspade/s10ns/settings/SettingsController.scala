@@ -3,7 +3,7 @@ package ru.johnspade.s10ns.settings
 import cats.Defer
 import cats.Monad
 import cats.effect.Temporal
-import cats.implicits._
+import cats.implicits.*
 
 import ru.johnspade.tgbot.callbackqueries.CallbackQueryContextRoutes
 import telegramium.bots.ChatIntId
@@ -11,7 +11,7 @@ import telegramium.bots.InlineKeyboardMarkup
 import telegramium.bots.Message
 import telegramium.bots.high.Api
 import telegramium.bots.high.Methods
-import telegramium.bots.high.implicits._
+import telegramium.bots.high.implicits.*
 import tofu.logging.Logging
 import tofu.logging.Logs
 
@@ -24,6 +24,7 @@ import ru.johnspade.s10ns.bot.SettingsDialog
 import ru.johnspade.s10ns.bot.engine.ReplyMessage
 import ru.johnspade.s10ns.bot.engine.TelegramOps.ackCb
 import ru.johnspade.s10ns.bot.engine.TelegramOps.sendReplyMessages
+import ru.johnspade.s10ns.bot.engine.TelegramOps.toMessage
 import ru.johnspade.s10ns.bot.engine.TelegramOps.toReplyMessage
 import ru.johnspade.s10ns.user.User
 
@@ -42,6 +43,7 @@ class SettingsController[F[_]: Logging: Temporal: Defer](
   override val routes: CbDataUserRoutes[F] = CallbackQueryContextRoutes.of {
     case DefCurrency in cb as user =>
       ackCb(cb) *> cb.message
+        .flatMap(_.toMessage)
         .map { msg =>
           settingsService
             .startDefaultCurrencyDialog(user)
@@ -55,8 +57,8 @@ class SettingsController[F[_]: Logging: Temporal: Defer](
         reply <- settingsService.toggleNotifyByDefault(user)
         _ <- Methods
           .editMessageText(
-            chatId = cb.message.map(msg => ChatIntId(msg.chat.id)),
-            messageId = cb.message.map(_.messageId),
+            chatId = cb.message.flatMap(_.toMessage).map(msg => ChatIntId(msg.chat.id)),
+            messageId = cb.message.flatMap(_.toMessage).map(_.messageId),
             text = reply.text,
             replyMarkup = reply.markup match {
               case Some(m: InlineKeyboardMarkup) => m.some

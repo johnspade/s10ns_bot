@@ -3,8 +3,6 @@ package ru.johnspade.s10ns.calendar
 import java.time.LocalDate
 import java.time.YearMonth
 
-import com.softwaremill.diffx.generic.auto._
-import com.softwaremill.diffx.scalatest.DiffShouldMatcher
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import telegramium.bots.InlineKeyboardButton
@@ -18,12 +16,12 @@ import ru.johnspade.s10ns.bot.Months
 import ru.johnspade.s10ns.bot.Years
 import ru.johnspade.s10ns.bot.engine.TelegramOps.inlineKeyboardButton
 
-class CalendarServiceSpec extends AnyFlatSpec with Matchers with DiffShouldMatcher {
+class CalendarServiceSpec extends AnyFlatSpec with Matchers {
   private val calendarService = new CalendarService
 
   "generateYearsKeyboard" should "return a range of years" in {
     val markup = calendarService.generateYearsKeyboard(YearMonth.of(2020, 1))
-    markup shouldMatchTo InlineKeyboardMarkup(
+    markup shouldBe InlineKeyboardMarkup(
       List(
         List(year(2015), year(2016), year(2017), year(2018), year(2019)),
         List(year(2020), year(2021), year(2022), year(2023), year(2024)),
@@ -38,7 +36,7 @@ class CalendarServiceSpec extends AnyFlatSpec with Matchers with DiffShouldMatch
 
   "generateMonthsKeyboard" should "return months" in {
     val markup = calendarService.generateMonthsKeyboard(2020)
-    markup shouldMatchTo InlineKeyboardMarkup(
+    markup shouldBe InlineKeyboardMarkup(
       List(
         List(month("Jan", 1), month("Feb", 2), month("Mar", 3), month("Apr", 4), month("May", 5), month("Jun", 6)),
         List(month("Jul", 7), month("Aug", 8), month("Sep", 9), month("Oct", 10), month("Nov", 11), month("Dec", 12)),
@@ -49,7 +47,7 @@ class CalendarServiceSpec extends AnyFlatSpec with Matchers with DiffShouldMatch
 
   "generateDaysKeyboard" should "return a correct calendar" in {
     val markup = calendarService.generateDaysKeyboard(LocalDate.of(2020, 1, 27))
-    markup shouldMatchTo InlineKeyboardMarkup(
+    markup shouldBe InlineKeyboardMarkup(
       List(
         List(
           inlineKeyboardButton("Jan", Months(2020)),

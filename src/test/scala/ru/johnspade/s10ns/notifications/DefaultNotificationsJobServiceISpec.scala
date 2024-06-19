@@ -8,10 +8,10 @@ import java.util.UUID
 
 import cats.effect.IO
 import cats.effect.unsafe.implicits.global
-import cats.syntax.option._
+import cats.syntax.option.*
 
 import doobie.ConnectionIO
-import doobie.implicits._
+import doobie.implicits.*
 import org.joda.money.CurrencyUnit
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.BeforeAndAfterEach
@@ -20,9 +20,9 @@ import telegramium.bots.Chat
 import telegramium.bots.ChatIntId
 import telegramium.bots.Markdown
 import telegramium.bots.Message
+import telegramium.bots.high.*
 import telegramium.bots.high.Api
 import telegramium.bots.high.Methods.sendMessage
-import telegramium.bots.high._
 import telegramium.bots.high.keyboards.InlineKeyboardMarkups
 
 import ru.johnspade.s10ns.PostgresContainer.transact
@@ -69,17 +69,19 @@ class DefaultNotificationsJobServiceISpec extends SpecBase with MockFactory with
   behavior of "executeTask"
 
   it should "send a notification if there is a task in the table" in {
-    (api.execute[Message] _).when(*).returns(IO.pure(Message(0, date = 0, chat = Chat(0, `type` = ""))))
+    (api.execute[Message]).when(*).returns(IO.pure(Message(0, date = 0, chat = Chat(0, `type` = ""))))
     notificationRepo
       .create(Notification(UUID.randomUUID(), s10nId))
       .transact(xa)
       .unsafeRunSync()
 
     notificationsJobService.executeTask().unsafeRunSync()
-    (api.execute[Message] _).verify(
-      sendMessage(
-        chatId = ChatIntId(0),
-        text = s"""_A payment date is approaching:_
+    (api
+      .execute[Message])
+      .verify(
+        sendMessage(
+          chatId = ChatIntId(0),
+          text = s"""_A payment date is approaching:_
            |*Netflix*
            |
            |11.36 €
@@ -88,24 +90,24 @@ class DefaultNotificationsJobServiceISpec extends SpecBase with MockFactory with
            |_Next payment:_ $today
            |_First payment:_ $today
            |_Paid in total:_ 0.00 €""".stripMargin,
-        Markdown.some,
-        replyMarkup = InlineKeyboardMarkups
-          .singleColumn(
-            List(
-              inlineKeyboardButton("Edit", EditS10n(s10nId, 0)),
-              inlineKeyboardButton("Disable notifications", Notify(s10nId, enable = false, 0)),
-              inlineKeyboardButton("Remove", RemoveS10n(s10nId, 0)),
-              inlineKeyboardButton("List", S10ns(0))
+          parseMode = Markdown.some,
+          replyMarkup = InlineKeyboardMarkups
+            .singleColumn(
+              List(
+                inlineKeyboardButton("Edit", EditS10n(s10nId, 0)),
+                inlineKeyboardButton("Disable notifications", Notify(s10nId, enable = false, 0)),
+                inlineKeyboardButton("Remove", RemoveS10n(s10nId, 0)),
+                inlineKeyboardButton("List", S10ns(0))
+              )
             )
-          )
-          .some
+            .some
+        )
       )
-    )
   }
 
   it should "do nothing if there is no tasks" in {
     notificationsJobService.executeTask().unsafeRunSync()
-    (api.execute[Message] _).verify(*).never()
+    (api.execute[Message]).verify(*).never()
   }
 
   it should "do nothing if the notification already sent" in {
@@ -132,11 +134,12 @@ class DefaultNotificationsJobServiceISpec extends SpecBase with MockFactory with
       .unsafeRunSync()
 
     notificationsJobService.executeTask().unsafeRunSync()
-    (api.execute[Message] _).verify(*).never()
+    (api.execute[Message]).verify(*).never()
   }
 
   it should "disable notifications if bot was blocked by the user" in {
-    (api.execute[Message] _)
+    (api
+      .execute[Message])
       .when(*)
       .returns(IO.raiseError(FailedRequest(Methods.getMe(), 403.some, "Forbidden: bot was blocked by the user".some)))
     val s10n = s10nRepo
@@ -166,7 +169,8 @@ class DefaultNotificationsJobServiceISpec extends SpecBase with MockFactory with
   }
 
   it should "not disable notifications on other errors" in {
-    (api.execute[Message] _)
+    (api
+      .execute[Message])
       .when(*)
       .returns(IO.raiseError(FailedRequest(Methods.getMe(), 500.some, "Failed".some)))
     val s10n = s10nRepo

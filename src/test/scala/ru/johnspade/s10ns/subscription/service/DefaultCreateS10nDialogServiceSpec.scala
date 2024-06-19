@@ -3,10 +3,8 @@ package ru.johnspade.s10ns.subscription.service
 import cats.Id
 import cats.effect.IO
 import cats.effect.unsafe.implicits.global
-import cats.implicits._
+import cats.implicits.*
 
-import com.softwaremill.diffx.generic.auto._
-import com.softwaremill.diffx.scalatest.DiffShouldMatcher
 import org.joda.money.CurrencyUnit
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.PartialFunctionValues
@@ -37,12 +35,7 @@ import ru.johnspade.s10ns.subscription.service.impl.DefaultCreateS10nDialogServi
 import ru.johnspade.s10ns.user.InMemoryUserRepository
 import ru.johnspade.s10ns.user.User
 
-class DefaultCreateS10nDialogServiceSpec
-    extends AnyFlatSpec
-    with Matchers
-    with DiffShouldMatcher
-    with PartialFunctionValues
-    with MockFactory {
+class DefaultCreateS10nDialogServiceSpec extends AnyFlatSpec with Matchers with PartialFunctionValues with MockFactory {
 
   private val userRepo     = new InMemoryUserRepository
   private val mockS10nRepo = mock[SubscriptionRepository[Id]]
@@ -73,7 +66,7 @@ class DefaultCreateS10nDialogServiceSpec
 
   "onCreateCommand" should "ask for a subscription's currency" in {
     val result = createS10nDialogService.onCreateCommand(user).unsafeRunSync()
-    result shouldMatchTo {
+    result shouldBe {
       List(
         ReplyMessage(
           "Please select a popular currency from the options below, or manually type in the code for any other currency not listed in the buttons. For example: 'CNY' for Chinese Yuan or 'INR' for Indian Rupee:",
@@ -101,7 +94,7 @@ class DefaultCreateS10nDialogServiceSpec
   }
 
   "onCreateWithDefaultCurrencyCommand" should "ask for a subscription's name" in {
-    createS10nDialogService.onCreateWithDefaultCurrencyCommand(user).unsafeRunSync() shouldMatchTo {
+    createS10nDialogService.onCreateWithDefaultCurrencyCommand(user).unsafeRunSync() shouldBe {
       List(ReplyMessage("Name:", ReplyKeyboardRemove(removeKeyboard = true).some))
     }
   }

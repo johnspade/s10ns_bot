@@ -1,11 +1,11 @@
 package ru.johnspade.s10ns.exchangerates
 
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 
 import cats.effect.Async
 import cats.effect.Concurrent
 import cats.effect.Temporal
-import cats.implicits._
+import cats.implicits.*
 import cats.~>
 
 import doobie.free.connection.ConnectionIO

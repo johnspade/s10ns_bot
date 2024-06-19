@@ -6,19 +6,18 @@ import cats.effect.ExitCode
 import cats.effect.IO
 import cats.effect.IOApp
 import cats.effect.Temporal
-import cats.implicits._
+import cats.implicits.*
 import cats.~>
 
 import doobie.free.connection.ConnectionIO
 import doobie.hikari.HikariTransactor
-import doobie.implicits._
+import doobie.implicits.*
 import doobie.util.ExecutionContexts
 import org.flywaydb.core.Flyway
 import org.http4s.blaze.client.BlazeClientBuilder
 import pureconfig.ConfigSource
-import pureconfig.generic.auto._
-import telegramium.bots.high._
-import tofu.logging._
+import telegramium.bots.high.*
+import tofu.logging.*
 
 import ru.johnspade.s10ns.bot.BotModule
 import ru.johnspade.s10ns.bot.Config
@@ -73,7 +72,6 @@ object BotApp extends IOApp {
             settingsModule.settingsController,
             botModule.startController,
             botModule.ignoreController,
-            botModule.cbDataService,
             botModule.userMiddleware
           )
           _ <- bot

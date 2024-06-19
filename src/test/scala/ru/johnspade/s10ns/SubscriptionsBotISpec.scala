@@ -6,11 +6,11 @@ import java.time.format.DateTimeFormatter
 
 import cats.effect.IO
 import cats.effect.unsafe.implicits.global
-import cats.syntax.option._
+import cats.syntax.option.*
 import cats.~>
 
 import doobie.free.connection.ConnectionIO
-import doobie.implicits._
+import doobie.implicits.*
 import doobie.util.transactor.Transactor
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.BeforeAndAfterAll
@@ -21,6 +21,7 @@ import telegramium.bots.ChatIntId
 import telegramium.bots.Html
 import telegramium.bots.InlineKeyboardMarkup
 import telegramium.bots.KeyboardMarkup
+import telegramium.bots.LinkPreviewOptions
 import telegramium.bots.Markdown
 import telegramium.bots.Markdown2
 import telegramium.bots.Message
@@ -29,14 +30,13 @@ import telegramium.bots.ReplyKeyboardRemove
 import telegramium.bots.User
 import telegramium.bots.client.Method
 import telegramium.bots.high.Api
-import telegramium.bots.high.Methods._
+import telegramium.bots.high.Methods.*
 import telegramium.bots.high.keyboards.InlineKeyboardMarkups
 import tofu.logging.Logs
 
 import ru.johnspade.s10ns.PostgresContainer.container
 import ru.johnspade.s10ns.bot.BotConfig
 import ru.johnspade.s10ns.bot.BotStart
-import ru.johnspade.s10ns.bot.CbDataService
 import ru.johnspade.s10ns.bot.EditS10n
 import ru.johnspade.s10ns.bot.IgnoreController
 import ru.johnspade.s10ns.bot.Markup
@@ -151,7 +151,7 @@ class SubscriptionsBotISpec extends AnyFreeSpec with BeforeAndAfterAll with Mock
     )
 
     verifyMethodCall(api, editMessageReplyMarkup(ChatIntId(0).some, 0.some)).repeat(3)
-    (api.execute[Boolean] _).verify(answerCallbackQuery("0")).repeat(3)
+    (api.execute[Boolean]).verify(answerCallbackQuery("0")).repeat(3)
   }
 
   "enable notifications by default" in new Wiring {
@@ -241,15 +241,17 @@ class SubscriptionsBotISpec extends AnyFreeSpec with BeforeAndAfterAll with Mock
       parseMode: Option[ParseMode] = None,
       disableWebPagePreview: Option[Boolean] = None
   ) =
-    (api.execute[Message] _).verify(
-      sendMessage(
-        ChatIntId(0),
-        text,
-        replyMarkup = markup,
-        parseMode = parseMode,
-        disableWebPagePreview = disableWebPagePreview
+    (api
+      .execute[Message])
+      .verify(
+        sendMessage(
+          ChatIntId(0),
+          text,
+          replyMarkup = markup,
+          parseMode = parseMode,
+          linkPreviewOptions = Some(LinkPreviewOptions(isDisabled = disableWebPagePreview))
+        )
       )
-    )
 
   private def verifyEditMessageText(
       text: String,
@@ -259,9 +261,9 @@ class SubscriptionsBotISpec extends AnyFreeSpec with BeforeAndAfterAll with Mock
     verifyMethodCall(
       api,
       editMessageText(
+        text = text,
         ChatIntId(0).some,
         messageId = 0.some,
-        text = text,
         parseMode = parseMode,
         replyMarkup = replyMarkup
       )
@@ -373,7 +375,6 @@ class SubscriptionsBotISpec extends AnyFreeSpec with BeforeAndAfterAll with Mock
       )
     private val settingsController = SettingsController[IO](settingsService).unsafeRunSync()
     private val startController    = new StartController[IO](dialogEngine)
-    private val cbDataService      = new CbDataService[IO]
     private val botConfig          = BotConfig("", 8080, "", "0.0.0.0")
     protected val bot: SubscriptionsBot[IO, ConnectionIO] = SubscriptionsBot[IO, ConnectionIO](
       botConfig,
@@ -384,7 +385,6 @@ class SubscriptionsBotISpec extends AnyFreeSpec with BeforeAndAfterAll with Mock
       settingsController,
       startController,
       new IgnoreController[IO],
-      cbDataService,
       new UserMiddleware[IO, ConnectionIO](userRepo)
     ).unsafeRunSync()
 
@@ -397,16 +397,20 @@ class SubscriptionsBotISpec extends AnyFreeSpec with BeforeAndAfterAll with Mock
     private val mockMessage = Message(0, date = 0, chat = Chat(0, `type` = ""))
 
     protected def prepareStubs(): Unit = {
-      (api.execute[Message] _)
+      (api
+        .execute[Message])
         .when(where((_: Method[Message]).payload.name == "sendMessage"))
         .returns(IO.pure(mockMessage))
-      (api.execute[Either[Boolean, Message]] _)
+      (api
+        .execute[Either[Boolean, Message]])
         .when(where((_: Method[Either[Boolean, Message]]).payload.name == "editMessageReplyMarkup"))
         .returns(IO.pure(Right(mockMessage)))
-      (api.execute[Boolean] _)
+      (api
+        .execute[Boolean])
         .when(where((_: Method[Boolean]).payload.name == "answerCallbackQuery"))
         .returns(IO.pure(true))
-      (api.execute[Either[Boolean, Message]] _)
+      (api
+        .execute[Either[Boolean, Message]])
         .when(where((_: Method[Either[Boolean, Message]]).payload.name == "editMessageText"))
         .returns(IO.pure(Right(mockMessage)))
     }

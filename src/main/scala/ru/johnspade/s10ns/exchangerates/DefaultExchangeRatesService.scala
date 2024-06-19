@@ -4,14 +4,14 @@ import java.time.Instant
 
 import cats.Monad
 import cats.effect.Temporal
-import cats.syntax.all._
+import cats.syntax.all.*
 import cats.~>
 
+import retry.*
 import retry.RetryDetails.GivingUp
 import retry.RetryDetails.WillDelayAndRetry
-import retry._
-import tofu.logging._
-import tofu.syntax.logging._
+import tofu.logging.*
+import tofu.syntax.logging.*
 
 class DefaultExchangeRatesService[F[_]: Logging: Temporal, D[_]: Monad](
     private val fixerApi: FixerApi[F],

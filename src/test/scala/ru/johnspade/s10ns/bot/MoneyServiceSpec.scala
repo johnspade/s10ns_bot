@@ -4,9 +4,9 @@ import java.time.temporal.ChronoUnit
 
 import cats.effect.IO
 import cats.effect.unsafe.implicits.global
-import cats.implicits._
+import cats.implicits.*
 
-import com.softwaremill.quicklens._
+import com.softwaremill.quicklens.*
 import org.joda.money.CurrencyUnit
 import org.joda.money.Money
 import org.scalatest.flatspec.AnyFlatSpec

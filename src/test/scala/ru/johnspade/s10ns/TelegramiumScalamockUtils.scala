@@ -8,8 +8,9 @@ import telegramium.bots.high.Api
 
 trait TelegramiumScalamockUtils {
   this: MockFactory =>
-  def verifyMethodCall[F[_], Res](api: Api[F], method: Method[Res]): CallHandler1[Method[Res], F[Res]] with Verify =
-    (api.execute[Res] _)
+  def verifyMethodCall[F[_], Res](api: Api[F], method: Method[Res]): CallHandler1[Method[Res], F[Res]] & Verify =
+    (api
+      .execute[Res])
       .verify(where {
         (_: Method[Res]).payload == method.payload
       })

@@ -2,12 +2,12 @@ package ru.johnspade.s10ns.exchangerates
 
 import java.time.Instant
 
-import cats.implicits._
+import cats.implicits.*
 
-import doobie._
+import doobie.*
 import doobie.free.connection.ConnectionIO
-import doobie.implicits._
-import doobie.implicits.legacy.instant._
+import doobie.implicits.*
+import doobie.implicits.legacy.instant.*
 
 import ru.johnspade.s10ns.exchangerates.DoobieExchangeRatesRefreshTimestampRepository.ExchangeRatesRefreshTimestampSql
 

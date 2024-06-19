@@ -1,14 +1,14 @@
 package ru.johnspade.s10ns.settings
 
 import cats.Monad
-import cats.implicits._
+import cats.implicits.*
 import cats.~>
 
 import telegramium.bots.Markdown2
 
 import ru.johnspade.s10ns.bot.Markup
 import ru.johnspade.s10ns.bot.SettingsDialog
-import ru.johnspade.s10ns.bot.ValidatorNec._
+import ru.johnspade.s10ns.bot.ValidatorNec.*
 import ru.johnspade.s10ns.bot.engine.DialogEngine
 import ru.johnspade.s10ns.bot.engine.ReplyMessage
 import ru.johnspade.s10ns.bot.engine.StateMessageService

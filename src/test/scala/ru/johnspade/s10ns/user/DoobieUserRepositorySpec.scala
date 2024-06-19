@@ -1,7 +1,7 @@
 package ru.johnspade.s10ns.user
 
 import ru.johnspade.s10ns.DoobieRepositorySpec
-import ru.johnspade.s10ns.user.DoobieUserRepository.UserSql._
+import ru.johnspade.s10ns.user.DoobieUserRepository.UserSql.*
 
 class DoobieUserRepositorySpec extends DoobieRepositorySpec {
   private val sampleUser = User(0L, "", None)

@@ -4,14 +4,14 @@ import java.time.Instant
 import java.time.OffsetDateTime
 import java.time.ZoneId
 import java.time.temporal.ChronoUnit
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 
 import cats.Apply
 import cats.Monad
 import cats.effect.Clock
 import cats.effect.Concurrent
 import cats.effect.Temporal
-import cats.implicits._
+import cats.implicits.*
 import cats.~>
 
 import tofu.logging.Logging

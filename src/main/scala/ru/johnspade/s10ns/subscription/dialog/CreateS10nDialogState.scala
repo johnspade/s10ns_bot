@@ -2,9 +2,9 @@ package ru.johnspade.s10ns.subscription.dialog
 
 import scala.collection.immutable.IndexedSeq
 
-import cats.syntax.option._
+import cats.syntax.option.*
 
-import enumeratum._
+import enumeratum.*
 import telegramium.bots.KeyboardMarkup
 import telegramium.bots.ReplyKeyboardRemove
 

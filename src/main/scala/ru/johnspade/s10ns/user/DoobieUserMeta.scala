@@ -2,22 +2,39 @@ package ru.johnspade.s10ns.user
 
 import java.time.temporal.ChronoUnit
 
+import cats.syntax.either.*
+
 import doobie.util.meta.Meta
+import io.circe.Decoder
+import io.circe.Encoder
+import io.circe.derivation.Configuration
+import io.circe.derivation.ConfiguredDecoder
+import io.circe.derivation.ConfiguredEncoder
+import io.circe.parser.*
+import io.circe.syntax.*
 import org.joda.money.CurrencyUnit
 import org.joda.money.Money
 import org.postgresql.util.PGobject
 
 import ru.johnspade.s10ns.bot.Dialog
+import ru.johnspade.s10ns.subscription.BillingPeriod
+import ru.johnspade.s10ns.subscription.Subscription
+import ru.johnspade.s10ns.subscription.SubscriptionDraft
 
 object DoobieUserMeta {
-  import cats.syntax.either._
-  import io.circe.generic.extras.Configuration
-  import io.circe.generic.extras.auto._
-  import io.circe.parser._
-  import io.circe.syntax._
 
-  @annotation.nowarn
-  private implicit val jsonConfig: Configuration = Configuration.default.withDiscriminator("discriminator")
+  given Encoder[BillingPeriod] = Encoder.derived
+  given Decoder[BillingPeriod] = Decoder.derived
+
+  given Encoder[SubscriptionDraft] = Encoder.derived
+  given Decoder[SubscriptionDraft] = Decoder.derived
+
+  given Encoder[Subscription] = Encoder.derived
+  given Decoder[Subscription] = Decoder.derived
+
+  private val config    = Configuration.default.withDiscriminator("discriminator")
+  given Encoder[Dialog] = ConfiguredEncoder.derived(using config)
+  given Decoder[Dialog] = ConfiguredDecoder.derived(using config)
 
   implicit val dialogJsonMeta: Meta[Dialog] =
     Meta.Advanced

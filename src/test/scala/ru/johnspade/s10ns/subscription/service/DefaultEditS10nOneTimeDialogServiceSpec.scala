@@ -2,11 +2,9 @@ package ru.johnspade.s10ns.subscription.service
 
 import cats.effect.IO
 import cats.effect.unsafe.implicits.global
-import cats.syntax.option._
-import cats.syntax.validated._
+import cats.syntax.option.*
+import cats.syntax.validated.*
 
-import com.softwaremill.diffx.generic.auto._
-import com.softwaremill.diffx.scalatest.DiffShouldMatcher
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
@@ -33,8 +31,7 @@ class DefaultEditS10nOneTimeDialogServiceSpec
     extends AnyFlatSpec
     with MockFactory
     with EditS10nDialogServiceSpec
-    with Matchers
-    with DiffShouldMatcher {
+    with Matchers {
   private val editS10nOneTimeDialogService = new DefaultEditS10nOneTimeDialogService(
     s10nsListMessageService,
     new DefaultMsgService[IO, EditS10nOneTimeDialogState],
@@ -45,12 +42,12 @@ class DefaultEditS10nOneTimeDialogServiceSpec
 
   "onEditS10nOneTimeCb" should "ask is it an one time subscription" in {
     val dialog = EditS10nOneTimeDialog(EditS10nOneTimeDialogState.IsOneTime, s10n)
-    (mockS10nRepo.getById _).expects(s10nId).returns(s10n.some)
+    (mockS10nRepo.getById).expects(s10nId).returns(s10n.some)
     val updatedUser = user.copy(dialog = dialog.some)
-    (mockUserRepo.createOrUpdate _).expects(updatedUser).returns(updatedUser)
+    (mockUserRepo.createOrUpdate).expects(updatedUser).returns(updatedUser)
 
     val result = editS10nOneTimeDialogService.onEditS10nOneTimeCb(user, EditS10nOneTime(s10nId)).unsafeRunSync()
-    result shouldMatchTo {
+    result shouldBe {
       List(
         ReplyMessage("Recurring/one time:", ReplyKeyboardRemove(removeKeyboard = true).some),
         ReplyMessage("\uD83D\uDD18/☑️", Markup.isOneTimeReplyMarkup("Do not fill (remove)").some)
@@ -69,7 +66,7 @@ class DefaultEditS10nOneTimeDialogServiceSpec
       oneTime = true.some,
       billingPeriod = None
     )
-    (mockS10nRepo.update _).expects(updatedS10n).returns(updatedS10n.some)
+    (mockS10nRepo.update).expects(updatedS10n).returns(updatedS10n.some)
 
     editS10nOneTimeDialogService
       .saveIsOneTime(OneTime(true), user, dialog)
@@ -96,7 +93,7 @@ class DefaultEditS10nOneTimeDialogServiceSpec
       oneTime = false.some,
       billingPeriod = BillingPeriod(1, BillingPeriodUnit.Day).some
     )
-    (mockS10nRepo.update _).expects(updatedS10n).returns(updatedS10n.some)
+    (mockS10nRepo.update).expects(updatedS10n).returns(updatedS10n.some)
 
     editS10nOneTimeDialogService
       .saveIsOneTime(OneTime(false), user, dialog)
@@ -121,7 +118,7 @@ class DefaultEditS10nOneTimeDialogServiceSpec
       s10n.copy(oneTime = false.some)
     )
     val updatedUser = user.copy(dialog = updatedDialog.some)
-    (mockUserRepo.createOrUpdate _).expects(updatedUser).returns(updatedUser)
+    (mockUserRepo.createOrUpdate).expects(updatedUser).returns(updatedUser)
 
     val dialog = EditS10nOneTimeDialog(EditS10nOneTimeDialogState.IsOneTime, s10n)
     editS10nOneTimeDialogService
@@ -131,7 +128,7 @@ class DefaultEditS10nOneTimeDialogServiceSpec
   }
 
   "removeIsOneTime" should "just save a subscription" in {
-    (mockS10nRepo.update _).expects(s10n).returns(s10n.some)
+    (mockS10nRepo.update).expects(s10n).returns(s10n.some)
 
     val dialog = EditS10nOneTimeDialog(
       EditS10nOneTimeDialogState.IsOneTime,
@@ -156,7 +153,7 @@ class DefaultEditS10nOneTimeDialogServiceSpec
       oneTime = false.some,
       billingPeriod = BillingPeriod(1, BillingPeriodUnit.Month).some
     )
-    (mockS10nRepo.update _).expects(updatedS10n).returns(updatedS10n.some)
+    (mockS10nRepo.update).expects(updatedS10n).returns(updatedS10n.some)
 
     val dialog = EditS10nOneTimeDialog(EditS10nOneTimeDialogState.IsOneTime, s10n)
     editS10nOneTimeDialogService.saveEveryMonth(user, dialog).unsafeRunSync() shouldBe
@@ -184,7 +181,7 @@ class DefaultEditS10nOneTimeDialogServiceSpec
         )
       ).some
     )
-    (mockUserRepo.createOrUpdate _).expects(updatedUser).returns(updatedUser)
+    (mockUserRepo.createOrUpdate).expects(updatedUser).returns(updatedUser)
 
     val dialog = EditS10nOneTimeDialog(
       EditS10nOneTimeDialogState.BillingPeriodUnit,
@@ -203,7 +200,7 @@ class DefaultEditS10nOneTimeDialogServiceSpec
       oneTime = false.some,
       billingPeriod = BillingPeriod(3, BillingPeriodUnit.Day).some
     )
-    (mockS10nRepo.update _).expects(updatedS10n).returns(updatedS10n.some)
+    (mockS10nRepo.update).expects(updatedS10n).returns(updatedS10n.some)
 
     val dialog = EditS10nOneTimeDialog(
       EditS10nOneTimeDialogState.BillingPeriodDuration,

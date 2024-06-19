@@ -1,29 +1,29 @@
 package ru.johnspade.s10ns.notifications
 
 import java.time.Instant
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 
 import cats.Monad
 import cats.MonadError
 import cats.data.OptionT
 import cats.effect.Concurrent
 import cats.effect.Temporal
-import cats.syntax.applicative._
-import cats.syntax.applicativeError._
-import cats.syntax.apply._
-import cats.syntax.flatMap._
-import cats.syntax.foldable._
-import cats.syntax.functor._
-import cats.syntax.option._
+import cats.syntax.applicative.*
+import cats.syntax.applicativeError.*
+import cats.syntax.apply.*
+import cats.syntax.flatMap.*
+import cats.syntax.foldable.*
+import cats.syntax.functor.*
+import cats.syntax.option.*
 import cats.~>
 
 import telegramium.bots.ChatIntId
 import telegramium.bots.high.Api
 import telegramium.bots.high.FailedRequest
-import telegramium.bots.high.Methods._
-import telegramium.bots.high.implicits._
-import tofu.logging._
-import tofu.syntax.logging._
+import telegramium.bots.high.Methods.*
+import telegramium.bots.high.implicits.*
+import tofu.logging.*
+import tofu.syntax.logging.*
 
 import ru.johnspade.s10ns.currentTimestamp
 import ru.johnspade.s10ns.repeat

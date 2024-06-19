@@ -7,7 +7,7 @@ import org.scalamock.scalatest.MockFactory
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import ru.johnspade.tgbot.callbackqueries.CallbackDataDecoder
-import ru.johnspade.tgbot.callbackqueries.CallbackQueryDsl._
+import ru.johnspade.tgbot.callbackqueries.CallbackQueryDsl.*
 import ru.johnspade.tgbot.callbackqueries.CallbackQueryHandler
 import ru.johnspade.tgbot.callbackqueries.CallbackQueryRoutes
 import ru.johnspade.tgbot.callbackqueries.DecodeResult
@@ -31,13 +31,16 @@ class CallbackQueryHandlerSpec extends AnyFlatSpec with Matchers with MockFactor
   private val testUser = User(0, isBot = false, "")
 
   "handle" should "use correct routes" in {
-    (api.execute[Boolean] _)
+    (api
+      .execute[Boolean])
       .when(where((_: Method[Boolean]).payload.name == "answerCallbackQuery"))
       .returns(IO.pure(true))
-    (api.execute[User] _)
+    (api
+      .execute[User])
       .when(where((_: Method[User]).payload.name == "getMe"))
       .returns(IO.pure(testUser))
-    (api.execute[Boolean] _)
+    (api
+      .execute[Boolean])
       .when(where((_: Method[Boolean]).payload.name == "leaveChat"))
       .returns(IO.pure(true))
 

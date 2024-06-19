@@ -1,14 +1,14 @@
 package ru.johnspade
 
 import java.time.Instant
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 
 import cats.Functor
 import cats.Monad
 import cats.MonadError
 import cats.effect.Clock
 import cats.effect.Temporal
-import cats.implicits._
+import cats.implicits.*
 
 import ru.johnspade.tgbot.callbackqueries.CallbackQueryContextRoutes
 import ru.johnspade.tgbot.callbackqueries.CallbackQueryRoutes

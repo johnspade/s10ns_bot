@@ -4,9 +4,9 @@ import java.time.Instant
 import java.time.temporal.ChronoUnit
 
 import cats.Monad
-import cats.instances.option._
-import cats.syntax.functor._
-import cats.syntax.traverse._
+import cats.instances.option.*
+import cats.syntax.functor.*
+import cats.syntax.traverse.*
 
 import ru.johnspade.s10ns.subscription.Subscription
 import ru.johnspade.s10ns.subscription.service.S10nInfoService

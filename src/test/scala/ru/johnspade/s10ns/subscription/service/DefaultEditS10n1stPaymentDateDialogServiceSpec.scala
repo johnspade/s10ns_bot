@@ -5,10 +5,8 @@ import java.time.ZoneOffset
 
 import cats.effect.IO
 import cats.effect.unsafe.implicits.global
-import cats.syntax.option._
+import cats.syntax.option.*
 
-import com.softwaremill.diffx.generic.auto._
-import com.softwaremill.diffx.scalatest.DiffShouldMatcher
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
@@ -29,8 +27,7 @@ class DefaultEditS10n1stPaymentDateDialogServiceSpec
     extends AnyFlatSpec
     with MockFactory
     with EditS10nDialogServiceSpec
-    with Matchers
-    with DiffShouldMatcher {
+    with Matchers {
   private val calendarService = new CalendarService
   private val editS10n1stPaymentDateDialogService = new DefaultEditS10n1stPaymentDateDialogService(
     s10nsListMessageService,
@@ -41,15 +38,15 @@ class DefaultEditS10n1stPaymentDateDialogServiceSpec
   )
 
   "onEditS10nFirstPaymentDateCb" should "ask for a new subscriptions first date" in {
-    (mockS10nRepo.getById _).expects(s10nId).returns(s10n.some)
+    (mockS10nRepo.getById).expects(s10nId).returns(s10n.some)
     val dialog      = EditS10nFirstPaymentDateDialog(EditS10nFirstPaymentDateDialogState.FirstPaymentDate, s10n)
     val updatedUser = user.copy(dialog = dialog.some)
-    (mockUserRepo.createOrUpdate _).expects(updatedUser).returns(updatedUser)
+    (mockUserRepo.createOrUpdate).expects(updatedUser).returns(updatedUser)
 
     val result = editS10n1stPaymentDateDialogService
       .onEditS10nFirstPaymentDateCb(user, EditS10nFirstPaymentDate(s10nId))
       .unsafeRunSync()
-    result shouldMatchTo {
+    result shouldBe {
       List(
         ReplyMessage("First payment date:", ReplyKeyboardRemove(removeKeyboard = true).some),
         ReplyMessage("\uD83D\uDD18/☑️", calendarService.generateDaysKeyboard(LocalDate.now(ZoneOffset.UTC)).some)
@@ -60,7 +57,7 @@ class DefaultEditS10n1stPaymentDateDialogServiceSpec
   "saveFirstPaymentDate" should "just save a subscription" in {
     val date        = LocalDate.of(2020, 10, 8)
     val updatedS10n = s10n.copy(firstPaymentDate = date.some)
-    (mockS10nRepo.update _).expects(updatedS10n).returns(updatedS10n.some)
+    (mockS10nRepo.update).expects(updatedS10n).returns(updatedS10n.some)
 
     val dialog = EditS10nFirstPaymentDateDialog(EditS10nFirstPaymentDateDialogState.FirstPaymentDate, s10n)
     editS10n1stPaymentDateDialogService.saveFirstPaymentDate(FirstPayment(date), user, dialog).unsafeRunSync() shouldBe
@@ -79,7 +76,7 @@ class DefaultEditS10n1stPaymentDateDialogServiceSpec
   }
 
   "removeFirstPaymentDate" should "just save a subscription" in {
-    (mockS10nRepo.update _).expects(s10n).returns(s10n.some)
+    (mockS10nRepo.update).expects(s10n).returns(s10n.some)
 
     val dialog = EditS10nFirstPaymentDateDialog(
       EditS10nFirstPaymentDateDialogState.FirstPaymentDate,

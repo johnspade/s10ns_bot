@@ -6,7 +6,7 @@ import java.time.temporal.ChronoUnit
 
 import cats.effect.IO
 import cats.effect.unsafe.implicits.global
-import cats.syntax.option._
+import cats.syntax.option.*
 
 import org.joda.money.CurrencyUnit
 import org.joda.money.Money

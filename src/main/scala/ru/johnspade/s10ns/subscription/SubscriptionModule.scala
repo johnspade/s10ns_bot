@@ -3,7 +3,7 @@ package ru.johnspade.s10ns.subscription
 import cats.Defer
 import cats.effect.Clock
 import cats.effect.Temporal
-import cats.implicits._
+import cats.implicits.*
 import cats.~>
 
 import doobie.free.connection.ConnectionIO

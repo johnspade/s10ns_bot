@@ -1,7 +1,7 @@
 package ru.johnspade.s10ns.calendar
 
 import cats.effect.Sync
-import cats.implicits._
+import cats.implicits.*
 
 import ru.johnspade.tgbot.callbackqueries.CallbackQueryRoutes
 import telegramium.bots.CallbackQuery
@@ -9,7 +9,7 @@ import telegramium.bots.ChatIntId
 import telegramium.bots.InlineKeyboardMarkup
 import telegramium.bots.high.Api
 import telegramium.bots.high.Methods.editMessageReplyMarkup
-import telegramium.bots.high.implicits._
+import telegramium.bots.high.implicits.*
 
 import ru.johnspade.s10ns.CbDataRoutes
 import ru.johnspade.s10ns.bot.Calendar
@@ -17,6 +17,7 @@ import ru.johnspade.s10ns.bot.CallbackQueryController
 import ru.johnspade.s10ns.bot.Months
 import ru.johnspade.s10ns.bot.Years
 import ru.johnspade.s10ns.bot.engine.TelegramOps.ackCb
+import ru.johnspade.s10ns.bot.engine.TelegramOps.toMessage
 
 class CalendarController[F[_]: Sync](
     private val calendarService: CalendarService
@@ -36,8 +37,8 @@ class CalendarController[F[_]: Sync](
   private def editMarkup(cb: CallbackQuery, markup: InlineKeyboardMarkup)(implicit bot: Api[F]) =
     ackCb(cb) *>
       editMessageReplyMarkup(
-        chatId = cb.message.map(msg => ChatIntId(msg.chat.id)),
-        messageId = cb.message.map(_.messageId),
+        chatId = cb.message.flatMap(_.toMessage).map(msg => ChatIntId(msg.chat.id)),
+        messageId = cb.message.flatMap(_.toMessage).map(_.messageId),
         replyMarkup = markup.some
       ).exec.void
 }

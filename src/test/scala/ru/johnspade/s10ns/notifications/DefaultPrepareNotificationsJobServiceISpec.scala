@@ -5,10 +5,10 @@ import java.time.LocalDate
 
 import cats.effect.IO
 import cats.effect.unsafe.implicits.global
-import cats.syntax.option._
+import cats.syntax.option.*
 
 import doobie.free.connection.ConnectionIO
-import doobie.implicits._
+import doobie.implicits.*
 import org.joda.money.CurrencyUnit
 import org.scalatest.BeforeAndAfterEach
 

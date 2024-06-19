@@ -5,7 +5,7 @@ import java.time.temporal.ChronoUnit
 import scala.math.max
 
 import cats.Monad
-import cats.implicits._
+import cats.implicits.*
 
 import org.joda.money.CurrencyUnit
 import org.joda.money.Money
@@ -28,7 +28,7 @@ class MoneyService[F[_]: Monad](private val exchangeRatesStorage: ExchangeRatesS
       }
       .map {
         _.flatten
-          .foldLeft(Money.zero(defaultCurrency))(_ plus _)
+          .foldLeft(Money.zero(defaultCurrency))(_ `plus` _)
       }
 
   def calcAmount(period: BillingPeriod, amount: Money, unit: ChronoUnit = ChronoUnit.MONTHS): Money =
