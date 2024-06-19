@@ -3,10 +3,7 @@ package ru.johnspade.s10ns.subscription.controller
 import cats.Defer
 import cats.Monad
 import cats.effect.Temporal
-import cats.syntax.apply.*
-import cats.syntax.flatMap.*
-import cats.syntax.functor.*
-import cats.syntax.option.*
+import cats.syntax.all.*
 
 import ru.johnspade.tgbot.callbackqueries.CallbackQueryContextRoutes
 import telegramium.bots.CallbackQuery
@@ -232,15 +229,22 @@ class S10nController[F[_]: Logging: Temporal: Defer](
     clearMarkup(cb) *> f(createS10nDialogService).flatMap(handleCallback(cb, _))
 
   private def showSelected(cb: CallbackQuery, data: CbData): F[Unit] =
-    Methods
-      .editMessageText(
-        text = cb.message.flatMap(_.toMessage).flatMap(_.text).map(t => s"$t <em>${data.print}</em>").orEmpty,
-        cb.message.flatMap(_.toMessage).map(msg => ChatIntId(msg.chat.id)),
-        cb.message.flatMap(_.toMessage).map(_.messageId),
-        parseMode = Html.some
-      )
-      .exec
-      .void
+    cb.message
+      .flatMap:
+        _.toMessage
+      .`traverse_`: msg =>
+        Methods
+          .editMessageText(
+            msg.text
+              .map: t =>
+                s"$t <em>${data.print}</em>"
+              .orEmpty,
+            ChatIntId(msg.chat.id).some,
+            msg.messageId.some,
+            parseMode = Html.some
+          )
+          .exec
+          .void
 
   private val useInlineKeyboardError = Monad[F].pure(singleTextMessage(Errors.UseInlineKeyboard))
 }

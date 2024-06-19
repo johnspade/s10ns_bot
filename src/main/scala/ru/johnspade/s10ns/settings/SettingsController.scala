@@ -43,32 +43,36 @@ class SettingsController[F[_]: Logging: Temporal: Defer](
   override val routes: CbDataUserRoutes[F] = CallbackQueryContextRoutes.of {
     case DefCurrency in cb as user =>
       ackCb(cb) *> cb.message
-        .flatMap(_.toMessage)
-        .map { msg =>
+        .flatMap:
+          _.toMessage
+        .`traverse_`: msg =>
           settingsService
             .startDefaultCurrencyDialog(user)
-            .flatMap(sendReplyMessages(msg, _).void)
-        }
-        .getOrElse(Monad[F].unit)
+            .flatMap:
+              sendReplyMessages(msg, _).void
 
     case NotifyByDefault in cb as user =>
-      for {
+      for
         _     <- ackCb(cb)
         reply <- settingsService.toggleNotifyByDefault(user)
-        _ <- Methods
-          .editMessageText(
-            chatId = cb.message.flatMap(_.toMessage).map(msg => ChatIntId(msg.chat.id)),
-            messageId = cb.message.flatMap(_.toMessage).map(_.messageId),
-            text = reply.text,
-            replyMarkup = reply.markup match {
-              case Some(m: InlineKeyboardMarkup) => m.some
-              case _                             => None
-            },
-            parseMode = reply.parseMode
-          )
-          .exec
-          .void
-      } yield ()
+        _ <- cb.message
+          .flatMap:
+            _.toMessage
+          .`traverse_`: msg =>
+            Methods
+              .editMessageText(
+                reply.text,
+                ChatIntId(msg.chat.id).some,
+                msg.messageId.some,
+                replyMarkup = reply.markup match {
+                  case Some(m: InlineKeyboardMarkup) => m.some
+                  case _                             => None
+                },
+                parseMode = reply.parseMode
+              )
+              .exec
+              .void
+      yield ()
   }
 
   def settingsCommand(user: User): F[ReplyMessage] = settingsService.onSettingsCommand(user)

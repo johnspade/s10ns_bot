@@ -68,25 +68,24 @@ object TelegramOps {
   def inlineKeyboardButton(text: String, cbData: CbData): InlineKeyboardButton =
     InlineKeyboardButtons.callbackData(text, callbackData = cbData.toCsv)
 
-  def clearMarkup[F[_]](cb: CallbackQuery)(implicit bot: Api[F], F: Functor[F]): F[Unit] =
-    editMessageReplyMarkup(
-      cb.message.flatMap(_.toMessage).map(msg => ChatIntId(msg.chat.id)),
-      cb.message.flatMap(_.toMessage).map(_.messageId)
-    ).exec.void
+  def clearMarkup[F[_]: Monad](cb: CallbackQuery)(using bot: Api[F]): F[Unit] =
+    cb.message
+      .flatMap:
+        _.toMessage
+      .`traverse_`: msg =>
+        editMessageReplyMarkup(ChatIntId(msg.chat.id).some, msg.messageId.some).exec.void
 
-  def handleCallback[F[_]: Logging: Temporal](query: CallbackQuery, replies: List[ReplyMessage])(implicit
+  def handleCallback[F[_]: Logging: Temporal](query: CallbackQuery, replies: List[ReplyMessage])(using
       bot: Api[F]
-  ): F[Unit] = {
+  ): F[Unit] =
     def sendReplies() =
       query.message
-        .flatMap(_.toMessage)
-        .map {
+        .flatMap:
+          _.toMessage
+        .`traverse_`:
           sendReplyMessages(_, replies)
-        }
-        .getOrElse(Monad[F].unit)
 
     ackCb(query) *> sendReplies()
-  }
 
   def sendReplyMessages[F[_]: Logging: Temporal](msg: Message, replies: List[ReplyMessage])(implicit
       bot: Api[F]

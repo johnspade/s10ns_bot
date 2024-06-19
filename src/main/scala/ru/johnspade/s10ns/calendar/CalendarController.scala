@@ -34,11 +34,15 @@ class CalendarController[F[_]: Sync](
       editMarkup(cb, calendarService.generateMonthsKeyboard(data.year))
   }
 
-  private def editMarkup(cb: CallbackQuery, markup: InlineKeyboardMarkup)(implicit bot: Api[F]) =
+  private def editMarkup(cb: CallbackQuery, markup: InlineKeyboardMarkup)(using bot: Api[F]) =
     ackCb(cb) *>
-      editMessageReplyMarkup(
-        chatId = cb.message.flatMap(_.toMessage).map(msg => ChatIntId(msg.chat.id)),
-        messageId = cb.message.flatMap(_.toMessage).map(_.messageId),
-        replyMarkup = markup.some
-      ).exec.void
+      cb.message
+        .flatMap:
+          _.toMessage
+        .`traverse_`: msg =>
+          editMessageReplyMarkup(
+            chatId = ChatIntId(msg.chat.id).some,
+            messageId = msg.messageId.some,
+            replyMarkup = markup.some
+          ).exec.void
 }
