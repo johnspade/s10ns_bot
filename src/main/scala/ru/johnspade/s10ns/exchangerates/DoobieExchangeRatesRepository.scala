@@ -1,10 +1,10 @@
 package ru.johnspade.s10ns.exchangerates
 
-import cats.implicits._
+import cats.implicits.*
 
-import doobie._
+import doobie.*
 import doobie.free.connection.ConnectionIO
-import doobie.implicits._
+import doobie.implicits.*
 import doobie.util.query.Query0
 
 import ru.johnspade.s10ns.exchangerates.DoobieExchangeRatesRepository.ExchangeRatesSql

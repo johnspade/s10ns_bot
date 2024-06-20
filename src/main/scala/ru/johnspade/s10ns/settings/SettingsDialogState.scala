@@ -2,9 +2,9 @@ package ru.johnspade.s10ns.settings
 
 import scala.collection.immutable.IndexedSeq
 
-import cats.syntax.option._
+import cats.syntax.option.*
 
-import enumeratum._
+import enumeratum.*
 import telegramium.bots.KeyboardMarkup
 
 import ru.johnspade.s10ns.bot.Markup
@@ -30,7 +30,6 @@ object SettingsDialogState extends Enum[SettingsDialogState] with CirceEnum[Sett
       case DefaultCurrency =>
         e match {
           case ChosenDefaultCurrency => Finished
-          case _                     => state
         }
       case _ => state
     }

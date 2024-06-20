@@ -2,15 +2,15 @@ package ru.johnspade.s10ns.subscription.controller
 
 import cats.Defer
 import cats.Monad
-import cats.implicits._
+import cats.implicits.*
 
 import ru.johnspade.tgbot.callbackqueries.CallbackQueryContextRoutes
 import telegramium.bots.CallbackQuery
 import telegramium.bots.ChatIntId
 import telegramium.bots.InlineKeyboardMarkup
-import telegramium.bots.high.Methods._
-import telegramium.bots.high._
-import telegramium.bots.high.implicits._
+import telegramium.bots.high.*
+import telegramium.bots.high.Methods.*
+import telegramium.bots.high.implicits.*
 
 import ru.johnspade.s10ns.CbDataUserRoutes
 import ru.johnspade.s10ns.bot.CallbackQueryUserController
@@ -22,6 +22,7 @@ import ru.johnspade.s10ns.bot.S10ns
 import ru.johnspade.s10ns.bot.S10nsPeriod
 import ru.johnspade.s10ns.bot.engine.ReplyMessage
 import ru.johnspade.s10ns.bot.engine.TelegramOps.ackCb
+import ru.johnspade.s10ns.bot.engine.TelegramOps.toMessage
 import ru.johnspade.s10ns.subscription.service.SubscriptionListService
 import ru.johnspade.s10ns.user.User
 
@@ -67,19 +68,21 @@ class SubscriptionListController[F[_]: Monad: Defer](
         }
   }
 
-  private def editMessage(cb: CallbackQuery, reply: ReplyMessage)(implicit bot: Api[F]) = {
-    val markup = reply.markup match {
+  private def editMessage(cb: CallbackQuery, reply: ReplyMessage)(using bot: Api[F]) =
+    val markup = reply.markup match
       case Some(inlineKeyboard @ InlineKeyboardMarkup(_)) => inlineKeyboard.some
       case _                                              => Option.empty[InlineKeyboardMarkup]
-    }
-    editMessageText(
-      cb.message.map(msg => ChatIntId(msg.chat.id)),
-      cb.message.map(_.messageId),
-      text = reply.text,
-      replyMarkup = markup,
-      parseMode = reply.parseMode
-    ).exec.void
-  }
+    cb.message
+      .flatMap:
+        _.toMessage
+      .`traverse_`: msg =>
+        editMessageText(
+          reply.text,
+          ChatIntId(msg.chat.id).some,
+          msg.messageId.some,
+          replyMarkup = markup,
+          parseMode = reply.parseMode
+        ).exec.void
 
   private def ackAndEditMsg(cb: CallbackQuery, replyF: F[Either[String, ReplyMessage]])(implicit bot: Api[F]) =
     replyF.flatMap {
@@ -87,10 +90,14 @@ class SubscriptionListController[F[_]: Monad: Defer](
       case Right(reply) => ackCb(cb) *> editMessage(cb, reply)
     }
 
-  private def editMarkup(cb: CallbackQuery, markup: InlineKeyboardMarkup)(implicit bot: Api[F]) =
-    editMessageReplyMarkup(
-      cb.message.map(msg => ChatIntId(msg.chat.id)),
-      cb.message.map(_.messageId),
-      replyMarkup = markup.some
-    ).exec.void
+  private def editMarkup(cb: CallbackQuery, markup: InlineKeyboardMarkup)(using bot: Api[F]) =
+    cb.message
+      .flatMap:
+        _.toMessage
+      .`traverse_`: msg =>
+        editMessageReplyMarkup(
+          ChatIntId(msg.chat.id).some,
+          msg.messageId.some,
+          replyMarkup = markup.some
+        ).exec.void
 }

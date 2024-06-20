@@ -5,8 +5,8 @@ import java.time.ZoneOffset
 
 import cats.Monad
 import cats.effect.Clock
-import cats.syntax.functor._
-import cats.syntax.option._
+import cats.syntax.functor.*
+import cats.syntax.option.*
 
 import telegramium.bots.InlineKeyboardMarkup
 

@@ -5,7 +5,7 @@ import java.time.LocalDate
 import scala.collection.concurrent.TrieMap
 
 import cats.Id
-import cats.syntax.option._
+import cats.syntax.option.*
 
 import ru.johnspade.s10ns.subscription.Subscription
 import ru.johnspade.s10ns.subscription.SubscriptionDraft

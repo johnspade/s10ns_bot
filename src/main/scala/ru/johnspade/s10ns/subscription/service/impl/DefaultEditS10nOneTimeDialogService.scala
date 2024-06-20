@@ -1,16 +1,16 @@
 package ru.johnspade.s10ns.subscription.service.impl
 
 import cats.Monad
-import cats.syntax.option._
+import cats.syntax.option.*
 import cats.~>
 
-import com.softwaremill.quicklens._
+import com.softwaremill.quicklens.*
 
 import ru.johnspade.s10ns.bot.EditS10nOneTime
 import ru.johnspade.s10ns.bot.EditS10nOneTimeDialog
 import ru.johnspade.s10ns.bot.OneTime
 import ru.johnspade.s10ns.bot.PeriodUnit
-import ru.johnspade.s10ns.bot.ValidatorNec._
+import ru.johnspade.s10ns.bot.ValidatorNec.*
 import ru.johnspade.s10ns.bot.engine.ReplyMessage
 import ru.johnspade.s10ns.bot.engine.StateMessageService
 import ru.johnspade.s10ns.bot.engine.TransactionalDialogEngine

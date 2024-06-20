@@ -7,10 +7,8 @@ import java.time.format.DateTimeFormatter
 
 import cats.effect.IO
 import cats.effect.unsafe.implicits.global
-import cats.syntax.option._
+import cats.syntax.option.*
 
-import com.softwaremill.diffx.generic.auto._
-import com.softwaremill.diffx.scalatest.DiffShouldMatcher
 import org.joda.money.CurrencyUnit
 import org.joda.money.Money
 import org.scalatest.OptionValues
@@ -40,7 +38,7 @@ import ru.johnspade.s10ns.subscription.BillingPeriod
 import ru.johnspade.s10ns.subscription.BillingPeriodUnit
 import ru.johnspade.s10ns.subscription.Subscription
 
-class S10nsListMessageServiceSpec extends AnyFlatSpec with Matchers with OptionValues with DiffShouldMatcher {
+class S10nsListMessageServiceSpec extends AnyFlatSpec with Matchers with OptionValues {
 
   private val moneyService    = new MoneyService[IO](new InMemoryExchangeRatesStorage)
   private val s10nInfoService = new S10nInfoService[IO]
@@ -80,7 +78,7 @@ class S10nsListMessageServiceSpec extends AnyFlatSpec with Matchers with OptionV
           |
           |1. Spotify – 5.30 €
           |2. Netflix – ≈11.97 € <b>[${daysUntilNextPayment}d]</b>""".stripMargin
-    page.markup.value shouldMatchTo {
+    page.markup.value shouldBe {
       InlineKeyboardMarkup(
         List(
           List(
@@ -105,7 +103,7 @@ class S10nsListMessageServiceSpec extends AnyFlatSpec with Matchers with OptionV
       s"""|Monthly: 0.00 €
           |
           |${List.tabulate(10)(n => s"${n + 1}. s10n${n + 10} – 1.00 €").mkString("\n")}""".stripMargin
-    page.markup.value shouldMatchTo {
+    page.markup.value shouldBe {
       InlineKeyboardMarkup(
         List(
           List.tabulate(5)(n => inlineKeyboardButton((n + 1).toString, S10n(n + 10.toLong, 1))),
@@ -131,7 +129,7 @@ class S10nsListMessageServiceSpec extends AnyFlatSpec with Matchers with OptionV
       s"""|Monthly: 0.00 €
           |
           |1. s10n10 – 1.00 €""".stripMargin
-    page.markup.value shouldMatchTo {
+    page.markup.value shouldBe {
       InlineKeyboardMarkup(
         List(
           List(inlineKeyboardButton("1", S10n(10L, 1))),
@@ -153,7 +151,7 @@ class S10nsListMessageServiceSpec extends AnyFlatSpec with Matchers with OptionV
       s"""|Monthly: 0.00 €
           |
           |${List.tabulate(10)(n => s"${n + 1}. s10n$n – 1.00 €").mkString("\n")}""".stripMargin
-    page.markup.value shouldMatchTo {
+    page.markup.value shouldBe {
       InlineKeyboardMarkup(
         List(
           List.tabulate(5)(n => inlineKeyboardButton((n + 1).toString, S10n(n.toLong, 0))),
@@ -181,7 +179,7 @@ class S10nsListMessageServiceSpec extends AnyFlatSpec with Matchers with OptionV
       s"""|Yearly: 143.67 €
           |
           |1. Netflix – ≈143.67 € <b>[${daysUntilNextPayment}d]</b>""".stripMargin
-    page.markup.value shouldMatchTo {
+    page.markup.value shouldBe {
       InlineKeyboardMarkup(
         List(
           List(inlineKeyboardButton("1", S10n(1L, 0))),
@@ -208,7 +206,7 @@ class S10nsListMessageServiceSpec extends AnyFlatSpec with Matchers with OptionV
       s"""|Weekly: 2.75 €
           |
           |1. Netflix – ≈2.75 € <b>[${daysUntilNextPayment}d]</b>""".stripMargin
-    page.markup.value shouldMatchTo {
+    page.markup.value shouldBe {
       InlineKeyboardMarkup(
         List(
           List(inlineKeyboardButton("1", S10n(1L, 0))),
@@ -291,7 +289,7 @@ class S10nsListMessageServiceSpec extends AnyFlatSpec with Matchers with OptionV
     import s10n1.id
 
     val markup = s10nsListMessageService.createEditS10nMarkup(s10n1, 0)
-    markup shouldMatchTo {
+    markup shouldBe {
       InlineKeyboardMarkups.singleColumn(
         List(
           inlineKeyboardButton("Name", EditS10nName(id)),
@@ -321,7 +319,7 @@ class S10nsListMessageServiceSpec extends AnyFlatSpec with Matchers with OptionV
     import subscription.id
 
     val markup = s10nsListMessageService.createEditS10nMarkup(subscription, 0)
-    markup shouldMatchTo {
+    markup shouldBe {
       InlineKeyboardMarkup(
         List(
           List(inlineKeyboardButton("Name", EditS10nName(id))),
@@ -350,7 +348,7 @@ class S10nsListMessageServiceSpec extends AnyFlatSpec with Matchers with OptionV
     }
 
   private def checkS10nMessageMarkup(markup: Option[KeyboardMarkup], s10nId: Long, page: Int): Unit =
-    markup.value shouldMatchTo {
+    markup.value shouldBe {
       InlineKeyboardMarkups.singleColumn(
         List(
           inlineKeyboardButton("Edit", EditS10n(s10nId, page)),

@@ -3,7 +3,7 @@ package ru.johnspade.s10ns.bot
 import java.net.URI
 
 import pureconfig.ConfigReader
-import pureconfig.module.magnolia.semiauto.reader.deriveReader
+import pureconfig.generic.derivation.default.*
 
 final case class DbConfig(driver: String, url: String, user: String, password: String)
 object DbConfig {
@@ -24,20 +24,8 @@ object DbConfig {
   }
 }
 
-case class BotConfig(token: String, port: Int, url: String, host: String)
+case class BotConfig(token: String, port: Int, url: String, host: String) derives ConfigReader
 
-object BotConfig {
-  implicit val botConfigReader: ConfigReader[BotConfig] = deriveReader[BotConfig]
-}
+case class FixerConfig(token: String) derives ConfigReader
 
-case class FixerConfig(token: String)
-
-object FixerConfig {
-  implicit val fixerConfigReader: ConfigReader[FixerConfig] = deriveReader[FixerConfig]
-}
-
-case class Config(db: DbConfig, bot: BotConfig, fixer: FixerConfig)
-
-object Config {
-  implicit val configReader: ConfigReader[Config] = deriveReader[Config]
-}
+case class Config(db: DbConfig, bot: BotConfig, fixer: FixerConfig) derives ConfigReader

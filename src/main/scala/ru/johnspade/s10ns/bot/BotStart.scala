@@ -1,6 +1,6 @@
 package ru.johnspade.s10ns.bot
 
-import cats.syntax.option._
+import cats.syntax.option.*
 
 import telegramium.bots.Html
 import telegramium.bots.ReplyKeyboardMarkup

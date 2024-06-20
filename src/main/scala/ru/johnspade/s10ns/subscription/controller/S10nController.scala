@@ -3,10 +3,7 @@ package ru.johnspade.s10ns.subscription.controller
 import cats.Defer
 import cats.Monad
 import cats.effect.Temporal
-import cats.syntax.apply._
-import cats.syntax.flatMap._
-import cats.syntax.functor._
-import cats.syntax.option._
+import cats.syntax.all.*
 
 import ru.johnspade.tgbot.callbackqueries.CallbackQueryContextRoutes
 import telegramium.bots.CallbackQuery
@@ -15,7 +12,7 @@ import telegramium.bots.Html
 import telegramium.bots.Message
 import telegramium.bots.high.Api
 import telegramium.bots.high.Methods
-import telegramium.bots.high.implicits._
+import telegramium.bots.high.implicits.*
 import tofu.logging.Logging
 import tofu.logging.Logs
 
@@ -49,6 +46,7 @@ import ru.johnspade.s10ns.bot.engine.TelegramOps.clearMarkup
 import ru.johnspade.s10ns.bot.engine.TelegramOps.handleCallback
 import ru.johnspade.s10ns.bot.engine.TelegramOps.sendReplyMessages
 import ru.johnspade.s10ns.bot.engine.TelegramOps.singleTextMessage
+import ru.johnspade.s10ns.bot.engine.TelegramOps.toMessage
 import ru.johnspade.s10ns.bot.engine.TelegramOps.toReplyMessages
 import ru.johnspade.s10ns.subscription.dialog.EditS10nAmountDialogState
 import ru.johnspade.s10ns.subscription.dialog.EditS10nBillingPeriodDialogState
@@ -222,7 +220,7 @@ class S10nController[F[_]: Logging: Temporal: Defer](
     }
 
   private def reply(cb: CallbackQuery, messages: List[ReplyMessage])(implicit bot: Api[F]): F[Unit] = {
-    cb.message.map {
+    cb.message.flatMap(_.toMessage).map {
       ackCb(cb) *> sendReplyMessages(_, messages)
     } getOrElse ackCb(cb, Errors.Default.some)
   }
@@ -231,15 +229,22 @@ class S10nController[F[_]: Logging: Temporal: Defer](
     clearMarkup(cb) *> f(createS10nDialogService).flatMap(handleCallback(cb, _))
 
   private def showSelected(cb: CallbackQuery, data: CbData): F[Unit] =
-    Methods
-      .editMessageText(
-        cb.message.map(msg => ChatIntId(msg.chat.id)),
-        cb.message.map(_.messageId),
-        text = cb.message.flatMap(_.text).map(t => s"$t <em>${data.print}</em>").orEmpty,
-        parseMode = Html.some
-      )
-      .exec
-      .void
+    cb.message
+      .flatMap:
+        _.toMessage
+      .`traverse_`: msg =>
+        Methods
+          .editMessageText(
+            msg.text
+              .map: t =>
+                s"$t <em>${data.print}</em>"
+              .orEmpty,
+            ChatIntId(msg.chat.id).some,
+            msg.messageId.some,
+            parseMode = Html.some
+          )
+          .exec
+          .void
 
   private val useInlineKeyboardError = Monad[F].pure(singleTextMessage(Errors.UseInlineKeyboard))
 }

@@ -1,8 +1,7 @@
 package ru.johnspade.s10ns.subscription.service.impl
 
 import cats.Monad
-import cats.implicits._
-import cats.~>
+import cats.implicits.*
 
 import ru.johnspade.s10ns.bot
 import ru.johnspade.s10ns.bot.CreateS10nDialog
@@ -30,8 +29,7 @@ class DefaultCreateS10nDialogService[F[_]: Monad, D[_]: Monad](
     private val createS10nDialogFsmService: CreateS10nDialogFsmService[F],
     private val stateMessageService: StateMessageService[F, CreateS10nDialogState],
     private val dialogEngine: DialogEngine[F]
-)(private implicit val transact: D ~> F)
-    extends CreateS10nDialogService[F] {
+) extends CreateS10nDialogService[F] {
   override def onCreateCommand(user: User): F[List[ReplyMessage]] = {
     val state = CreateS10nDialogState.Currency
     val dialog = CreateS10nDialog(

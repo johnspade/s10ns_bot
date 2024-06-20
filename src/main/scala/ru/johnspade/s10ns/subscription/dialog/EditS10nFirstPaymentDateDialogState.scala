@@ -2,7 +2,7 @@ package ru.johnspade.s10ns.subscription.dialog
 
 import scala.collection.immutable.IndexedSeq
 
-import enumeratum._
+import enumeratum.*
 import telegramium.bots.KeyboardMarkup
 
 import ru.johnspade.s10ns.bot.Messages
@@ -33,7 +33,6 @@ object EditS10nFirstPaymentDateDialogState
       case FirstPaymentDate =>
         e match {
           case ChosenFirstPaymentDate | RemovedFirstPaymentDate => Finished
-          case _                                                => state
         }
       case _ => state
     }

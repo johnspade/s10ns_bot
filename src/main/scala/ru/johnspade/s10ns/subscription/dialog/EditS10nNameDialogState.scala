@@ -2,7 +2,7 @@ package ru.johnspade.s10ns.subscription.dialog
 
 import scala.collection.immutable.IndexedSeq
 
-import enumeratum._
+import enumeratum.*
 import telegramium.bots.KeyboardMarkup
 
 import ru.johnspade.s10ns.bot.Messages
@@ -27,7 +27,6 @@ object EditS10nNameDialogState extends Enum[EditS10nNameDialogState] with CirceE
       case Name =>
         e match {
           case EnteredName => Finished
-          case _           => state
         }
       case _ => state
     }

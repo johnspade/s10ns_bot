@@ -3,13 +3,13 @@ package ru.johnspade.s10ns.subscription.service.impl
 import cats.Monad
 import cats.~>
 
-import com.softwaremill.quicklens._
+import com.softwaremill.quicklens.*
 import org.joda.money.CurrencyUnit
 import org.joda.money.Money
 
 import ru.johnspade.s10ns.bot.EditS10nCurrency
 import ru.johnspade.s10ns.bot.EditS10nCurrencyDialog
-import ru.johnspade.s10ns.bot.ValidatorNec._
+import ru.johnspade.s10ns.bot.ValidatorNec.*
 import ru.johnspade.s10ns.bot.engine.ReplyMessage
 import ru.johnspade.s10ns.bot.engine.StateMessageService
 import ru.johnspade.s10ns.bot.engine.TransactionalDialogEngine

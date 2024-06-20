@@ -2,11 +2,9 @@ package ru.johnspade.s10ns.subscription.service
 
 import cats.effect.IO
 import cats.effect.unsafe.implicits.global
-import cats.syntax.option._
-import cats.syntax.validated._
+import cats.syntax.option.*
+import cats.syntax.validated.*
 
-import com.softwaremill.diffx.generic.auto._
-import com.softwaremill.diffx.scalatest.DiffShouldMatcher
 import org.joda.money.CurrencyUnit
 import org.joda.money.Money
 import org.scalamock.scalatest.MockFactory
@@ -31,8 +29,7 @@ class DefaultEditS10nCurrencyDialogServiceSpec
     extends AnyFlatSpec
     with MockFactory
     with EditS10nDialogServiceSpec
-    with Matchers
-    with DiffShouldMatcher {
+    with Matchers {
   private val editS10nCurrencyDialogService = new DefaultEditS10nCurrencyDialogService(
     s10nsListMessageService,
     new DefaultMsgService[IO, EditS10nCurrencyDialogState],
@@ -42,13 +39,13 @@ class DefaultEditS10nCurrencyDialogServiceSpec
   )
 
   "onEditS10nCurrencyCb" should "ask for a new subscription's currency" in {
-    (mockS10nRepo.getById _).expects(s10nId).returns(s10n.some)
+    (mockS10nRepo.getById).expects(s10nId).returns(s10n.some)
     val dialog      = EditS10nCurrencyDialog(EditS10nCurrencyDialogState.Currency, s10n)
     val updatedUser = user.copy(dialog = dialog.some)
-    (mockUserRepo.createOrUpdate _).expects(updatedUser).returns(updatedUser)
+    (mockUserRepo.createOrUpdate).expects(updatedUser).returns(updatedUser)
 
     val result = editS10nCurrencyDialogService.onEditS10nCurrencyCb(user, EditS10nCurrency(s10nId)).unsafeRunSync()
-    result shouldMatchTo {
+    result shouldBe {
       List(
         ReplyMessage(
           "Please select a popular currency from the options below, or manually type in the code for any other currency not listed in the buttons. For example: 'CNY' for Chinese Yuan or 'INR' for Indian Rupee:",
@@ -68,7 +65,7 @@ class DefaultEditS10nCurrencyDialogServiceSpec
       s10n.copy(amount = Money.zero(CurrencyUnit.USD))
     )
     val updatedUser = user.copy(dialog = updatedDialog.some)
-    (mockUserRepo.createOrUpdate _).expects(updatedUser).returns(updatedUser)
+    (mockUserRepo.createOrUpdate).expects(updatedUser).returns(updatedUser)
 
     editS10nCurrencyDialogService.saveCurrency(user, dialogWithCurrencyState, "USD".some).unsafeRunSync() shouldBe
       List(ReplyMessage("Amount:")).validNec
@@ -93,7 +90,7 @@ class DefaultEditS10nCurrencyDialogServiceSpec
 
   it should "save a subscription with new amount" in {
     val updatedS10n = s10n.copy(amount = Money.of(CurrencyUnit.USD, 13.37))
-    (mockS10nRepo.update _).expects(updatedS10n).returns(updatedS10n.some)
+    (mockS10nRepo.update).expects(updatedS10n).returns(updatedS10n.some)
 
     editS10nCurrencyDialogService.saveAmount(user, dialogWithAmountState, "13.37".some).unsafeRunSync() shouldBe
       List(

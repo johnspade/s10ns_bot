@@ -4,11 +4,11 @@ import cats.data.OptionT
 
 import doobie.free.connection
 import doobie.free.connection.ConnectionIO
-import doobie.implicits._
+import doobie.implicits.*
 import doobie.util.query.Query0
 import doobie.util.update.Update0
 
-import ru.johnspade.s10ns.user.DoobieUserMeta._
+import ru.johnspade.s10ns.user.DoobieUserMeta.*
 import ru.johnspade.s10ns.user.DoobieUserRepository.UserSql
 
 class DoobieUserRepository extends UserRepository[ConnectionIO] {

@@ -2,17 +2,17 @@ package ru.johnspade.s10ns.notifications
 
 import java.time.Instant
 import java.util.UUID
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 
 import cats.Monad
 import cats.effect.Async
 import cats.effect.Concurrent
 import cats.effect.Sync
-import cats.implicits._
+import cats.implicits.*
 import cats.~>
 
-import tofu.logging._
-import tofu.syntax.logging._
+import tofu.logging.*
+import tofu.syntax.logging.*
 
 import ru.johnspade.s10ns.currentTimestamp
 import ru.johnspade.s10ns.repeat

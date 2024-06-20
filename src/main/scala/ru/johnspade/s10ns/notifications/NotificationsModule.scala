@@ -3,7 +3,7 @@ package ru.johnspade.s10ns.notifications
 import cats.effect.Async
 import cats.effect.Clock
 import cats.effect.Concurrent
-import cats.implicits._
+import cats.implicits.*
 import cats.~>
 
 import doobie.free.connection.ConnectionIO

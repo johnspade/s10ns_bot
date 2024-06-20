@@ -6,10 +6,8 @@ import java.time.ZoneOffset
 import cats.Id
 import cats.effect.IO
 import cats.effect.unsafe.implicits.global
-import cats.syntax.option._
+import cats.syntax.option.*
 
-import com.softwaremill.diffx.generic.auto._
-import com.softwaremill.diffx.scalatest.DiffShouldMatcher
 import org.joda.money.CurrencyUnit
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.flatspec.AnyFlatSpec
@@ -43,7 +41,7 @@ import ru.johnspade.s10ns.subscription.service.impl.DefaultCreateS10nDialogFsmSe
 import ru.johnspade.s10ns.user.InMemoryUserRepository
 import ru.johnspade.s10ns.user.User
 
-class DefaultCreateS10nDialogFsmServiceSpec extends AnyFlatSpec with Matchers with DiffShouldMatcher with MockFactory {
+class DefaultCreateS10nDialogFsmServiceSpec extends AnyFlatSpec with Matchers with MockFactory {
   private val mockS10nRepo   = mock[SubscriptionRepository[Id]]
   private val userRepository = new InMemoryUserRepository
   private val dialogEngine   = new DefaultDialogEngine[IO, Id](userRepository)
@@ -89,21 +87,21 @@ class DefaultCreateS10nDialogFsmServiceSpec extends AnyFlatSpec with Matchers wi
 
   "saveName" should "ask for amount" in {
     val dialog = CreateS10nDialog(CreateS10nDialogState.Name, draft)
-    createS10nDialogFsmService.saveName(user, dialog, "Netflix").unsafeRunSync() shouldMatchTo {
+    createS10nDialogFsmService.saveName(user, dialog, "Netflix").unsafeRunSync() shouldBe {
       List(ReplyMessage("Amount:"))
     }
   }
 
   "saveCurrency" should "ask for a name" in {
     val dialog = CreateS10nDialog(CreateS10nDialogState.Currency, draft)
-    createS10nDialogFsmService.saveCurrency(user, dialog, CurrencyUnit.EUR).unsafeRunSync() shouldMatchTo {
+    createS10nDialogFsmService.saveCurrency(user, dialog, CurrencyUnit.EUR).unsafeRunSync() shouldBe {
       List(ReplyMessage("Name:", ReplyKeyboardRemove(removeKeyboard = true).some))
     }
   }
 
   "saveAmount" should "ask is it an one time subscription" in {
     val dialog = CreateS10nDialog(CreateS10nDialogState.Amount, draft)
-    createS10nDialogFsmService.saveAmount(user, dialog, BigDecimal(1)).unsafeRunSync() shouldMatchTo {
+    createS10nDialogFsmService.saveAmount(user, dialog, BigDecimal(1)).unsafeRunSync() shouldBe {
       List(
         ReplyMessage(
           "Recurring/one time:",
@@ -126,7 +124,7 @@ class DefaultCreateS10nDialogFsmServiceSpec extends AnyFlatSpec with Matchers wi
     val dialog = CreateS10nDialog(CreateS10nDialogState.BillingPeriodDuration, draft)
     createS10nDialogFsmService
       .saveBillingPeriodDuration(user, dialog, 1)
-      .unsafeRunSync() shouldMatchTo {
+      .unsafeRunSync() shouldBe {
       List(
         ReplyMessage(
           "First payment date:",
@@ -140,21 +138,21 @@ class DefaultCreateS10nDialogFsmServiceSpec extends AnyFlatSpec with Matchers wi
     val dialog = CreateS10nDialog(CreateS10nDialogState.BillingPeriodUnit, draft)
     createS10nDialogFsmService
       .saveBillingPeriodUnit(user, dialog, BillingPeriodUnit.Month)
-      .unsafeRunSync() shouldMatchTo {
+      .unsafeRunSync() shouldBe {
       List(ReplyMessage("Billing period duration (1, 2...):"))
     }
   }
 
   "skipIsOneTime" should "finish a dialog" in {
-    (mockS10nRepo.create _).expects(*).returns(s10n)
+    (mockS10nRepo.create).expects(*).returns(s10n)
 
     val dialog = CreateS10nDialog(CreateS10nDialogState.IsOneTime, draft)
-    createS10nDialogFsmService.skipIsOneTime(user, dialog).unsafeRunSync() shouldMatchTo finish
+    createS10nDialogFsmService.skipIsOneTime(user, dialog).unsafeRunSync() shouldBe finish
   }
 
   "saveIsOneTime" should "ask for a billing period unit of a recurring subscription" in {
     val dialog = CreateS10nDialog(CreateS10nDialogState.IsOneTime, draft)
-    createS10nDialogFsmService.saveIsOneTime(user, dialog, false).unsafeRunSync() shouldMatchTo {
+    createS10nDialogFsmService.saveIsOneTime(user, dialog, false).unsafeRunSync() shouldBe {
       List(
         ReplyMessage(
           "Billing period unit:",
@@ -175,7 +173,7 @@ class DefaultCreateS10nDialogFsmServiceSpec extends AnyFlatSpec with Matchers wi
 
   it should "ask for a first payment date of an one time subscription" in {
     val dialog = CreateS10nDialog(CreateS10nDialogState.IsOneTime, draft)
-    createS10nDialogFsmService.saveIsOneTime(user, dialog, true).unsafeRunSync() shouldMatchTo {
+    createS10nDialogFsmService.saveIsOneTime(user, dialog, true).unsafeRunSync() shouldBe {
       List(
         ReplyMessage(
           "First payment date:",
@@ -186,18 +184,18 @@ class DefaultCreateS10nDialogFsmServiceSpec extends AnyFlatSpec with Matchers wi
   }
 
   "skipFirstPaymentDate" should "finish a dialog" in {
-    (mockS10nRepo.create _).expects(*).returns(s10n)
+    (mockS10nRepo.create).expects(*).returns(s10n)
 
     val dialog = CreateS10nDialog(CreateS10nDialogState.FirstPaymentDate, draft)
-    createS10nDialogFsmService.skipFirstPaymentDate(user, dialog).unsafeRunSync() shouldMatchTo finish
+    createS10nDialogFsmService.skipFirstPaymentDate(user, dialog).unsafeRunSync() shouldBe finish
   }
 
   "saveFirstPaymentDate" should "finish a dialog" in {
-    (mockS10nRepo.create _).expects(*).returns(s10n)
+    (mockS10nRepo.create).expects(*).returns(s10n)
 
     val dialog = CreateS10nDialog(CreateS10nDialogState.FirstPaymentDate, draft)
     createS10nDialogFsmService
       .saveFirstPaymentDate(user, dialog, LocalDate.now(ZoneOffset.UTC))
-      .unsafeRunSync() shouldMatchTo finish
+      .unsafeRunSync() shouldBe finish
   }
 }

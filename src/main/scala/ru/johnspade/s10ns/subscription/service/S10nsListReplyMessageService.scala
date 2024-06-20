@@ -2,7 +2,7 @@ package ru.johnspade.s10ns.subscription.service
 
 import java.time.format.DateTimeFormatter
 
-import cats.syntax.option._
+import cats.syntax.option.*
 
 import com.ibm.icu.text.MeasureFormat
 import com.ibm.icu.text.MeasureFormat.FormatWidth

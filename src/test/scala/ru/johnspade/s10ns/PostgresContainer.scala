@@ -5,7 +5,7 @@ import cats.~>
 
 import com.dimafeng.testcontainers.PostgreSQLContainer
 import doobie.free.connection.ConnectionIO
-import doobie.implicits._
+import doobie.implicits.*
 import doobie.util.transactor.Transactor
 import org.flywaydb.core.Flyway
 import org.testcontainers.utility.DockerImageName

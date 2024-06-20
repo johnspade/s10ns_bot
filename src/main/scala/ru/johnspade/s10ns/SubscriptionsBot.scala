@@ -3,24 +3,21 @@ package ru.johnspade.s10ns
 import cats.Monad
 import cats.Parallel
 import cats.effect.Async
-import cats.implicits._
+import cats.implicits.*
 import cats.~>
 
 import ru.johnspade.tgbot.callbackqueries.CallbackDataDecoder
 import ru.johnspade.tgbot.callbackqueries.CallbackQueryHandler
-import ru.johnspade.tgbot.callbackqueries.DecodeError
-import ru.johnspade.tgbot.callbackqueries.ParseError
 import telegramium.bots.CallbackQuery
 import telegramium.bots.Message
+import telegramium.bots.User as TgUser
 import telegramium.bots.high.Api
 import telegramium.bots.high.WebhookBot
-import telegramium.bots.{User => TgUser}
 import tofu.logging.Logging
 import tofu.logging.Logs
 
 import ru.johnspade.s10ns.bot.BotConfig
 import ru.johnspade.s10ns.bot.CbData
-import ru.johnspade.s10ns.bot.CbDataService
 import ru.johnspade.s10ns.bot.CreateS10nDialog
 import ru.johnspade.s10ns.bot.Dialog
 import ru.johnspade.s10ns.bot.EditS10nAmountDialog
@@ -53,7 +50,6 @@ class SubscriptionsBot[F[_]: Async: Logging, D[_]: Monad](
     private val settingsController: SettingsController[F],
     private val startController: StartController[F],
     private val ignoreController: IgnoreController[F],
-    private val cbDataService: CbDataService[F],
     private val userMiddleware: UserMiddleware[F, D]
 )(private implicit val api: Api[F], val transact: D ~> F)
     extends WebhookBot[F](
@@ -74,15 +70,7 @@ class SubscriptionsBot[F[_]: Async: Logging, D[_]: Monad](
   private val userRoutes   = s10nListController.routes <+> s10nController.routes <+> settingsController.routes
   private val allRoutes    = simpleRoutes <+> userMiddleware.userEnricher(userRoutes)
 
-  private val cbDataDecoder: CallbackDataDecoder[F, CbData] =
-    cbDataService
-      .decode(_)
-      .left
-      .map {
-        case error: kantan.csv.ParseError  => ParseError(error.getMessage)
-        case error: kantan.csv.DecodeError => DecodeError(error.getMessage)
-      }
-      .toEitherT[F]
+  private val cbDataDecoder: CallbackDataDecoder[F, CbData] = CbData.decode(_).toEitherT[F]
 
   override def onCallbackQuery(query: CallbackQuery): F[Unit] =
     CallbackQueryHandler
@@ -172,7 +160,6 @@ object SubscriptionsBot {
       settingsController: SettingsController[F],
       startController: StartController[F],
       ignoreController: IgnoreController[F],
-      cbDataService: CbDataService[F],
       userMiddleware: UserMiddleware[F, D]
   )(implicit api: Api[F], transact: D ~> F, logs: Logs[F, F]): F[SubscriptionsBot[F, D]] =
     logs.forService[SubscriptionsBot[F, D]].map { implicit l =>
@@ -185,7 +172,6 @@ object SubscriptionsBot {
         settingsController,
         startController,
         ignoreController,
-        cbDataService,
         userMiddleware
       )
     }

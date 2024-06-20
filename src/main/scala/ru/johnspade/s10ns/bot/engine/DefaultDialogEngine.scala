@@ -3,7 +3,7 @@ package ru.johnspade.s10ns.bot.engine
 import cats.Applicative
 import cats.Monad
 import cats.effect.Sync
-import cats.implicits._
+import cats.implicits.*
 import cats.~>
 
 import telegramium.bots.InlineKeyboardMarkup

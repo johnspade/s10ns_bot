@@ -3,7 +3,7 @@ package ru.johnspade.s10ns.settings
 import cats.Defer
 import cats.Monad
 import cats.effect.Temporal
-import cats.implicits._
+import cats.implicits.*
 
 import ru.johnspade.tgbot.callbackqueries.CallbackQueryContextRoutes
 import telegramium.bots.ChatIntId
@@ -11,7 +11,7 @@ import telegramium.bots.InlineKeyboardMarkup
 import telegramium.bots.Message
 import telegramium.bots.high.Api
 import telegramium.bots.high.Methods
-import telegramium.bots.high.implicits._
+import telegramium.bots.high.implicits.*
 import tofu.logging.Logging
 import tofu.logging.Logs
 
@@ -24,6 +24,7 @@ import ru.johnspade.s10ns.bot.SettingsDialog
 import ru.johnspade.s10ns.bot.engine.ReplyMessage
 import ru.johnspade.s10ns.bot.engine.TelegramOps.ackCb
 import ru.johnspade.s10ns.bot.engine.TelegramOps.sendReplyMessages
+import ru.johnspade.s10ns.bot.engine.TelegramOps.toMessage
 import ru.johnspade.s10ns.bot.engine.TelegramOps.toReplyMessage
 import ru.johnspade.s10ns.user.User
 
@@ -42,31 +43,36 @@ class SettingsController[F[_]: Logging: Temporal: Defer](
   override val routes: CbDataUserRoutes[F] = CallbackQueryContextRoutes.of {
     case DefCurrency in cb as user =>
       ackCb(cb) *> cb.message
-        .map { msg =>
+        .flatMap:
+          _.toMessage
+        .`traverse_`: msg =>
           settingsService
             .startDefaultCurrencyDialog(user)
-            .flatMap(sendReplyMessages(msg, _).void)
-        }
-        .getOrElse(Monad[F].unit)
+            .flatMap:
+              sendReplyMessages(msg, _).void
 
     case NotifyByDefault in cb as user =>
-      for {
+      for
         _     <- ackCb(cb)
         reply <- settingsService.toggleNotifyByDefault(user)
-        _ <- Methods
-          .editMessageText(
-            chatId = cb.message.map(msg => ChatIntId(msg.chat.id)),
-            messageId = cb.message.map(_.messageId),
-            text = reply.text,
-            replyMarkup = reply.markup match {
-              case Some(m: InlineKeyboardMarkup) => m.some
-              case _                             => None
-            },
-            parseMode = reply.parseMode
-          )
-          .exec
-          .void
-      } yield ()
+        _ <- cb.message
+          .flatMap:
+            _.toMessage
+          .`traverse_`: msg =>
+            Methods
+              .editMessageText(
+                reply.text,
+                ChatIntId(msg.chat.id).some,
+                msg.messageId.some,
+                replyMarkup = reply.markup match {
+                  case Some(m: InlineKeyboardMarkup) => m.some
+                  case _                             => None
+                },
+                parseMode = reply.parseMode
+              )
+              .exec
+              .void
+      yield ()
   }
 
   def settingsCommand(user: User): F[ReplyMessage] = settingsService.onSettingsCommand(user)

@@ -8,22 +8,25 @@ import cats.Monad
 import cats.data.Validated.Invalid
 import cats.data.Validated.Valid
 import cats.effect.Temporal
-import cats.implicits._
+import cats.implicits.*
 
 import telegramium.bots.CallbackQuery
 import telegramium.bots.ChatIntId
+import telegramium.bots.InaccessibleMessage
 import telegramium.bots.InlineKeyboardButton
+import telegramium.bots.LinkPreviewOptions
+import telegramium.bots.MaybeInaccessibleMessage
 import telegramium.bots.Message
 import telegramium.bots.high.Api
-import telegramium.bots.high.Methods._
-import telegramium.bots.high.implicits._
+import telegramium.bots.high.Methods.*
+import telegramium.bots.high.implicits.*
 import telegramium.bots.high.keyboards.InlineKeyboardButtons
 import tofu.logging.Logging
 
 import ru.johnspade.s10ns.bot.CbData
 import ru.johnspade.s10ns.bot.Dialog
 import ru.johnspade.s10ns.bot.ValidatorNec.ValidationResult
-import ru.johnspade.s10ns.user._
+import ru.johnspade.s10ns.user.*
 
 object TelegramOps {
   implicit class TelegramUserOps(val value: telegramium.bots.User) extends AnyVal {
@@ -42,7 +45,7 @@ object TelegramOps {
       reply.text,
       replyMarkup = reply.markup,
       parseMode = reply.parseMode,
-      disableWebPagePreview = reply.disableWebPagePreview
+      linkPreviewOptions = Some(LinkPreviewOptions(reply.disableWebPagePreview))
     ).exec.void
 
   def ackCb[F[_]](cb: CallbackQuery, text: Option[String] = None)(implicit bot: Api[F], F: Functor[F]): F[Unit] =
@@ -65,24 +68,24 @@ object TelegramOps {
   def inlineKeyboardButton(text: String, cbData: CbData): InlineKeyboardButton =
     InlineKeyboardButtons.callbackData(text, callbackData = cbData.toCsv)
 
-  def clearMarkup[F[_]](cb: CallbackQuery)(implicit bot: Api[F], F: Functor[F]): F[Unit] =
-    editMessageReplyMarkup(
-      cb.message.map(msg => ChatIntId(msg.chat.id)),
-      cb.message.map(_.messageId)
-    ).exec.void
+  def clearMarkup[F[_]: Monad](cb: CallbackQuery)(using bot: Api[F]): F[Unit] =
+    cb.message
+      .flatMap:
+        _.toMessage
+      .`traverse_`: msg =>
+        editMessageReplyMarkup(ChatIntId(msg.chat.id).some, msg.messageId.some).exec.void
 
-  def handleCallback[F[_]: Logging: Temporal](query: CallbackQuery, replies: List[ReplyMessage])(implicit
+  def handleCallback[F[_]: Logging: Temporal](query: CallbackQuery, replies: List[ReplyMessage])(using
       bot: Api[F]
-  ): F[Unit] = {
+  ): F[Unit] =
     def sendReplies() =
       query.message
-        .map {
+        .flatMap:
+          _.toMessage
+        .`traverse_`:
           sendReplyMessages(_, replies)
-        }
-        .getOrElse(Monad[F].unit)
 
     ackCb(query) *> sendReplies()
-  }
 
   def sendReplyMessages[F[_]: Logging: Temporal](msg: Message, replies: List[ReplyMessage])(implicit
       bot: Api[F]
@@ -92,4 +95,9 @@ object TelegramOps {
         .handleErrorWith(e => Logging[F].errorCause(e.getMessage, e)) *>
         Temporal[F].sleep(FiniteDuration(400, MILLISECONDS))
     }.sequence_
+
+  extension (maybeInaccessibleMessage: MaybeInaccessibleMessage)
+    def toMessage: Option[Message] = maybeInaccessibleMessage match
+      case _: InaccessibleMessage => None
+      case m: Message             => Some(m)
 }

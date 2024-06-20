@@ -3,7 +3,7 @@ package ru.johnspade.s10ns.subscription.repository
 import ru.johnspade.s10ns.DoobieRepositorySpec
 import ru.johnspade.s10ns.subscription.Subscription
 import ru.johnspade.s10ns.subscription.SubscriptionDraft
-import ru.johnspade.s10ns.subscription.repository.DoobieSubscriptionRepository.SubscriptionSql._
+import ru.johnspade.s10ns.subscription.repository.DoobieSubscriptionRepository.SubscriptionSql.*
 
 class DoobieSubscriptionRepositorySpec extends DoobieRepositorySpec {
   private val sampleS10nId    = 0L

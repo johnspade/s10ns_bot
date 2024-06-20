@@ -16,7 +16,6 @@ final class BotModule[F[_], D[_]] private (
     val dialogEngine: TransactionalDialogEngine[F, D],
     val startController: StartController[F],
     val ignoreController: IgnoreController[F],
-    val cbDataService: CbDataService[F],
     val userMiddleware: UserMiddleware[F, D]
 )
 
@@ -33,7 +32,6 @@ object BotModule {
         dialogEngine = dialogEngine,
         startController = new StartController[F](dialogEngine),
         ignoreController = new IgnoreController[F],
-        cbDataService = new CbDataService[F],
         userMiddleware = new UserMiddleware[F, ConnectionIO](userModule.userRepository)
       )
     }

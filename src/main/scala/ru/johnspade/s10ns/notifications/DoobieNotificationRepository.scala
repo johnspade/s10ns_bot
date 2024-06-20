@@ -3,13 +3,13 @@ package ru.johnspade.s10ns.notifications
 import java.util.UUID
 
 import cats.instances.list.catsStdInstancesForList
-import cats.syntax.functor._
+import cats.syntax.functor.*
 
 import doobie.Query0
 import doobie.Update0
 import doobie.free.connection.ConnectionIO
-import doobie.implicits._
-import doobie.postgres.implicits._
+import doobie.implicits.*
+import doobie.postgres.implicits.*
 import doobie.util.update.Update
 
 import ru.johnspade.s10ns.notifications.DoobieNotificationRepository.NotificationSql
@@ -19,7 +19,7 @@ class DoobieNotificationRepository extends NotificationRepository[ConnectionIO] 
     NotificationSql.create(notification).run.void
 
   def create(notifications: List[Notification]): ConnectionIO[Unit] =
-    NotificationSql.createMany.updateMany(notifications.map(Notification.unapply(_).get)).void
+    NotificationSql.createMany.updateMany(notifications.map(Tuple.fromProductTyped(_))).void
 
   def retrieveForSending(): ConnectionIO[Option[Notification]] =
     NotificationSql.retrieveForSending().option

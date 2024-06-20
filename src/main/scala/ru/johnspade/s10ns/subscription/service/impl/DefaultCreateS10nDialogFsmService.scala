@@ -3,7 +3,7 @@ package ru.johnspade.s10ns.subscription.service.impl
 import java.time.LocalDate
 
 import cats.Monad
-import cats.implicits._
+import cats.implicits.*
 import cats.~>
 
 import org.joda.money.CurrencyUnit

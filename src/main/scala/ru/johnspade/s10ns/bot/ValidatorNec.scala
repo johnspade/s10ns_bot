@@ -3,7 +3,7 @@ package ru.johnspade.s10ns.bot
 import scala.util.Try
 
 import cats.data.ValidatedNec
-import cats.implicits._
+import cats.implicits.*
 
 import org.joda.money.CurrencyUnit
 
