@@ -7,9 +7,9 @@ import cats.effect.Temporal
 import cats.syntax.all.*
 import cats.~>
 
-import retry.*
 import retry.RetryDetails.GivingUp
 import retry.RetryDetails.WillDelayAndRetry
+import retry.*
 import tofu.logging.*
 import tofu.syntax.logging.*
 

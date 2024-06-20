@@ -20,9 +20,9 @@ import telegramium.bots.Chat
 import telegramium.bots.ChatIntId
 import telegramium.bots.Markdown
 import telegramium.bots.Message
-import telegramium.bots.high.*
 import telegramium.bots.high.Api
 import telegramium.bots.high.Methods.sendMessage
+import telegramium.bots.high.*
 import telegramium.bots.high.keyboards.InlineKeyboardMarkups
 
 import ru.johnspade.s10ns.PostgresContainer.transact

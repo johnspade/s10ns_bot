@@ -10,9 +10,9 @@ import ru.johnspade.tgbot.callbackqueries.CallbackDataDecoder
 import ru.johnspade.tgbot.callbackqueries.CallbackQueryHandler
 import telegramium.bots.CallbackQuery
 import telegramium.bots.Message
-import telegramium.bots.User as TgUser
 import telegramium.bots.high.Api
 import telegramium.bots.high.WebhookBot
+import telegramium.bots.User as TgUser
 import tofu.logging.Logging
 import tofu.logging.Logs
 
