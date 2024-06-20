@@ -28,9 +28,9 @@ val FlywayVersion              = "10.8.1"
 val KantanVersion              = "0.7.0"
 val PureconfigVersion          = "0.17.7"
 val SttpVersion                = "3.9.3"
-val TelegramiumVersion         = "8.74.0"
+val TelegramiumVersion         = "9.74.0"
 val TestcontainersScalaVersion = "0.41.3"
-val TgbotUtilsVersion          = "0.7.1"
+val TgbotUtilsVersion          = "0.8.1"
 val TofuVersion                = "0.13.2"
 
 libraryDependencies ++= Seq(
