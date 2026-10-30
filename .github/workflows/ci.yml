@@ -1,19 +1,50 @@
 name: CI
+
 on:
   push:
     branches: [master]
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
 jobs:
-  build:
+  validate:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v6
         with:
           java-version: 17
           distribution: temurin
-      - uses: coursier/cache-action@v6
+          cache: sbt
+      - uses: sbt/setup-sbt@v1
       - name: Validate project
         run: sbt validate
+
+  publish:
+    needs: validate
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0 # sbt-dynver needs history to count commits for the image tag
+      - uses: actions/setup-java@v6
+        with:
+          java-version: 17
+          distribution: temurin
+          cache: sbt
+      - uses: sbt/setup-sbt@v1
       - name: Publish Docker container
         env:
           JIB_TARGET_IMAGE_USERNAME: johnspade
