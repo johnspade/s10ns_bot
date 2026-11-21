@@ -29,7 +29,7 @@ val KantanVersion              = "0.7.0"
 val PureconfigVersion          = "0.17.7"
 val SttpVersion                = "3.9.3"
 val TelegramiumVersion         = "9.74.0"
-val TestcontainersScalaVersion = "0.41.3"
+val TestcontainersScalaVersion = "0.44.1"
 val TgbotUtilsVersion          = "0.8.1"
 val TofuVersion                = "0.13.2"
 
@@ -75,7 +75,7 @@ Global / onChangedBuildSource := ReloadOnSourceChanges
 
 lazy val root: Project = (project in file(".")).withSerialTests
   .settings(
-    jibBaseImage    := "eclipse-temurin:21.0.13_9-jre",
+    jibBaseImage    := "eclipse-temurin:21.0.13.1_2-jre",
     jibOrganization := "johnspade",
     jibName         := "s10ns_bot",
     jibTcpPorts     := List(8080),
